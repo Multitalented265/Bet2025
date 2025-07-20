@@ -65,6 +65,22 @@ const CustomYAxisTick = (props: any) => {
 export function DashboardChart({ candidates }: DashboardChartProps) {
   const [chartData, setChartData] = useState<CandidateData[]>(candidates.sort((a,b) => b.totalBets - a.totalBets))
   const [totalPot, setTotalPot] = useState(candidates.reduce((acc, curr) => acc + curr.totalBets, 0))
+  const [barCategoryGap, setBarCategoryGap] = useState("35%");
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+        if (window.matchMedia("(min-width: 768px)").matches) {
+            setBarCategoryGap("20%"); // Wider bars on desktop
+        } else {
+            setBarCategoryGap("35%"); // Default for mobile
+        }
+    }
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -107,7 +123,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
             layout="vertical"
             margin={{ left: 20, right: 30, top: 20, bottom: 20 }}
             accessibilityLayer
-            barCategoryGap="35%"
+            barCategoryGap={barCategoryGap}
             >
             <XAxis type="number" hide />
             <YAxis 
