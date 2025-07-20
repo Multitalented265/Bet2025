@@ -33,6 +33,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'www.peaceparks.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
       }
     ],
   },
