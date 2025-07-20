@@ -43,8 +43,8 @@ const CustomYAxisTick = (props: any) => {
     if (!candidate) return null;
   
     return (
-      <g transform={`translate(${x - 10},${y})`}>
-        <foreignObject x={-140} y={-35} width="140" height="70">
+      <g transform={`translate(${x},${y})`}>
+        <foreignObject x={-150} y={-35} width="140" height="70">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
             <Image
               src={candidate.image}
