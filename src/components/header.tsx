@@ -13,13 +13,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { SidebarNav } from "./sidebar-nav"
+import Logo from "./logo"
+import { TopNav } from "./top-nav"
 
-export function Header({ title }: { title: string }) {
+export function Header() {
   return (
-    <header className="flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 sticky top-0 z-30">
-      <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-        {/* Mobile sidebar trigger with Sheet */}
+    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 z-30">
+        <Link href="/dashboard" className="hidden md:block">
+            <Logo />
+        </Link>
+        <TopNav />
         <Sheet>
           <SheetTrigger asChild>
             <Button
@@ -32,35 +35,30 @@ export function Header({ title }: { title: string }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left">
-            <SidebarNav />
+            <TopNav isMobile={true} />
           </SheetContent>
         </Sheet>
-      </nav>
-      <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-         <h1 className="text-xl font-semibold font-headline">{title}</h1>
-        <div className="ml-auto flex-1 sm:flex-initial">
-          {/* User dropdown menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/wallet"><Wallet className="mr-2 h-4 w-4"/>Wallet</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/"><LogOut className="mr-2 h-4 w-4"/>Logout</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+      <div className="flex w-full items-center gap-4 md:ml-auto md:flex-initial md:justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon" className="rounded-full">
+              <CircleUser className="h-5 w-5" />
+              <span className="sr-only">Toggle user menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/wallet"><Wallet className="mr-2 h-4 w-4"/>Wallet</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/"><LogOut className="mr-2 h-4 w-4"/>Logout</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

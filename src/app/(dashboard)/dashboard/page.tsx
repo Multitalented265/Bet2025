@@ -1,6 +1,5 @@
 import { BettingCard } from "@/components/betting-card"
 import { DashboardChart } from "@/components/dashboard-chart"
-import { Header } from "@/components/header"
 import { handleBetPlacement } from "@/actions/bet"
 
 const candidates = [
@@ -12,7 +11,10 @@ const candidates = [
 export default function Dashboard() {
   return (
     <div className="flex flex-col gap-6">
-      <Header title="Dashboard" />
+      <div>
+        <h1 className="text-3xl font-bold mb-2 font-headline">Dashboard</h1>
+        <p className="text-muted-foreground">An overview of the betting landscape.</p>
+      </div>
       <div>
         <DashboardChart initialData={candidates} />
       </div>
