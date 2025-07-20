@@ -53,7 +53,7 @@ export function Header() {
               <Link href="/wallet"><Wallet className="mr-2 h-4 w-4"/>Wallet</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="#"><User className="mr-2 h-4 w-4"/>Profile</Link>
+              <Link href="/profile"><User className="mr-2 h-4 w-4"/>Profile</Link>
             </DropdownMenuItem>
              <DropdownMenuItem asChild>
               <Link href="#"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
