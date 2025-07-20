@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'www.nyasatimes.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.sadc.int',
       }
     ],
   },
