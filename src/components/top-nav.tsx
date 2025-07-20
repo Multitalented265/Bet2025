@@ -26,7 +26,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground',
+                'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap',
                 pathname === item.href && 'bg-muted text-foreground'
               )}
             >
