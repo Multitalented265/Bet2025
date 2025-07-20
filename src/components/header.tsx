@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleUser, FileText, LogOut, Menu, ShieldCheck, User } from "lucide-react"
+import { CircleUser, Menu } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +15,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import Logo from "./logo"
 import { TopNav } from "./top-nav"
+import { User, FileText, ShieldCheck, LogOut } from "lucide-react"
 
 export function Header() {
   return (
@@ -22,24 +23,28 @@ export function Header() {
         <Link href="/dashboard" className="hidden md:block">
             <Logo />
         </Link>
-        <TopNav />
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            <TopNav isMobile={true} />
-          </SheetContent>
-        </Sheet>
-      <div className="flex w-full items-center gap-4 md:ml-auto md:flex-initial md:justify-end">
+        <div className="flex-1 md:hidden">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    >
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle navigation menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left">
+                    <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                    <TopNav isMobile={true} />
+                </SheetContent>
+            </Sheet>
+        </div>
+        <div className="hidden md:flex flex-1 items-center">
+            <TopNav />
+        </div>
+      <div className="hidden md:flex items-center gap-4 md:ml-auto md:flex-initial">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
@@ -52,6 +57,9 @@ export function Header() {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/profile"><User className="mr-2 h-4 w-4"/>Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href="/wallet"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4 lucide lucide-wallet"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Wallet</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
