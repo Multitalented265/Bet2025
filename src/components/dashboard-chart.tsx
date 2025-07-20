@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Bar, BarChart, XAxis, YAxis, Tooltip, Cell } from "recharts"
+import { Bar, BarChart, XAxis, YAxis, Tooltip, Cell, LabelList } from "recharts"
 
 import {
   Card,
@@ -30,10 +30,10 @@ type DashboardChartProps = {
 }
 
 const candidateColors: { [key: string]: string } = {
-    "Dalitso Kabambe": "hsl(0 75% 60%)", // Red
-    "Lazarus Chakwera": "hsl(0 0% 0%)", // Black
-    "Peter Mutharika": "hsl(200 100% 50%)", // Sky Blue
-    "Atupele Muluzi": "hsl(54 100% 50%)", // Yellow
+    "Dalitso Kabambe": "hsl(var(--chart-5))",
+    "Lazarus Chakwera": "hsl(var(--chart-1))",
+    "Peter Mutharika": "hsl(var(--chart-2))",
+    "Atupele Muluzi": "hsl(var(--chart-4))",
 };
 
 const CustomYAxisTick = (props: any) => {
@@ -107,7 +107,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
             layout="vertical"
             margin={{ left: 20, right: 30, top: 20, bottom: 20 }}
             accessibilityLayer
-            barCategoryGap="20%"
+            barCategoryGap="35%"
             >
             <XAxis type="number" hide />
             <YAxis 
@@ -134,7 +134,14 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
                   nameKey="name"
                   hideLabel />}
               />
-            <Bar dataKey="totalBets" layout="vertical" radius={5} animationDuration={800}>
+            <Bar dataKey="totalBets" layout="vertical" radius={8} animationDuration={800}>
+              <LabelList
+                dataKey="totalBets"
+                position="right"
+                offset={10}
+                className="fill-foreground font-semibold"
+                formatter={(value: number) => `${value.toLocaleString()}`}
+              />
               {chartData.map((entry) => (
                 <Cell key={`cell-${entry.id}`} fill={candidateColors[entry.name]} />
               ))}
