@@ -130,7 +130,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
     return acc
   }, {} as any)
   
-  const sortedData = [...chartData].sort((a, b) => a.totalBets - b.totalBets);
+  const sortedData = [...chartData].sort((a, b) => b.totalBets - a.totalBets);
 
   return (
     <Card className="w-full shadow-lg">
