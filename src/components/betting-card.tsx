@@ -48,12 +48,6 @@ export function BettingCard({ candidate, onBet }: BettingCardProps) {
     form.reset()
   }
 
-  const handleAmountChange = (change: number) => {
-    const currentAmount = form.getValues("amount");
-    const newAmount = Math.max(100, currentAmount + change);
-    form.setValue("amount", newAmount);
-  }
-
   return (
     <Card className="w-full transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
       <Form {...form}>
@@ -77,13 +71,9 @@ export function BettingCard({ candidate, onBet }: BettingCardProps) {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className="text-center block">Bet Amount (MWK)</FormLabel>
-                  <div className="flex items-center justify-center space-x-2">
-                    <Button type="button" size="icon" variant="outline" onClick={() => handleAmountChange(-100)}>-</Button>
-                    <FormControl>
-                      <Input {...field} type="number" step="100" className="text-center text-lg font-bold w-32" />
+                   <FormControl>
+                      <Input {...field} type="number" step="100" className="text-center text-lg font-bold w-full" />
                     </FormControl>
-                    <Button type="button" size="icon" variant="outline" onClick={() => handleAmountChange(100)}>+</Button>
-                  </div>
                   <FormMessage className="text-center" />
                 </FormItem>
               )}
