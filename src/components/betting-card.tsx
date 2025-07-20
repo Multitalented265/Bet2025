@@ -11,6 +11,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
+import { useBets } from "@/context/bet-context"
 
 const betSchema = z.object({
   amount: z.coerce.number().int().min(100, "Minimum bet is 100 MWK.").refine(
@@ -31,6 +32,7 @@ type BettingCardProps = {
 
 export function BettingCard({ candidate, onBet }: BettingCardProps) {
   const { toast } = useToast()
+  const { addBet } = useBets();
   
   const form = useForm<z.infer<typeof betSchema>>({
     resolver: zodResolver(betSchema),
@@ -41,6 +43,10 @@ export function BettingCard({ candidate, onBet }: BettingCardProps) {
 
   function onSubmit(values: z.infer<typeof betSchema>) {
     onBet(candidate.id, values.amount)
+    addBet({
+      candidateName: candidate.name,
+      amount: values.amount,
+    })
     toast({
       title: "Bet Placed!",
       description: `Your ${values.amount} MWK bet on ${candidate.name} has been placed.`,

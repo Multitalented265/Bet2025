@@ -1,43 +1,11 @@
 
 "use client"
 
-import { useState } from "react";
-import { BetTicket, type Bet } from "@/components/bet-ticket";
-import { Button } from "@/components/ui/button";
-
-const initialBets: Bet[] = [
-  {
-    id: 'BET-001',
-    candidateName: 'Lazarus Chakwera',
-    amount: 5000,
-    placedDate: '2024-07-20',
-    status: 'Pending',
-  },
-  {
-    id: 'BET-002',
-    candidateName: 'Peter Mutharika',
-    amount: 10000,
-    placedDate: '2024-07-18',
-    status: 'Pending',
-  },
-  {
-    id: 'BET-003',
-    candidateName: 'Dalitso Kabambe',
-    amount: 2500,
-    placedDate: '2024-07-15',
-    status: 'Pending',
-  },
-    {
-    id: 'BET-004',
-    candidateName: 'Lazarus Chakwera',
-    amount: 2000,
-    placedDate: '2024-07-21',
-    status: 'Pending',
-  },
-];
+import { BetTicket } from "@/components/bet-ticket";
+import { useBets } from "@/context/bet-context";
 
 export default function BetsPage() {
-  const [bets, setBets] = useState<Bet[]>(initialBets);
+  const { bets } = useBets();
 
   return (
     <div className="flex flex-col gap-6">
