@@ -30,10 +30,10 @@ type DashboardChartProps = {
 }
 
 const candidateColors: { [key: string]: string } = {
-    "Dalitso Kabambe": "hsl(var(--chart-5))",
-    "Lazarus Chakwera": "hsl(var(--chart-1))",
-    "Peter Mutharika": "hsl(var(--chart-2))",
-    "Atupele Muluzi": "hsl(var(--chart-4))",
+    "Lazarus Chakwera": "#000000",
+    "Peter Mutharika": "#87CEEB",
+    "Dalitso Kabambe": "#FF0000",
+    "Atupele Muluzi": "#FFD700",
 };
 
 const CustomYAxisTick = (props: any) => {
@@ -87,7 +87,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
   const chartConfig = chartData.reduce((acc, candidate) => {
     acc[candidate.name] = {
       label: candidate.name,
-      color: candidateColors[candidate.name] || "hsl(var(--chart-1))",
+      color: candidateColors[candidate.name] || "#8884d8",
     }
     return acc
   }, {} as any)
