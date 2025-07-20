@@ -25,6 +25,14 @@ const statusColors = {
 };
 
 export function BetTicket({ bet }: BetTicketProps) {
+  // Parsing date as UTC to avoid timezone issues between server and client
+  const placedDate = new Date(bet.placedDate + 'T00:00:00Z').toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+
   return (
     <Card className="flex flex-col shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -46,7 +54,7 @@ export function BetTicket({ bet }: BetTicketProps) {
       </CardContent>
       <CardFooter className="mt-auto bg-muted/50 py-3 px-6 text-xs text-muted-foreground flex justify-between">
           <span>ID: {bet.id}</span>
-          <span>Placed: {new Date(bet.placedDate).toLocaleDateString()}</span>
+          <span>Placed: {placedDate}</span>
       </CardFooter>
     </Card>
   );
