@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -67,7 +68,7 @@ export function WalletClient() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="p-6 rounded-lg bg-primary text-primary-foreground">
+          <div className="p-6 rounded-lg bg-primary-gradient text-primary-foreground">
             <h3 className="text-lg text-primary-foreground/80">Current Balance</h3>
             <p className="text-5xl font-bold font-headline">
               {balance.toLocaleString()} MWK
