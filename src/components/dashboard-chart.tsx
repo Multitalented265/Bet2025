@@ -85,20 +85,37 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
   useEffect(() => {
     const interval = setInterval(() => {
       setChartData((prevData) => {
-        const newChartData = [...prevData]
-        const randomIndex = Math.floor(Math.random() * newChartData.length)
-        const randomAmount = Math.floor(Math.random() * 5 + 1) * 100 // 100 to 500 MWK
-        
-        newChartData[randomIndex].totalBets += randomAmount
+        const newChartData = [...prevData];
 
-        setTotalPot(pot => pot + randomAmount)
-        
-        return newChartData.sort((a, b) => b.totalBets - a.totalBets)
-      })
-    }, 2500)
+        // With a 40% chance, give a large boost to a candidate who is not in the lead
+        if (Math.random() < 0.4 && newChartData.length > 1) {
+          const challengers = newChartData.slice(1);
+          if (challengers.length > 0) {
+            const challengerIndex = Math.floor(Math.random() * challengers.length);
+            const challengerName = challengers[challengerIndex].name;
+            
+            const originalIndex = newChartData.findIndex(c => c.name === challengerName);
+            
+            if (originalIndex !== -1) {
+              const largeBet = Math.floor(Math.random() * 20 + 10) * 100; // 1000 to 3000 MWK
+              newChartData[originalIndex].totalBets += largeBet;
+              setTotalPot(pot => pot + largeBet);
+            }
+          }
+        } else {
+          // Otherwise, add a smaller random bet to any candidate
+          const randomIndex = Math.floor(Math.random() * newChartData.length);
+          const randomAmount = Math.floor(Math.random() * 5 + 1) * 100; // 100 to 500 MWK
+          newChartData[randomIndex].totalBets += randomAmount;
+          setTotalPot(pot => pot + randomAmount);
+        }
 
-    return () => clearInterval(interval)
-  }, [])
+        return newChartData.sort((a, b) => b.totalBets - a.totalBets);
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
   
   const chartConfig = chartData.reduce((acc, candidate) => {
     acc[candidate.name] = {
