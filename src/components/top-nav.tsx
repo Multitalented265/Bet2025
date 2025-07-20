@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Wallet } from 'lucide-react';
+import { LayoutDashboard, Wallet, ReceiptText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Logo from './logo';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Home' },
+  { href: '/bets', icon: ReceiptText, label: 'My Bets' },
   { href: '/wallet', icon: Wallet, label: 'Wallet' },
 ];
 
