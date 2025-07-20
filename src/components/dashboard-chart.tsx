@@ -2,6 +2,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { Bar, BarChart, XAxis, YAxis, Tooltip, Cell } from "recharts"
 
 import {
@@ -20,6 +21,7 @@ export type CandidateData = {
   id: number
   name: string
   totalBets: number
+  image: string;
 }
 
 type DashboardChartProps = {
@@ -27,11 +29,37 @@ type DashboardChartProps = {
 }
 
 const candidateColors: { [key: string]: string } = {
+  "Saulos Chilima": "hsl(0 100% 50%)", // Red
   "Lazarus Chakwera": "hsl(0 0% 0%)", // Black
   "Peter Mutharika": "hsl(200 100% 50%)", // Sky Blue
-  "Saulos Chilima": "hsl(0 100% 50%)", // Red
   "Atupele Muluzi": "hsl(54 100% 50%)", // Yellow
 };
+
+const CustomYAxisTick = (props: any) => {
+    const { x, y, payload, data } = props;
+    const candidate = data.find((d: CandidateData) => d.name === payload.value);
+  
+    if (!candidate) return null;
+  
+    return (
+      <g transform={`translate(${x - 10},${y})`}>
+        <foreignObject x={-140} y={-35} width="140" height="70">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <Image
+              src={candidate.image}
+              alt={candidate.name}
+              width={40}
+              height={40}
+              className="rounded-full object-cover"
+            />
+            <div style={{ marginTop: '4px', fontSize: '12px', color: 'hsl(var(--foreground))', whiteSpace: 'normal', lineHeight: '1.2' }}>
+              {candidate.name}
+            </div>
+          </div>
+        </foreignObject>
+      </g>
+    );
+  };
 
 export function DashboardChart({ initialData }: DashboardChartProps) {
   const [chartData, setChartData] = useState<CandidateData[]>(initialData.sort((a,b) => b.totalBets - a.totalBets))
@@ -72,12 +100,13 @@ export function DashboardChart({ initialData }: DashboardChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+        <ChartContainer config={chartConfig} className="h-[450px] w-full">
           <BarChart 
             data={chartData} 
             layout="vertical"
-            margin={{ left: 10, right: 30 }}
+            margin={{ left: 20, right: 30, top: 20, bottom: 20 }}
             accessibilityLayer
+            barCategoryGap="20%"
             >
             <XAxis type="number" hide />
             <YAxis 
@@ -85,8 +114,9 @@ export function DashboardChart({ initialData }: DashboardChartProps) {
               type="category" 
               tickLine={false} 
               axisLine={false} 
-              tick={{ fill: "hsl(var(--foreground))", fontSize: 14 }}
-              width={120}
+              tick={<CustomYAxisTick data={chartData} />}
+              width={140}
+              interval={0}
               />
             <Tooltip
                 cursor={{ fill: 'hsl(var(--background))' }}
