@@ -63,7 +63,7 @@ const CustomYAxisTick = (props: any) => {
   };
 
 export function DashboardChart({ candidates }: DashboardChartProps) {
-  const [chartData, setChartData] = useState<CandidateData[]>(candidates.sort((a,b) => b.totalBets - a.totalBets))
+  const [chartData, setChartData] = useState<CandidateData[]>(candidates)
   const [totalPot, setTotalPot] = useState(candidates.reduce((acc, curr) => acc + curr.totalBets, 0))
   const [barCategoryGap, setBarCategoryGap] = useState("35%");
 
@@ -83,39 +83,44 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
   }, []);
 
   useEffect(() => {
+    // Keep the original candidates array to find challengers
+    const originalCandidates = [...candidates];
+    
     const interval = setInterval(() => {
       setChartData((prevData) => {
         const newChartData = [...prevData];
+        let betAmount = 0;
 
         // With a 40% chance, give a large boost to a candidate who is not in the lead
         if (Math.random() < 0.4 && newChartData.length > 1) {
-          const challengers = newChartData.slice(1);
+           const sortedByBets = [...newChartData].sort((a, b) => b.totalBets - a.totalBets);
+           const challengers = sortedByBets.slice(1);
+          
           if (challengers.length > 0) {
             const challengerIndex = Math.floor(Math.random() * challengers.length);
             const challengerName = challengers[challengerIndex].name;
-            
             const originalIndex = newChartData.findIndex(c => c.name === challengerName);
             
             if (originalIndex !== -1) {
-              const largeBet = Math.floor(Math.random() * 20 + 10) * 100; // 1000 to 3000 MWK
-              newChartData[originalIndex].totalBets += largeBet;
-              setTotalPot(pot => pot + largeBet);
+              betAmount = Math.floor(Math.random() * 20 + 10) * 100; // 1000 to 3000 MWK
+              newChartData[originalIndex].totalBets += betAmount;
             }
           }
         } else {
           // Otherwise, add a smaller random bet to any candidate
           const randomIndex = Math.floor(Math.random() * newChartData.length);
-          const randomAmount = Math.floor(Math.random() * 5 + 1) * 100; // 100 to 500 MWK
-          newChartData[randomIndex].totalBets += randomAmount;
-          setTotalPot(pot => pot + randomAmount);
+          betAmount = Math.floor(Math.random() * 5 + 1) * 100; // 100 to 500 MWK
+          newChartData[randomIndex].totalBets += betAmount;
         }
 
-        return newChartData.sort((a, b) => b.totalBets - a.totalBets);
+        setTotalPot(pot => pot + betAmount);
+        // Return the new data without sorting it. The chart will handle transitions.
+        return newChartData;
       });
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [candidates]);
   
   const chartConfig = chartData.reduce((acc, candidate) => {
     acc[candidate.name] = {
@@ -124,6 +129,8 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
     }
     return acc
   }, {} as any)
+  
+  const sortedData = [...chartData].sort((a, b) => a.totalBets - b.totalBets);
 
   return (
     <Card className="w-full shadow-lg">
@@ -136,7 +143,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[450px] w-full">
           <BarChart 
-            data={chartData} 
+            data={sortedData} 
             layout="vertical"
             margin={{ left: 20, right: 30, top: 20, bottom: 20 }}
             accessibilityLayer
@@ -175,7 +182,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
                 className="fill-foreground font-semibold"
                 formatter={(value: number) => `${value.toLocaleString()}`}
               />
-              {chartData.map((entry) => (
+              {sortedData.map((entry) => (
                 <Cell key={`cell-${entry.id}`} fill={candidateColors[entry.name]} />
               ))}
             </Bar>
