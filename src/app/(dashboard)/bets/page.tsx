@@ -43,7 +43,7 @@ export default function BetsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold font-headline">My Bets</h1>
+          <h1 className="text-3xl font-bold font-headline whitespace-nowrap">My Bets</h1>
           <p className="text-muted-foreground">
             An overview of your betting history.
           </p>
