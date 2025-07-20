@@ -1,19 +1,13 @@
 import { BettingCard } from "@/components/betting-card"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { Header } from "@/components/header"
+import { handleBetPlacement } from "@/actions/bet"
 
 const candidates = [
   { id: 1, name: "Lazarus Chakwera", image: "https://placehold.co/200x200.png", hint: "malawian man politician", totalBets: 75000 },
   { id: 2, name: "Peter Mutharika", image: "https://placehold.co/201x201.png", hint: "malawian man suit", totalBets: 62000 },
   { id: 3, name: "Saulos Chilima", image: "https://placehold.co/202x202.png", hint: "malawian man glasses", totalBets: 48000 },
 ]
-
-// This function will be a server action in a real app
-const handleBetPlacement = async (candidateId: number, amount: number) => {
-  "use server"
-  console.log(`Bet placed on candidate ${candidateId} for ${amount} MWK`)
-  // Here you would update your database
-}
 
 export default function Dashboard() {
   return (
