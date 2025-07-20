@@ -1,7 +1,8 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
-import { Bar, BarChart, XAxis, YAxis, Tooltip } from "recharts"
+import { Bar, BarChart, XAxis, YAxis, Tooltip, Cell } from "recharts"
 
 import {
   Card,
@@ -25,6 +26,14 @@ type DashboardChartProps = {
   initialData: CandidateData[]
 }
 
+const barColors = [
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+];
+
 export function DashboardChart({ initialData }: DashboardChartProps) {
   const [chartData, setChartData] = useState<CandidateData[]>(initialData.sort((a,b) => b.totalBets - a.totalBets))
   const [totalPot, setTotalPot] = useState(initialData.reduce((acc, curr) => acc + curr.totalBets, 0))
@@ -47,10 +56,10 @@ export function DashboardChart({ initialData }: DashboardChartProps) {
     return () => clearInterval(interval)
   }, [])
   
-  const chartConfig = chartData.reduce((acc, candidate) => {
+  const chartConfig = chartData.reduce((acc, candidate, index) => {
     acc[candidate.name] = {
       label: candidate.name,
-      color: "hsl(var(--primary))",
+      color: barColors[index % barColors.length],
     }
     return acc
   }, {} as any)
@@ -83,11 +92,22 @@ export function DashboardChart({ initialData }: DashboardChartProps) {
             <Tooltip
                 cursor={{ fill: 'hsl(var(--background))' }}
                 content={<ChartTooltipContent
-                  formatter={(value) => `${value.toLocaleString()} MWK`}
+                  formatter={(value, name) => (
+                    <div className="flex items-center">
+                        <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: chartConfig[name as string]?.color }} />
+                        <div className="flex flex-col">
+                            <span className="font-medium">{name}</span>
+                            <span className="text-muted-foreground">{`${Number(value).toLocaleString()} MWK`}</span>
+                        </div>
+                    </div>
+                  )}
                   nameKey="name"
                   hideLabel />}
               />
             <Bar dataKey="totalBets" layout="vertical" radius={5} animationDuration={800}>
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
+              ))}
             </Bar>
           </BarChart>
         </ChartContainer>
