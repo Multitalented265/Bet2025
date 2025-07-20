@@ -45,9 +45,23 @@ export default function Dashboard() {
               <strong className="text-foreground">Winning:</strong> If the candidate you bet on is declared the winner of the election, you win!
             </li>
             <li>
-              <strong className="text-foreground">Calculating Payouts:</strong> The total prize pool is distributed among all the people who bet on the winning candidate. Your share of the winnings is proportional to how much you bet. For example, if you placed 10% of the total bets on the winning candidate, you receive 10% of the total prize pool.
+              <strong className="text-foreground">Calculating Payouts:</strong> The total prize pool is distributed among all the people who bet on the winning candidate. Your share of the winnings is proportional to how much you bet.
             </li>
           </ul>
+           <div className="mt-4 pt-4 border-t">
+            <h4 className="font-semibold text-foreground mb-2">Example Payout Calculation:</h4>
+            <ul className="list-none space-y-1 text-sm">
+                <li>• <span className="font-medium">Total Prize Pool:</span> <strong className="text-primary">10,000,000 MWK</strong></li>
+                <li>• <span className="font-medium">Total Bets on Winning Candidate:</span> <strong className="text-foreground">2,000,000 MWK</strong></li>
+                <li>• <span className="font-medium">Your Bet on that Candidate:</span> <strong className="text-foreground">100,000 MWK</strong></li>
+            </ul>
+            <div className="mt-3 text-sm">
+                <p>First, we calculate your percentage share of the winning candidate's bet pool:</p>
+                <p className="my-2 p-2 bg-muted rounded-md text-center font-mono text-foreground">(100,000 MWK / 2,000,000 MWK) = 5%</p>
+                <p>You get 5% of the total prize pool. Your payout would be:</p>
+                <p className="my-2 p-3 bg-primary-gradient text-primary-foreground rounded-md text-center font-mono font-bold text-lg">5% of 10,000,000 MWK = 500,000 MWK</p>
+            </div>
+           </div>
         </CardContent>
       </Card>
 
