@@ -45,7 +45,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
           key={item.href}
           href={item.href}
           className={cn(
-            'transition-colors hover:text-foreground',
+            'transition-colors hover:text-foreground whitespace-nowrap',
             pathname === item.href ? 'text-foreground font-semibold' : 'text-muted-foreground'
           )}
         >
