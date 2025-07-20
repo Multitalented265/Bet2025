@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, User, Wallet } from 'lucide-react';
+import { LayoutDashboard, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Logo from './logo';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/wallet', icon: Wallet, label: 'Wallet' },
-  { href: '/profile', icon: User, label: 'Profile' },
 ];
 
 export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
