@@ -47,7 +47,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
             <p className="px-3 text-sm font-medium text-muted-foreground">My Account</p>
             {accountItems.map((item) => (
                  <Link
-                 key={item.href}
+                 key={`${item.href}-${item.label}`}
                  href={item.href}
                  className={cn(
                    'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap',
