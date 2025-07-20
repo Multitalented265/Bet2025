@@ -4,7 +4,7 @@ import { DashboardChart } from "@/components/dashboard-chart"
 import { handleBetPlacement } from "@/actions/bet"
 
 const candidates = [
-  { id: 1, name: "Lazarus Chakwera", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Lazarus_Chakwera_2022_%28cropped%29.jpg/800px-Lazarus_Chakwera_2022_%28cropped%29.jpg", hint: "malawian man politician", totalBets: 75000 },
+  { id: 1, name: "Lazarus Chakwera", image: "https://times.mw/wp-content/uploads/2023/07/lazarus-chakwera-2-860x1014.jpg", hint: "malawian man politician", totalBets: 75000 },
   { id: 2, name: "Peter Mutharika", image: "https://placehold.co/201x201.png", hint: "malawian man suit", totalBets: 62000 },
   { id: 3, name: "Saulos Chilima", image: "https://placehold.co/202x202.png", hint: "malawian man glasses", totalBets: 48000 },
   { id: 4, name: "Atupele Muluzi", image: "https://placehold.co/203x203.png", hint: "malawian man leader", totalBets: 35000 },
