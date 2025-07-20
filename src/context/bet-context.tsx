@@ -1,3 +1,4 @@
+
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
@@ -8,6 +9,9 @@ type NewBet = Omit<Bet, 'id' | 'placedDate' | 'status'>;
 type BetContextType = {
   bets: Bet[];
   addBet: (newBet: NewBet) => void;
+  finalizeElection: (winnerCandidateName: string) => void;
+  electionFinalized: boolean;
+  electionWinner: string | null;
 };
 
 const BetContext = createContext<BetContextType | undefined>(undefined);
@@ -46,6 +50,8 @@ const initialBets: Bet[] = [
 
 export function BetProvider({ children }: { children: ReactNode }) {
   const [bets, setBets] = useState<Bet[]>(initialBets);
+  const [electionFinalized, setElectionFinalized] = useState(false);
+  const [electionWinner, setElectionWinner] = useState<string | null>(null);
 
   const addBet = (newBet: NewBet) => {
     const betWithDetails: Bet = {
@@ -57,8 +63,23 @@ export function BetProvider({ children }: { children: ReactNode }) {
     setBets(prevBets => [betWithDetails, ...prevBets]);
   };
 
+  const finalizeElection = (winnerCandidateName: string) => {
+    setBets(prevBets =>
+      prevBets.map(bet => {
+        if (bet.status !== 'Pending') return bet; // Already settled
+        
+        return {
+          ...bet,
+          status: bet.candidateName === winnerCandidateName ? 'Won' : 'Lost',
+        };
+      })
+    );
+    setElectionFinalized(true);
+    setElectionWinner(winnerCandidateName);
+  };
+
   return (
-    <BetContext.Provider value={{ bets, addBet }}>
+    <BetContext.Provider value={{ bets, addBet, finalizeElection, electionFinalized, electionWinner }}>
       {children}
     </BetContext.Provider>
   );

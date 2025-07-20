@@ -16,6 +16,7 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { useBets } from "@/context/bet-context"
 
 export type CandidateData = {
   id: number
@@ -66,6 +67,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
   const [chartData, setChartData] = useState<CandidateData[]>(candidates)
   const [totalPot, setTotalPot] = useState(candidates.reduce((acc, curr) => acc + curr.totalBets, 0))
   const [barCategoryGap, setBarCategoryGap] = useState("35%");
+  const { electionFinalized } = useBets();
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -83,8 +85,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
   }, []);
 
   useEffect(() => {
-    // Keep the original candidates array to find challengers
-    const originalCandidates = [...candidates];
+    if (electionFinalized) return;
     
     const interval = setInterval(() => {
       setChartData((prevData) => {
@@ -114,13 +115,12 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
         }
 
         setTotalPot(pot => pot + betAmount);
-        // Return the new data without sorting it. The chart will handle transitions.
         return newChartData;
       });
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [candidates]);
+  }, [candidates, electionFinalized]);
   
   const chartConfig = chartData.reduce((acc, candidate) => {
     acc[candidate.name] = {

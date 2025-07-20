@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -28,9 +29,10 @@ type BettingCardProps = {
     hint: string
   }
   onBet: (candidateId: number, amount: number) => void
+  disabled?: boolean
 }
 
-export function BettingCard({ candidate, onBet }: BettingCardProps) {
+export function BettingCard({ candidate, onBet, disabled = false }: BettingCardProps) {
   const { toast } = useToast()
   const { addBet } = useBets();
   
@@ -55,39 +57,41 @@ export function BettingCard({ candidate, onBet }: BettingCardProps) {
   }
 
   return (
-    <Card className="w-full transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+    <Card className={`w-full transform transition-all duration-300 ${!disabled ? 'hover:scale-105 hover:shadow-xl' : 'opacity-70'}`}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardHeader>
-            <CardTitle className="text-center font-headline text-2xl">{candidate.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center space-y-4">
-            <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-primary shadow-lg">
-              <Image
-                src={candidate.image}
-                alt={`Photo of ${candidate.name}`}
-                layout="fill"
-                objectFit="cover"
-                data-ai-hint={candidate.hint}
+          <fieldset disabled={disabled}>
+            <CardHeader>
+              <CardTitle className="text-center font-headline text-2xl">{candidate.name}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center space-y-4">
+              <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-primary shadow-lg">
+                <Image
+                  src={candidate.image}
+                  alt={`Photo of ${candidate.name}`}
+                  layout="fill"
+                  objectFit="cover"
+                  data-ai-hint={candidate.hint}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="text-center block">Bet Amount (MWK)</FormLabel>
+                    <FormControl>
+                        <Input {...field} type="number" step="100" className="text-center text-lg font-bold w-full" />
+                      </FormControl>
+                    <FormMessage className="text-center" />
+                  </FormItem>
+                )}
               />
-            </div>
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel className="text-center block">Bet Amount (MWK)</FormLabel>
-                   <FormControl>
-                      <Input {...field} type="number" step="100" className="text-center text-lg font-bold w-full" />
-                    </FormControl>
-                  <FormMessage className="text-center" />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full font-bold">Place Bet</Button>
-          </CardFooter>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" className="w-full font-bold">Place Bet</Button>
+            </CardFooter>
+          </fieldset>
         </form>
       </Form>
     </Card>

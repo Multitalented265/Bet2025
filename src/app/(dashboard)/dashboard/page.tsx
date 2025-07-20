@@ -1,9 +1,25 @@
 
+"use client";
+
 import { BettingCard } from "@/components/betting-card"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { handleBetPlacement } from "@/actions/bet"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Info } from "lucide-react";
+import { Info, PartyPopper } from "lucide-react";
+import { useBets } from "@/context/bet-context";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const candidates = [
   { id: 1, name: "Lazarus Chakwera", image: "https://times.mw/wp-content/uploads/2023/07/lazarus-chakwera-2-860x1014.jpg", hint: "malawian man politician", totalBets: 75000 },
@@ -13,12 +29,39 @@ const candidates = [
 ]
 
 export default function Dashboard() {
+  const { finalizeElection, electionFinalized, electionWinner } = useBets();
+  const { toast } = useToast();
+
+  const handleFinalize = () => {
+    const winner = candidates[Math.floor(Math.random() * candidates.length)];
+    finalizeElection(winner.name);
+    toast({
+      title: "Election Finalized!",
+      description: `${winner.name} has been declared the winner. Check 'My Bets' to see your results.`,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold mb-2 font-headline">Home</h1>
         <p className="text-muted-foreground">An overview of the betting landscape.</p>
       </div>
+
+       {electionFinalized && electionWinner && (
+        <Card className="bg-primary-gradient text-primary-foreground">
+          <CardHeader className="flex flex-row items-center gap-4">
+            <PartyPopper className="h-10 w-10" />
+            <div>
+              <CardTitle className="text-2xl font-headline">The Winner has been Declared!</CardTitle>
+              <CardDescription className="text-primary-foreground/80">
+                Congratulations to everyone who bet on {electionWinner}.
+              </CardDescription>
+            </div>
+          </CardHeader>
+        </Card>
+      )}
+
       <div>
         <DashboardChart candidates={candidates} />
       </div>
@@ -66,13 +109,37 @@ export default function Dashboard() {
       </Card>
 
       <div>
-        <h2 className="text-3xl font-bold mb-4 font-headline">Place Your Bet</h2>
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="text-3xl font-bold font-headline">Place Your Bet</h2>
+            {!electionFinalized && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Finalize Election</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will finalize the election, declare a random winner, and update all bets. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleFinalize}>
+                    Yes, Finalize Election
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {candidates.map((candidate) => (
             <BettingCard
               key={candidate.id}
               candidate={candidate}
               onBet={handleBetPlacement}
+              disabled={electionFinalized}
             />
           ))}
         </div>
