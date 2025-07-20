@@ -26,13 +26,11 @@ type DashboardChartProps = {
   initialData: CandidateData[]
 }
 
-const barColors = [
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-    "hsl(var(--chart-4))",
-    "hsl(var(--chart-5))",
-];
+const candidateColors: { [key: string]: string } = {
+  "Lazarus Chakwera": "hsl(0 100% 50%)", // Red
+  "Peter Mutharika": "hsl(200 100% 50%)", // Sky Blue
+  "Saulos Chilima": "hsl(0 0% 0%)", // Black
+};
 
 export function DashboardChart({ initialData }: DashboardChartProps) {
   const [chartData, setChartData] = useState<CandidateData[]>(initialData.sort((a,b) => b.totalBets - a.totalBets))
@@ -56,10 +54,10 @@ export function DashboardChart({ initialData }: DashboardChartProps) {
     return () => clearInterval(interval)
   }, [])
   
-  const chartConfig = chartData.reduce((acc, candidate, index) => {
+  const chartConfig = chartData.reduce((acc, candidate) => {
     acc[candidate.name] = {
       label: candidate.name,
-      color: barColors[index % barColors.length],
+      color: candidateColors[candidate.name] || "hsl(var(--chart-1))",
     }
     return acc
   }, {} as any)
@@ -105,8 +103,8 @@ export function DashboardChart({ initialData }: DashboardChartProps) {
                   hideLabel />}
               />
             <Bar dataKey="totalBets" layout="vertical" radius={5} animationDuration={800}>
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
+              {chartData.map((entry) => (
+                <Cell key={`cell-${entry.id}`} fill={candidateColors[entry.name]} />
               ))}
             </Bar>
           </BarChart>
