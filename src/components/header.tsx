@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleUser, FileText, KeyRound, LogOut, Menu, Settings, ShieldCheck, User, Wallet } from "lucide-react"
+import { CircleUser, FileText, LogOut, Menu, Settings, ShieldCheck, User, Wallet } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -59,9 +59,6 @@ export function Header() {
               <Link href="#"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="#"><KeyRound className="mr-2 h-4 w-4"/>Password Change</Link>
-            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="#"><FileText className="mr-2 h-4 w-4"/>Terms & Conditions</Link>
             </DropdownMenuItem>
