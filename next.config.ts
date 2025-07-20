@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'www.sadc.int',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.peaceparks.org',
       }
     ],
   },
