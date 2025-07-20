@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Malawi Vote Bet',
-  description: 'Bet on the next president of Malawi',
+  title: 'Bet2025',
+  description: 'Your trusted betting platform for 2025',
 };
 
 export default function RootLayout({
