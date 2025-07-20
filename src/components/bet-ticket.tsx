@@ -11,7 +11,7 @@ type Bet = {
   amount: number;
   placedDate: string;
   status: 'Pending' | 'Won' | 'Lost';
-  potentialWin: number;
+  potentialWin: number; // This value is kept for data structure consistency but not displayed
 };
 
 type BetTicketProps = {
@@ -43,13 +43,9 @@ export function BetTicket({ bet }: BetTicketProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <Separator />
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Bet Amount</span>
-            <span className="font-bold">{bet.amount.toLocaleString()} MWK</span>
-        </div>
-        <div className="flex justify-between">
-            <span className="text-muted-foreground">Potential Win</span>
-            <span className="font-bold text-primary">{bet.potentialWin.toLocaleString()} MWK</span>
+            <span className="font-bold text-2xl text-primary">{bet.amount.toLocaleString()} MWK</span>
         </div>
       </CardContent>
       <CardFooter className="mt-auto bg-muted/50 py-3 px-6 text-xs text-muted-foreground flex justify-between">
