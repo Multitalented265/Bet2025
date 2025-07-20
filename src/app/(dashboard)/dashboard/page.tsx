@@ -18,7 +18,7 @@ export default function Dashboard() {
         <p className="text-muted-foreground">An overview of the betting landscape.</p>
       </div>
       <div>
-        <DashboardChart initialData={candidates} />
+        <DashboardChart candidates={candidates} />
       </div>
       <div>
         <h2 className="text-3xl font-bold mb-4 font-headline">Place Your Bet</h2>

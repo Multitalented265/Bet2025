@@ -22,10 +22,11 @@ export type CandidateData = {
   name: string
   totalBets: number
   image: string;
+  hint: string;
 }
 
 type DashboardChartProps = {
-  initialData: CandidateData[]
+  candidates: CandidateData[]
 }
 
 const candidateColors: { [key: string]: string } = {
@@ -61,9 +62,9 @@ const CustomYAxisTick = (props: any) => {
     );
   };
 
-export function DashboardChart({ initialData }: DashboardChartProps) {
-  const [chartData, setChartData] = useState<CandidateData[]>(initialData.sort((a,b) => b.totalBets - a.totalBets))
-  const [totalPot, setTotalPot] = useState(initialData.reduce((acc, curr) => acc + curr.totalBets, 0))
+export function DashboardChart({ candidates }: DashboardChartProps) {
+  const [chartData, setChartData] = useState<CandidateData[]>(candidates.sort((a,b) => b.totalBets - a.totalBets))
+  const [totalPot, setTotalPot] = useState(candidates.reduce((acc, curr) => acc + curr.totalBets, 0))
 
   useEffect(() => {
     const interval = setInterval(() => {
