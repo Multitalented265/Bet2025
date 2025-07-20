@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -27,7 +28,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
               href={item.href}
               className={cn(
                 'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap',
-                pathname === item.href && 'bg-muted text-foreground'
+                pathname === item.href && 'bg-primary-gradient text-primary-foreground'
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -46,7 +47,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
           href={item.href}
           className={cn(
             'transition-colors hover:text-foreground whitespace-nowrap',
-            pathname === item.href ? 'text-foreground font-semibold' : 'text-muted-foreground'
+            pathname === item.href ? 'font-semibold bg-primary-gradient bg-clip-text text-transparent' : 'text-muted-foreground'
           )}
         >
           {item.label}
