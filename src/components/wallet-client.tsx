@@ -85,7 +85,7 @@ export function WalletClient() {
                 <DialogHeader>
                   <DialogTitle>Deposit Funds</DialogTitle>
                   <DialogDescription>
-                    Enter the amount you wish to deposit. A 2% deposit fee will be applied. You will be redirected to Pay Changu to complete the payment.
+                    Enter the amount you wish to deposit. A 2.5% deposit fee will be applied. You will be redirected to Pay Changu to complete the payment.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -119,7 +119,7 @@ export function WalletClient() {
                 <DialogHeader>
                   <DialogTitle>Withdraw Funds</DialogTitle>
                   <DialogDescription>
-                    Enter the amount you wish to withdraw. A 2% withdrawal fee will be applied. Funds will be sent to your registered payment method.
+                    Enter the amount you wish to withdraw. A 2.5% withdrawal fee will be applied. Funds will be sent to your registered payment method.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
