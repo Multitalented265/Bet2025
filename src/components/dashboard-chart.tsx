@@ -119,7 +119,7 @@ export function DashboardChart({ initialData }: DashboardChartProps) {
               interval={0}
               />
             <Tooltip
-                cursor={{ fill: 'hsl(var(--background))' }}
+                cursor={{ fill: "hsl(var(--muted))", radius: 8 }}
                 content={<ChartTooltipContent
                   formatter={(value, name) => (
                     <div className="flex items-center">
