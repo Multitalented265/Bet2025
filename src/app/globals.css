@@ -77,6 +77,6 @@ h1, h2, h3, h4, h5, h6 {
 
 @layer components {
   .bg-primary-gradient {
-    @apply bg-gradient-to-br from-indigo-500 to-fuchsia-600;
+    @apply bg-gradient-to-br from-green-800 to-emerald-500;
   }
 }
