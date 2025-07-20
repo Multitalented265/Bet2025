@@ -30,7 +30,7 @@ type DashboardChartProps = {
 }
 
 const candidateColors: { [key: string]: string } = {
-    "Saulos Chilima": "hsl(0 75% 60%)", // Red
+    "Dalitso Kabambe": "hsl(0 75% 60%)", // Red
     "Lazarus Chakwera": "hsl(0 0% 0%)", // Black
     "Peter Mutharika": "hsl(200 100% 50%)", // Sky Blue
     "Atupele Muluzi": "hsl(54 100% 50%)", // Yellow

@@ -22,7 +22,7 @@ const initialBets: Bet[] = [
   },
   {
     id: 'BET-003',
-    candidateName: 'Saulos Chilima',
+    candidateName: 'Dalitso Kabambe',
     amount: 2500,
     placedDate: '2024-07-15',
     status: 'Pending',
