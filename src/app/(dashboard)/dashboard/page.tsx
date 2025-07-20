@@ -12,7 +12,7 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2 font-headline">Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2 font-headline">Home</h1>
         <p className="text-muted-foreground">An overview of the betting landscape.</p>
       </div>
       <div>

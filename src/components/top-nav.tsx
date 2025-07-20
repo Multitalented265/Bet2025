@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import Logo from './logo';
 
 const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Home' },
   { href: '/wallet', icon: Wallet, label: 'Wallet' },
 ];
 
