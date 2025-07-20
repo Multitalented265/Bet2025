@@ -27,9 +27,10 @@ type DashboardChartProps = {
 }
 
 const candidateColors: { [key: string]: string } = {
-  "Lazarus Chakwera": "hsl(0 100% 50%)", // Red
+  "Lazarus Chakwera": "hsl(0 0% 0%)", // Black
   "Peter Mutharika": "hsl(200 100% 50%)", // Sky Blue
-  "Saulos Chilima": "hsl(0 0% 0%)", // Black
+  "Saulos Chilima": "hsl(0 100% 50%)", // Red
+  "Atupele Muluzi": "hsl(54 100% 50%)", // Yellow
 };
 
 export function DashboardChart({ initialData }: DashboardChartProps) {
