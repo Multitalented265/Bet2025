@@ -22,7 +22,7 @@ export default function Dashboard() {
       </div>
       <div>
         <h2 className="text-3xl font-bold mb-4 font-headline">Place Your Bet</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {candidates.map((candidate) => (
             <BettingCard
               key={candidate.id}
