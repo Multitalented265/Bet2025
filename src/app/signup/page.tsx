@@ -1,3 +1,4 @@
+
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -15,7 +16,7 @@ import Logo from "@/components/logo"
 export default function SignupPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background px-4">
-      <Card className="mx-auto max-w-sm">
+      <Card className="max-w-sm">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
             <Logo />
