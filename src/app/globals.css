@@ -74,9 +74,3 @@ h1, h2, h3, h4, h5, h6 {
     @apply bg-background text-foreground;
   }
 }
-
-@layer components {
-  .bg-primary-gradient {
-    @apply bg-gradient-to-br from-black via-[#14213d] to-[#fca311];
-  }
-}

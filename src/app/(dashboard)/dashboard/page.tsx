@@ -49,12 +49,12 @@ export default function Dashboard() {
       </div>
 
        {electionFinalized && electionWinner && (
-        <Card className="bg-primary-gradient text-white">
+        <Card className="bg-primary text-primary-foreground">
           <CardHeader className="flex flex-row items-center gap-4">
             <PartyPopper className="h-10 w-10" />
             <div>
               <CardTitle className="text-2xl font-headline">The Winner has been Declared!</CardTitle>
-              <CardDescription className="text-white/80">
+              <CardDescription className="text-primary-foreground/80">
                 Congratulations to everyone who bet on {electionWinner}.
               </CardDescription>
             </div>
@@ -102,7 +102,7 @@ export default function Dashboard() {
                 <p>First, we calculate your percentage share of the winning candidate's bet pool:</p>
                 <p className="my-2 p-2 bg-muted rounded-md text-center font-mono text-foreground">(100,000 MWK / 2,000,000 MWK) = 5%</p>
                 <p>You get 5% of the total prize pool. Your payout would be:</p>
-                <p className="my-2 p-3 bg-primary-gradient text-white rounded-md text-center font-mono font-bold text-lg">5% of 10,000,000 MWK = 500,000 MWK</p>
+                <p className="my-2 p-3 bg-primary text-primary-foreground rounded-md text-center font-mono font-bold text-lg">5% of 10,000,000 MWK = 500,000 MWK</p>
             </div>
            </div>
         </CardContent>
