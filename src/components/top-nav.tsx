@@ -7,6 +7,8 @@ import { LayoutDashboard, Wallet, ReceiptText, User, FileText, ShieldCheck, LogO
 import { cn } from '@/lib/utils';
 import Logo from './logo';
 import { Separator } from './ui/separator';
+import { useHasMounted } from '@/hooks/use-has-mounted';
+
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Home' },
@@ -22,6 +24,11 @@ const accountItems = [
 
 export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
+  const hasMounted = useHasMounted();
+
+  if (!hasMounted) {
+    return null; 
+  }
 
   if (isMobile) {
     return (
