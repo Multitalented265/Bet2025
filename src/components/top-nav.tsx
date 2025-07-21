@@ -34,8 +34,8 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap',
-                pathname === item.href && 'bg-primary text-white'
+                'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-accent-foreground hover:bg-accent/10 whitespace-nowrap',
+                pathname === item.href && 'bg-primary text-primary-foreground'
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -50,8 +50,8 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
                  key={`${item.href}-${item.label}`}
                  href={item.href}
                  className={cn(
-                   'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap',
-                   pathname === item.href && 'bg-primary text-white'
+                   'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-accent-foreground hover:bg-accent/10 whitespace-nowrap',
+                   pathname === item.href && 'bg-primary text-primary-foreground'
                  )}
                >
                  <item.icon className="h-5 w-5" />
@@ -60,7 +60,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
             ))}
              <Link
                 href="/"
-                className='flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap'
+                className='flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-accent-foreground hover:bg-accent/10 whitespace-nowrap'
               >
                 <LogOut className="h-5 w-5" />
                 Logout
@@ -77,7 +77,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
           key={item.href}
           href={item.href}
           className={cn(
-            'transition-colors hover:text-foreground whitespace-nowrap',
+            'transition-colors hover:text-accent whitespace-nowrap',
             pathname === item.href ? 'font-semibold text-primary' : 'text-muted-foreground'
           )}
         >
