@@ -77,6 +77,6 @@ h1, h2, h3, h4, h5, h6 {
 
 @layer components {
   .bg-primary-gradient {
-    @apply bg-gradient-to-br from-yellow-400 via-orange-500 to-blue-600;
+    @apply bg-gradient-to-br from-yellow-400 via-orange-500 to-indigo-600;
   }
 }
