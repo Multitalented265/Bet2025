@@ -15,7 +15,7 @@ import Logo from "@/components/logo"
 
 export default function SignupPage() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-secondary p-4 pb-20 md:pb-4">
+    <div className="flex items-center justify-center min-h-screen bg-primary p-4 pb-20 md:pb-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
