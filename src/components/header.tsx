@@ -65,7 +65,7 @@ export function Header() {
       {/* Mobile Header */}
       <div className="grid grid-cols-3 items-center w-full md:hidden">
         {/* Mobile Navigation */}
-        <div className="flex-none justify-self-start">
+        <div className="justify-self-start">
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -85,15 +85,14 @@ export function Header() {
         </div>
 
         {/* Mobile Logo */}
-        <div className="flex-1 flex justify-center">
+        <div className="justify-self-center">
           <Link href="/dashboard">
             <Logo />
           </Link>
         </div>
         
         {/* Placeholder for right side to ensure centering */}
-        <div className="flex-none justify-self-end">
-        </div>
+        <div className="justify-self-end"></div>
       </div>
     </header>
   )
