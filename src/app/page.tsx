@@ -15,7 +15,7 @@ import Logo from "@/components/logo"
 
 export default function LoginPage() {
   return (
-    <div className="flex items-start justify-center min-h-screen bg-primary-gradient px-4 pt-20 md:items-center md:pt-0">
+    <div className="flex items-center justify-center min-h-screen bg-primary-gradient p-4 pb-20 md:pb-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
