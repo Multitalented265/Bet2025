@@ -15,7 +15,7 @@ import Logo from "@/components/logo"
 
 export default function LoginPage() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-foreground p-4 pb-20 md:pb-4">
+    <div className="flex items-center justify-center min-h-screen bg-secondary p-4 pb-20 md:pb-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
@@ -42,7 +42,7 @@ export default function LoginPage() {
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="#"
-                  className="ml-auto inline-block text-sm underline"
+                  className="ml-auto inline-block text-sm underline text-primary"
                 >
                   Forgot your password?
                 </Link>
@@ -58,7 +58,7 @@ export default function LoginPage() {
           </div>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline">
+            <Link href="/signup" className="underline text-primary">
               Sign up
             </Link>
           </div>

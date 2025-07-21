@@ -121,7 +121,7 @@ export function WalletClient() {
                   <DialogDescription>
                     Enter the amount you wish to withdraw. A 2.5% withdrawal fee will be applied. Funds will be sent to your registered payment method.
                   </DialogDescription>
-                </DialogHeader>
+                </Header>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="withdraw-amount" className="text-right">
