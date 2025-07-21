@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -20,31 +21,43 @@ import { User, FileText, ShieldCheck, LogOut } from "lucide-react"
 export function Header() {
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 z-30">
-        <Link href="/dashboard" className="hidden md:block">
-            <Logo />
+      {/* Mobile Navigation */}
+      <div className="flex-none md:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle navigation menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <TopNav isMobile={true} />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop Navigation & Logo */}
+      <div className="hidden md:flex md:items-center md:gap-6">
+          <Link href="/dashboard">
+              <Logo />
+          </Link>
+          <TopNav />
+      </div>
+
+      {/* Mobile Logo */}
+      <div className="flex-1 flex justify-center md:hidden">
+        <Link href="/dashboard">
+          <Logo />
         </Link>
-        <div className="flex-1 md:hidden">
-            <Sheet>
-                <SheetTrigger asChild>
-                    <Button
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0"
-                    >
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Toggle navigation menu</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left">
-                    <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                    <TopNav isMobile={true} />
-                </SheetContent>
-            </Sheet>
-        </div>
-        <div className="hidden md:flex flex-1 items-center">
-            <TopNav />
-        </div>
-      <div className="hidden md:flex items-center gap-4 md:ml-auto md:flex-initial">
+      </div>
+      
+      {/* User Menu */}
+      <div className="flex-none">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
