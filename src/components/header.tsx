@@ -57,7 +57,7 @@ export function Header() {
       </div>
       
       {/* User Menu */}
-      <div className="flex-none">
+      <div className="flex-none hidden md:block">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
