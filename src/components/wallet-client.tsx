@@ -68,8 +68,8 @@ export function WalletClient() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="p-6 rounded-lg bg-primary-gradient text-primary-foreground">
-            <h3 className="text-lg text-primary-foreground/80">Current Balance</h3>
+          <div className="p-6 rounded-lg bg-primary-gradient text-white">
+            <h3 className="text-lg text-white/80">Current Balance</h3>
             <p className="text-5xl font-bold font-headline">
               {balance.toLocaleString()} MWK
             </p>

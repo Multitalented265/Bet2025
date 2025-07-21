@@ -35,7 +35,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
               href={item.href}
               className={cn(
                 'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap',
-                pathname === item.href && 'bg-primary-gradient text-primary-foreground'
+                pathname === item.href && 'bg-primary-gradient text-white'
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -51,7 +51,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
                  href={item.href}
                  className={cn(
                    'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground whitespace-nowrap',
-                   pathname === item.href && 'bg-primary-gradient text-primary-foreground'
+                   pathname === item.href && 'bg-primary-gradient text-white'
                  )}
                >
                  <item.icon className="h-5 w-5" />
