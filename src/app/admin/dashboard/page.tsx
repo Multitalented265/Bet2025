@@ -9,7 +9,7 @@ import { Users, Vote, CircleDollarSign } from "lucide-react";
 
 
 export default function AdminDashboardPage() {
-  const { totalPot, bets, candidates } = useBets();
+  const { totalPot, bets, candidates, users } = useBets();
   const totalBetsCount = bets.length;
 
   return (
@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,254</div>
+            <div className="text-2xl font-bold">{users.length}</div>
              <p className="text-xs text-muted-foreground">
               +24 since last hour
             </p>

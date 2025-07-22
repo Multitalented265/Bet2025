@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useBets } from "@/context/bet-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,33 +21,21 @@ import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  joined: string;
-  status: "Active" | "Suspended";
-  totalBets: number;
-  bets: Bet[];
-};
-
-const initialUsers: Omit<User, 'totalBets' | 'bets'>[] = [
-  { id: "user-123", name: "John Doe", email: "john.doe@example.com", joined: "2024-07-20", status: "Active" },
-  { id: "user-456", name: "Jane Smith", email: "jane.smith@example.com", joined: "2024-07-15", status: "Active" },
-  { id: "user-789", name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended" },
-];
+import type { User } from "@/context/bet-context"
 
 export default function AdminUsersPage() {
-  const { bets: allBets } = useBets();
-  
-  const processedUsers: User[] = initialUsers.map(user => {
-    const userBets = allBets.filter(bet => bet.userId === user.id);
-    const totalBets = userBets.reduce((acc, bet) => acc + bet.amount, 0);
-    return { ...user, bets: userBets, totalBets };
-  });
+  const { bets: allBets, users: initialUsers, setUsers } = useBets();
+  const [users, setLocalUsers] = useState<User[]>([]);
 
-  const [users, setUsers] = useState<User[]>(processedUsers);
+  useEffect(() => {
+    const processedUsers: User[] = initialUsers.map(user => {
+      const userBets = allBets.filter(bet => bet.userId === user.id);
+      const totalBets = userBets.reduce((acc, bet) => acc + bet.amount, 0);
+      return { ...user, bets: userBets, totalBets };
+    });
+    setLocalUsers(processedUsers);
+  }, [initialUsers, allBets]);
+  
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setViewDialogOpen] = useState(false);

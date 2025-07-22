@@ -16,10 +16,16 @@ export type CandidateData = {
 
 type NewBet = Omit<Bet, 'id' | 'placedDate' | 'status' | 'userId'>;
 
-type User = {
-    id: string;
-    name: string;
-}
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  joined: string;
+  status: "Active" | "Suspended";
+  totalBets: number;
+  bets: Bet[];
+};
+
 
 type BetContextType = {
   bets: Bet[];
@@ -32,17 +38,26 @@ type BetContextType = {
   updateCandidate: (id: number, updatedData: Partial<Omit<CandidateData, 'id' | 'totalBets'>>) => void;
   removeCandidate: (id: number) => void;
   totalPot: number;
-  currentUser: User;
+  currentUser: Omit<User, 'totalBets' | 'bets' | 'status' | 'joined' | 'email'>;
   bettingStopped: boolean;
   stopBetting: () => void;
+  users: Omit<User, 'totalBets' | 'bets'>[];
+  setUsers: React.Dispatch<React.SetStateAction<Omit<User, 'totalBets' | 'bets'>[]>>;
 };
 
 const BetContext = createContext<BetContextType | undefined>(undefined);
 
-const mockCurrentUser: User = {
+const mockCurrentUser: Omit<User, 'totalBets' | 'bets' | 'status' | 'joined' | 'email'> = {
     id: 'user-123',
     name: 'John Doe',
 }
+
+const initialUsers: Omit<User, 'totalBets' | 'bets'>[] = [
+  { id: "user-123", name: "John Doe", email: "john.doe@example.com", joined: "2024-07-20", status: "Active" },
+  { id: "user-456", name: "Jane Smith", email: "jane.smith@example.com", joined: "2024-07-15", status: "Active" },
+  { id: "user-789", name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended" },
+];
+
 
 const initialBets: Bet[] = [
     {
@@ -93,6 +108,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
   const [electionWinner, setElectionWinner] = useState<string | null>(null);
   const [bettingStopped, setBettingStopped] = useState(false);
   
+  const [users, setUsers] = useState(initialUsers);
+
   const [candidates, setCandidates] = useState<CandidateData[]>(initialCandidates);
   const [totalPot, setTotalPot] = useState(initialCandidates.reduce((acc, curr) => acc + curr.totalBets, 0));
 
@@ -225,7 +242,9 @@ export function BetProvider({ children }: { children: ReactNode }) {
         totalPot, 
         currentUser: mockCurrentUser,
         bettingStopped,
-        stopBetting
+        stopBetting,
+        users,
+        setUsers
     }}>
       {children}
     </BetContext.Provider>
