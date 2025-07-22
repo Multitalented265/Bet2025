@@ -134,7 +134,9 @@ export default function SettingsPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Update Profile</Button>
+              <div className="flex justify-end">
+                <Button type="submit">Update Profile</Button>
+              </div>
             </form>
           </Form>
         </CardContent>
@@ -222,7 +224,9 @@ export default function SettingsPage() {
                         </FormItem>
                         )}
                     />
-                    <Button type="submit">Change Password</Button>
+                    <div className="flex justify-end">
+                      <Button type="submit">Change Password</Button>
+                    </div>
                 </form>
             </Form>
           </CardContent>
