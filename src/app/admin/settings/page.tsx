@@ -82,6 +82,15 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch />
             </div>
+             <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                <div className="space-y-0.5">
+                    <Label className="text-base">Large Deposit Alerts</Label>
+                    <p className="text-sm text-muted-foreground">
+                       Receive emails when a deposit over 500,000 MWK is made.
+                    </p>
+                </div>
+                <Switch defaultChecked />
+            </div>
         </CardContent>
       </Card>
       
