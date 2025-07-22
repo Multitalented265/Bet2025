@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  password     String
+  joined       DateTime       @default(now())
+  status       UserStatus     @default(Active)
+  bets         Bet[]
+  transactions Transaction[]
+  tickets      SupportTicket[]
+
+  @@map("users")
+}
+
+model Candidate {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  image       String
+  hint        String
+  color       String
+  status      CandidateStatus  @default(Active)
+  bets        Bet[]
+
+  @@map("candidates")
+}
+
+model Bet {
+  id            String      @id @default(cuid())
+  amount        Float
+  placedDate    DateTime    @default(now())
+  status        BetStatus   @default(Pending)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  candidateId   Int
+  candidate     Candidate   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@map("bets")
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  type        TransactionType
+  amount      Float
+  fee         Float
+  date        DateTime        @default(now())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model SupportTicket {
+  id        String       @id @default(cuid())
+  subject   String
+  message   String
+  date      DateTime     @default(now())
+  status    TicketStatus @default(Open)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("support_tickets")
+}
+
+enum UserStatus {
+  Active
+  Suspended
+}
+
+enum CandidateStatus {
+  Active
+  Withdrawn
+}
+
+enum BetStatus {
+  Pending
+  Won
+  Lost
+}
+
+enum TransactionType {
+  Deposit
+  Withdrawal
+}
+
+enum TicketStatus {
+  Open
+  Closed
+}
