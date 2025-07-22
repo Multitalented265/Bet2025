@@ -51,12 +51,18 @@ export type SupportTicket = {
 };
 
 
+// --- ID Generation ---
+function generateId(prefix: string) {
+    return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
+}
+
+
 // --- MOCK DATABASE ---
 
 let users: User[] = [
-  { id: "user-123", name: "John Doe", email: "john.doe@example.com", joined: "2024-07-20", status: "Active", totalBets: 0, bets: [] },
-  { id: "user-456", name: "Jane Smith", email: "jane.smith@example.com", joined: "2024-07-15", status: "Active", totalBets: 0, bets: [] },
-  { id: "user-789", name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended", totalBets: 0, bets: [] },
+  { id: generateId('usr'), name: "John Doe", email: "john.doe@example.com", joined: "2024-07-20", status: "Active", totalBets: 0, bets: [] },
+  { id: generateId('usr'), name: "Jane Smith", email: "jane.smith@example.com", joined: "2024-07-15", status: "Active", totalBets: 0, bets: [] },
+  { id: generateId('usr'), name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended", totalBets: 0, bets: [] },
 ];
 
 let candidates: CandidateData[] = [
@@ -67,24 +73,24 @@ let candidates: CandidateData[] = [
 ];
 
 let bets: Bet[] = [
-    { id: 'BET-001', userId: 'user-123', candidateName: 'Lazarus Chakwera', amount: 5000, placedDate: '2024-07-20', status: 'Pending' },
-    { id: 'BET-002', userId: 'user-123', candidateName: 'Peter Mutharika', amount: 10000, placedDate: '2024-07-18', status: 'Pending' },
-    { id: 'BET-003', userId: 'user-456', candidateName: 'Dalitso Kabambe', amount: 2500, placedDate: '2024-07-15', status: 'Pending' },
-    { id: 'BET-004', userId: 'user-123', candidateName: 'Lazarus Chakwera', amount: 2000, placedDate: '2024-07-21', status: 'Pending' },
+    { id: generateId('bet'), userId: users[0].id, candidateName: 'Lazarus Chakwera', amount: 5000, placedDate: '2024-07-20', status: 'Pending' },
+    { id: generateId('bet'), userId: users[0].id, candidateName: 'Peter Mutharika', amount: 10000, placedDate: '2024-07-18', status: 'Pending' },
+    { id: generateId('bet'), userId: users[1].id, candidateName: 'Dalitso Kabambe', amount: 2500, placedDate: '2024-07-15', status: 'Pending' },
+    { id: generateId('bet'), userId: users[0].id, candidateName: 'Lazarus Chakwera', amount: 2000, placedDate: '2024-07-21', status: 'Pending' },
 ];
 
 let transactions: Transaction[] = [
-  { id: 'txn-001', type: 'Deposit', amount: 50000, fee: 1250, date: '2024-07-25', userId: 'user-123' },
-  { id: 'txn-002', type: 'Withdrawal', amount: 10000, fee: 250, date: '2024-07-24', userId: 'user-456' },
-  { id: 'txn-003', type: 'Deposit', amount: 20000, fee: 500, date: '2024-07-23', userId: 'user-789' },
-  { id: 'txn-004', type: 'Deposit', amount: 75000, fee: 1875, date: '2024-07-22', userId: 'user-123' },
-  { id: 'txn-005', type: 'Withdrawal', amount: 5000, fee: 125, date: '2024-07-21', userId: 'user-789' },
-  { id: 'txn-006', type: 'Deposit', amount: 100000, fee: 2500, date: '2024-07-20', userId: 'user-456' },
+  { id: generateId('txn'), type: 'Deposit', amount: 50000, fee: 1250, date: '2024-07-25', userId: users[0].id },
+  { id: generateId('txn'), type: 'Withdrawal', amount: 10000, fee: 250, date: '2024-07-24', userId: users[1].id },
+  { id: generateId('txn'), type: 'Deposit', amount: 20000, fee: 500, date: '2024-07-23', userId: users[2].id },
+  { id: generateId('txn'), type: 'Deposit', amount: 75000, fee: 1875, date: '2024-07-22', userId: users[0].id },
+  { id: generateId('txn'), type: 'Withdrawal', amount: 5000, fee: 125, date: '2024-07-21', userId: users[2].id },
+  { id: generateId('txn'), type: 'Deposit', amount: 100000, fee: 2500, date: '2024-07-20', userId: users[1].id },
 ];
 
 let supportTickets: SupportTicket[] = [
   {
-    id: 'TKT-001',
+    id: generateId('tkt'),
     user: { name: 'John Doe', email: 'john.doe@example.com' },
     subject: 'Withdrawal Issue',
     message: 'I tried to withdraw my winnings but the transaction failed. Can you please check what happened? My balance is correct.',
@@ -92,7 +98,7 @@ let supportTickets: SupportTicket[] = [
     status: 'Open',
   },
   {
-    id: 'TKT-002',
+    id: generateId('tkt'),
     user: { name: 'Jane Smith', email: 'jane.smith@example.com' },
     subject: 'Question about Bet Settlement',
     message: "My bet on Lazarus Chakwera was marked as 'Lost' but he won the election. Could this be a mistake?",
@@ -100,7 +106,7 @@ let supportTickets: SupportTicket[] = [
     status: 'Open',
   },
   {
-    id: 'TKT-003',
+    id: generateId('tkt'),
     user: { name: 'Charlie Brown', email: 'charlie@example.com' },
     subject: 'Account Suspended',
     message: "Why is my account suspended? I haven't done anything wrong. Please reactivate it.",
@@ -169,7 +175,7 @@ export async function getBets(): Promise<Bet[]> {
 export async function placeBet(newBet: Omit<Bet, 'id' | 'placedDate' | 'status'>) {
     const betWithDetails: Bet = {
       ...newBet,
-      id: `BET-${String(bets.length + 1).padStart(3, '0')}`,
+      id: generateId('bet'),
       placedDate: new Date().toISOString().split('T')[0],
       status: 'Pending',
     };
@@ -193,7 +199,7 @@ export async function getTransactions(): Promise<Transaction[]> {
 export async function addTransaction(transaction: Omit<Transaction, 'id' | 'date'>) {
     const newTransaction: Transaction = {
         ...transaction,
-        id: `txn-${String(transactions.length + 1).padStart(3, '0')}`,
+        id: generateId('txn'),
         date: new Date().toISOString().split('T')[0],
     };
     transactions.unshift(newTransaction);
@@ -210,7 +216,7 @@ export async function getSupportTickets(): Promise<SupportTicket[]> {
 export async function createSupportTicket(ticket: Omit<SupportTicket, 'id' | 'date' | 'status'>) {
     const newTicket: SupportTicket = {
         ...ticket,
-        id: `TKT-${String(supportTickets.length + 1).padStart(3, '0')}`,
+        id: generateId('tkt'),
         date: new Date().toISOString().split('T')[0],
         status: 'Open',
     }
