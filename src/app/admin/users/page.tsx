@@ -9,13 +9,18 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Search } from "lucide-react";
+import { MoreHorizontal, Search, Calendar as CalendarIcon, X as ClearIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import type { Bet } from "@/components/bet-ticket";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 type User = {
   id: string;
@@ -48,15 +53,51 @@ export default function AdminUsersPage() {
   const [isViewDialogOpen, setViewDialogOpen] = useState(false);
   const [isSuspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    status: 'all',
+    joinedAfter: null as Date | null,
+    minAmount: '',
+    maxAmount: ''
+  });
+
   const { toast } = useToast();
 
+  const handleFilterChange = (key: keyof typeof filters, value: any) => {
+    setFilters(prev => ({...prev, [key]: value}));
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilters({
+      status: 'all',
+      joinedAfter: null,
+      minAmount: '',
+      maxAmount: ''
+    });
+  };
+
   const filteredUsers = useMemo(() => {
-    if (!searchQuery) return users;
-    return users.filter(user => 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery, users]);
+    return users.filter(user => {
+      // Search Query Filter
+      const searchMatch = searchQuery === '' || 
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Status Filter
+      const statusMatch = filters.status === 'all' || user.status === filters.status;
+
+      // Joined Date Filter
+      const dateMatch = !filters.joinedAfter || new Date(user.joined + 'T00:00:00Z') >= filters.joinedAfter;
+
+      // Amount Filter
+      const minAmount = parseFloat(filters.minAmount);
+      const maxAmount = parseFloat(filters.maxAmount);
+      const minAmountMatch = isNaN(minAmount) || user.totalBets >= minAmount;
+      const maxAmountMatch = isNaN(maxAmount) || user.totalBets <= maxAmount;
+
+      return searchMatch && statusMatch && dateMatch && minAmountMatch && maxAmountMatch;
+    });
+  }, [searchQuery, users, filters]);
 
   const handleEditClick = (user: User) => {
     setSelectedUser(user);
@@ -113,17 +154,70 @@ export default function AdminUsersPage() {
           <CardDescription>A list of all registered users on the platform.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-4">
-             <div className="relative">
+          <div className="flex flex-wrap items-center gap-4 mb-4 p-4 border rounded-lg bg-muted/50">
+             <div className="relative flex-grow min-w-[200px]">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                 type="search"
                 placeholder="Search by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 sm:w-[300px]"
+                className="pl-8 w-full"
                 />
             </div>
+            <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by Status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Suspended">Suspended</SelectItem>
+                </SelectContent>
+            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full sm:w-[240px] justify-start text-left font-normal",
+                    !filters.joinedAfter && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filters.joinedAfter ? format(filters.joinedAfter, "PPP") : <span>Joined after...</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={filters.joinedAfter ?? undefined}
+                  onSelect={(date) => handleFilterChange('joinedAfter', date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <div className="flex flex-grow items-center gap-2">
+                <Input 
+                    type="number" 
+                    placeholder="Min Bet Amount" 
+                    value={filters.minAmount}
+                    onChange={(e) => handleFilterChange('minAmount', e.target.value)}
+                    className="min-w-[120px]"
+                />
+                <span className="text-muted-foreground">-</span>
+                <Input 
+                    type="number" 
+                    placeholder="Max Bet Amount" 
+                    value={filters.maxAmount}
+                    onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
+                    className="min-w-[120px]"
+                />
+            </div>
+            <Button variant="ghost" onClick={clearFilters}>
+              <ClearIcon className="mr-2 h-4 w-4"/>
+              Clear Filters
+            </Button>
           </div>
           <Table>
             <TableHeader>
@@ -238,6 +332,7 @@ export default function AdminUsersPage() {
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Betting History</h3>
                       {selectedUser.bets.length > 0 ? (
+                        <div className="max-h-[300px] overflow-y-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -264,6 +359,7 @@ export default function AdminUsersPage() {
                             ))}
                           </TableBody>
                         </Table>
+                        </div>
                       ) : (
                         <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
                           <p>This user has not placed any bets.</p>
