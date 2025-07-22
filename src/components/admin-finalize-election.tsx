@@ -122,7 +122,7 @@ export function AdminFinalizeElection() {
 
         <div className="space-y-4">
             <Label htmlFor="winner-select">1. Select Winner to Finalize</Label>
-             <Select onValueChange={setSelectedWinner} disabled={electionFinalized}>
+             <Select onValueChange={setSelectedWinner} disabled={electionFinalized || !bettingStopped}>
                 <SelectTrigger id="winner-select" className="w-[280px]">
                     <SelectValue placeholder="Select a candidate" />
                 </SelectTrigger>
@@ -137,7 +137,7 @@ export function AdminFinalizeElection() {
       <CardFooter>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" disabled={!selectedWinner || electionFinalized}>
+            <Button variant="destructive" disabled={!selectedWinner || electionFinalized || !bettingStopped}>
                 2. Finalize Election & Settle Bets
             </Button>
           </AlertDialogTrigger>
