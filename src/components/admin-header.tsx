@@ -101,6 +101,13 @@ export function AdminHeader() {
                          <DollarSign className="mr-2 h-4 w-4 inline-block" />
                         Revenue
                     </Link>
+                     <Link
+                        href="/admin/support"
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                         <ShieldQuestion className="mr-2 h-4 w-4 inline-block" />
+                        Support
+                    </Link>
                 </nav>
             </SheetContent>
           </Sheet>
@@ -125,8 +132,8 @@ export function AdminHeader() {
                <DropdownMenuItem asChild>
                  <Link href="/admin/support"><ShieldQuestion className="mr-2 h-4 w-4"/>Support</Link>
               </DropdownMenuItem>
-               <DropdownMenuItem disabled>
-                <Settings className="mr-2 h-4 w-4"/>Settings
+               <DropdownMenuItem asChild>
+                <Link href="/admin/settings"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
                <DropdownMenuItem asChild>
