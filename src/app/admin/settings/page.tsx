@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
-import { Separator } from "@/components/ui/separator"
+import { handleAdminPasswordChange, handleAdminNotificationSettings } from "@/actions/admin"
 
 const passwordFormSchema = z.object({
   currentPassword: z.string().min(1, { message: "Current password is required." }),
@@ -32,9 +32,9 @@ const passwordFormSchema = z.object({
   path: ["confirmPassword"],
 })
 
-
 export default function AdminSettingsPage() {
     const { toast } = useToast()
+    const [isPending, startTransition] = useTransition();
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -49,19 +49,26 @@ export default function AdminSettingsPage() {
     })
 
     function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
-        console.log(values)
-        toast({
-            title: "Password Updated",
-            description: "Your password has been changed successfully.",
-        })
-        passwordForm.reset()
+        startTransition(async () => {
+            await handleAdminPasswordChange(values);
+            toast({
+                title: "Password Updated",
+                description: "Your password has been changed successfully.",
+            });
+            passwordForm.reset();
+        });
     }
 
-    const handleSaveChanges = () => {
-        toast({
-            title: "Settings Saved",
-            description: "Your admin preferences have been updated.",
-        })
+    const handleSaveSettings = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        startTransition(async () => {
+            await handleAdminNotificationSettings(formData);
+            toast({
+                title: "Settings Saved",
+                description: "Your admin preferences have been updated.",
+            });
+        });
     }
 
   return (
@@ -154,70 +161,71 @@ export default function AdminSettingsPage() {
                         )}
                     />
                     <div className="flex justify-end">
-                      <Button type="submit">Change Password</Button>
+                      <Button type="submit" disabled={isPending}>{isPending ? "Changing..." : "Change Password"}</Button>
                     </div>
                 </form>
             </Form>
           </CardContent>
       </Card>
+        <form onSubmit={handleSaveSettings}>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
+                    <CardDescription>Add an extra layer of security to your account.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="enable-2fa" className="text-base">Enable 2FA</Label>
+                            <p className="text-sm text-muted-foreground">
+                                When enabled, you will be required to enter a code from your authenticator app to log in.
+                            </p>
+                        </div>
+                        <Switch id="enable-2fa" name="enable-2fa" />
+                    </div>
+                </CardContent>
+            </Card>
 
-      <Card>
-        <CardHeader>
-            <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
-            <CardDescription>Add an extra layer of security to your account.</CardDescription>
-        </CardHeader>
-        <CardContent>
-             <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
-                <div className="space-y-0.5">
-                    <Label className="text-base">Enable 2FA</Label>
-                    <p className="text-sm text-muted-foreground">
-                        When enabled, you will be required to enter a code from your authenticator app to log in.
-                    </p>
-                </div>
-                <Switch />
+            <Card>
+                <CardHeader>
+                    <CardTitle>Admin Notifications</CardTitle>
+                    <CardDescription>Manage how you receive important system notifications.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="new-user-notification" className="text-base">New User Registration</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Receive an email when a new user signs up on the platform.
+                            </p>
+                        </div>
+                        <Switch id="new-user-notification" name="newUser" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="large-bet-alert" className="text-base">Large Bet Alerts</Label>
+                            <p className="text-sm text-muted-foreground">
+                            Receive an email when a bet over 1,000,000 MWK is placed.
+                            </p>
+                        </div>
+                        <Switch id="large-bet-alert" name="largeBet" />
+                    </div>
+                    <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="large-deposit-alert" className="text-base">Large Deposit Alerts</Label>
+                            <p className="text-sm text-muted-foreground">
+                            Receive emails when a deposit over 500,000 MWK is made.
+                            </p>
+                        </div>
+                        <Switch id="large-deposit-alert" name="largeDeposit" defaultChecked />
+                    </div>
+                </CardContent>
+            </Card>
+            
+            <div className="flex justify-end mt-6">
+                <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Changes"}</Button>
             </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-            <CardTitle>Admin Notifications</CardTitle>
-            <CardDescription>Manage how you receive important system notifications.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
-                <div className="space-y-0.5">
-                    <Label className="text-base">New User Registration</Label>
-                    <p className="text-sm text-muted-foreground">
-                        Receive an email when a new user signs up on the platform.
-                    </p>
-                </div>
-                <Switch defaultChecked />
-            </div>
-             <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
-                <div className="space-y-0.5">
-                    <Label className="text-base">Large Bet Alerts</Label>
-                    <p className="text-sm text-muted-foreground">
-                       Receive an email when a bet over 1,000,000 MWK is placed.
-                    </p>
-                </div>
-                <Switch />
-            </div>
-             <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
-                <div className="space-y-0.5">
-                    <Label className="text-base">Large Deposit Alerts</Label>
-                    <p className="text-sm text-muted-foreground">
-                       Receive emails when a deposit over 500,000 MWK is made.
-                    </p>
-                </div>
-                <Switch defaultChecked />
-            </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex justify-end">
-        <Button onClick={handleSaveChanges}>Save Changes</Button>
-      </div>
+        </form>
     </div>
   )
 }

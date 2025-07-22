@@ -1,65 +1,38 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldQuestion, Mail, MessageSquare, CheckCircle, Clock } from 'lucide-react';
+import { ShieldQuestion, Mail, CheckCircle, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-type SupportTicket = {
-  id: string;
-  user: {
-    name: string;
-    email: string;
-  };
-  subject: string;
-  message: string;
-  date: string;
-  status: 'Open' | 'Closed';
-};
-
-const mockTickets: SupportTicket[] = [
-  {
-    id: 'TKT-001',
-    user: { name: 'John Doe', email: 'john.doe@example.com' },
-    subject: 'Withdrawal Issue',
-    message: 'I tried to withdraw my winnings but the transaction failed. Can you please check what happened? My balance is correct.',
-    date: '2024-07-26',
-    status: 'Open',
-  },
-  {
-    id: 'TKT-002',
-    user: { name: 'Jane Smith', email: 'jane.smith@example.com' },
-    subject: 'Question about Bet Settlement',
-    message: "My bet on Lazarus Chakwera was marked as 'Lost' but he won the election. Could this be a mistake?",
-    date: '2024-07-25',
-    status: 'Open',
-  },
-  {
-    id: 'TKT-003',
-    user: { name: 'Charlie Brown', email: 'charlie@example.com' },
-    subject: 'Account Suspended',
-    message: "Why is my account suspended? I haven't done anything wrong. Please reactivate it.",
-    date: '2024-07-24',
-    status: 'Closed',
-  },
-];
-
+import { getSupportTickets, updateSupportTicketStatus, SupportTicket } from '@/lib/data';
 
 export default function AdminSupportPage() {
-  const [tickets, setTickets] = useState<SupportTicket[]>(mockTickets);
-  const [filter, setFilter] = useState<'all' | 'open' | 'closed'>('open');
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [filter, setFilter] = useState<'all' | 'Open' | 'Closed'>('Open');
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+        const data = await getSupportTickets();
+        setTickets(data);
+    };
+    fetchTickets();
+  }, [])
 
   const handleStatusChange = (ticketId: string, newStatus: 'Open' | 'Closed') => {
-    setTickets(tickets.map(t => t.id === ticketId ? { ...t, status: newStatus } : t));
-    toast({
-      title: 'Ticket Updated',
-      description: `Ticket ${ticketId} has been marked as ${newStatus}.`,
+    startTransition(async () => {
+        await updateSupportTicketStatus(ticketId, newStatus);
+        const updatedTickets = await getSupportTickets();
+        setTickets(updatedTickets);
+        toast({
+            title: 'Ticket Updated',
+            description: `Ticket ${ticketId} has been marked as ${newStatus}.`,
+        });
     });
   };
 
@@ -69,7 +42,7 @@ export default function AdminSupportPage() {
 
   const filteredTickets = tickets.filter(ticket => {
     if (filter === 'all') return true;
-    return ticket.status.toLowerCase() === filter;
+    return ticket.status === filter;
   });
 
   return (
@@ -87,14 +60,14 @@ export default function AdminSupportPage() {
               {filteredTickets.length} ticket(s) matching the current filter.
             </CardDescription>
           </div>
-          <Select value={filter} onValueChange={(value: 'all' | 'open' | 'closed') => setFilter(value)}>
+          <Select value={filter} onValueChange={(value: 'all' | 'Open' | 'Closed') => setFilter(value)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter tickets" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Tickets</SelectItem>
-              <SelectItem value="open">Open Tickets</SelectItem>
-              <SelectItem value="closed">Closed Tickets</SelectItem>
+              <SelectItem value="Open">Open Tickets</SelectItem>
+              <SelectItem value="Closed">Closed Tickets</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
@@ -125,12 +98,12 @@ export default function AdminSupportPage() {
                         <Mail className="mr-2 h-4 w-4"/> Reply
                     </Button>
                     {ticket.status === 'Open' ? (
-                      <Button size="sm" onClick={() => handleStatusChange(ticket.id, 'Closed')}>
-                        <CheckCircle className="mr-2 h-4 w-4"/> Mark as Resolved
+                      <Button size="sm" onClick={() => handleStatusChange(ticket.id, 'Closed')} disabled={isPending}>
+                        <CheckCircle className="mr-2 h-4 w-4"/> {isPending ? "Updating..." : "Mark as Resolved"}
                       </Button>
                     ) : (
-                      <Button size="sm" variant="secondary" onClick={() => handleStatusChange(ticket.id, 'Open')}>
-                        <Clock className="mr-2 h-4 w-4"/> Re-open Ticket
+                      <Button size="sm" variant="secondary" onClick={() => handleStatusChange(ticket.id, 'Open')} disabled={isPending}>
+                        <Clock className="mr-2 h-4 w-4"/> {isPending ? "Updating..." : "Re-open Ticket"}
                       </Button>
                     )}
                   </div>
@@ -138,7 +111,9 @@ export default function AdminSupportPage() {
               ))
             ) : (
               <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
-                <p>No tickets found for this filter.</p>
+                <ShieldQuestion className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-medium">No tickets found</h3>
+                <p className="mt-1 text-sm text-muted-foreground">There are no tickets matching the current filter.</p>
               </div>
             )}
           </div>

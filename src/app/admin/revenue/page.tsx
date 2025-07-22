@@ -1,47 +1,36 @@
 
 "use client"
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowDown, ArrowUp, DollarSign, Banknote, Landmark } from 'lucide-react';
-import { useBets } from '@/context/bet-context';
-
-type Transaction = {
-  id: string;
-  type: 'Deposit' | 'Withdrawal';
-  amount: number;
-  fee: number;
-  date: string;
-  userId: string;
-};
-
-// Mock transaction data
-const mockTransactions: Transaction[] = [
-  { id: 'txn-001', type: 'Deposit', amount: 50000, fee: 1250, date: '2024-07-25', userId: 'user-123' },
-  { id: 'txn-002', type: 'Withdrawal', amount: 10000, fee: 250, date: '2024-07-24', userId: 'user-456' },
-  { id: 'txn-003', type: 'Deposit', amount: 20000, fee: 500, date: '2024-07-23', userId: 'user-789' },
-  { id: 'txn-004', type: 'Deposit', amount: 75000, fee: 1875, date: '2024-07-22', userId: 'user-123' },
-  { id: 'txn-005', type: 'Withdrawal', amount: 5000, fee: 125, date: '2024-07-21', userId: 'user-789' },
-  { id: 'txn-006', type: 'Deposit', amount: 100000, fee: 2500, date: '2024-07-20', userId: 'user-456' },
-];
+import { getTransactions, Transaction } from '@/lib/data';
 
 export default function RevenuePage() {
-  const { bets } = useBets(); // We can use this to get user names if needed
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+        const data = await getTransactions();
+        setTransactions(data);
+    };
+    fetchTransactions();
+  }, [])
 
   const revenueStats = useMemo(() => {
-    const totalDeposits = mockTransactions
+    const totalDeposits = transactions
       .filter((t) => t.type === 'Deposit')
       .reduce((acc, t) => acc + t.amount, 0);
-    const depositFees = mockTransactions
+    const depositFees = transactions
       .filter((t) => t.type === 'Deposit')
       .reduce((acc, t) => acc + t.fee, 0);
 
-    const totalWithdrawals = mockTransactions
+    const totalWithdrawals = transactions
       .filter((t) => t.type === 'Withdrawal')
       .reduce((acc, t) => acc + t.amount, 0);
-    const withdrawalFees = mockTransactions
+    const withdrawalFees = transactions
       .filter((t) => t.type === 'Withdrawal')
       .reduce((acc, t) => acc + t.fee, 0);
 
@@ -54,7 +43,7 @@ export default function RevenuePage() {
       withdrawalFees,
       totalRevenue,
     };
-  }, []);
+  }, [transactions]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -122,7 +111,7 @@ export default function RevenuePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockTransactions.map((tx) => (
+              {transactions.map((tx) => (
                 <TableRow key={tx.id}>
                   <TableCell className="font-mono">{tx.id}</TableCell>
                   <TableCell>{tx.userId}</TableCell>

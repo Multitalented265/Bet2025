@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview This file acts as a mock database for the application.
  * It provides functions to fetch and manipulate data for users, candidates, and bets.
@@ -28,6 +29,28 @@ export type User = {
   bets: Bet[];
 };
 
+export type Transaction = {
+  id: string;
+  type: 'Deposit' | 'Withdrawal';
+  amount: number;
+  fee: number;
+  date: string;
+  userId: string;
+};
+
+export type SupportTicket = {
+  id: string;
+  user: {
+    name: string;
+    email: string;
+  };
+  subject: string;
+  message: string;
+  date: string;
+  status: 'Open' | 'Closed';
+};
+
+
 // --- MOCK DATABASE ---
 
 let users: User[] = [
@@ -48,6 +71,42 @@ let bets: Bet[] = [
     { id: 'BET-002', userId: 'user-123', candidateName: 'Peter Mutharika', amount: 10000, placedDate: '2024-07-18', status: 'Pending' },
     { id: 'BET-003', userId: 'user-456', candidateName: 'Dalitso Kabambe', amount: 2500, placedDate: '2024-07-15', status: 'Pending' },
     { id: 'BET-004', userId: 'user-123', candidateName: 'Lazarus Chakwera', amount: 2000, placedDate: '2024-07-21', status: 'Pending' },
+];
+
+let transactions: Transaction[] = [
+  { id: 'txn-001', type: 'Deposit', amount: 50000, fee: 1250, date: '2024-07-25', userId: 'user-123' },
+  { id: 'txn-002', type: 'Withdrawal', amount: 10000, fee: 250, date: '2024-07-24', userId: 'user-456' },
+  { id: 'txn-003', type: 'Deposit', amount: 20000, fee: 500, date: '2024-07-23', userId: 'user-789' },
+  { id: 'txn-004', type: 'Deposit', amount: 75000, fee: 1875, date: '2024-07-22', userId: 'user-123' },
+  { id: 'txn-005', type: 'Withdrawal', amount: 5000, fee: 125, date: '2024-07-21', userId: 'user-789' },
+  { id: 'txn-006', type: 'Deposit', amount: 100000, fee: 2500, date: '2024-07-20', userId: 'user-456' },
+];
+
+let supportTickets: SupportTicket[] = [
+  {
+    id: 'TKT-001',
+    user: { name: 'John Doe', email: 'john.doe@example.com' },
+    subject: 'Withdrawal Issue',
+    message: 'I tried to withdraw my winnings but the transaction failed. Can you please check what happened? My balance is correct.',
+    date: '2024-07-26',
+    status: 'Open',
+  },
+  {
+    id: 'TKT-002',
+    user: { name: 'Jane Smith', email: 'jane.smith@example.com' },
+    subject: 'Question about Bet Settlement',
+    message: "My bet on Lazarus Chakwera was marked as 'Lost' but he won the election. Could this be a mistake?",
+    date: '2024-07-25',
+    status: 'Open',
+  },
+  {
+    id: 'TKT-003',
+    user: { name: 'Charlie Brown', email: 'charlie@example.com' },
+    subject: 'Account Suspended',
+    message: "Why is my account suspended? I haven't done anything wrong. Please reactivate it.",
+    date: '2024-07-24',
+    status: 'Closed',
+  },
 ];
 
 
@@ -123,4 +182,20 @@ export async function placeBet(newBet: Omit<Bet, 'id' | 'placedDate' | 'status'>
     revalidatePath("/dashboard");
     revalidatePath("/bets");
     return Promise.resolve(betWithDetails);
+}
+
+// Transactions
+export async function getTransactions(): Promise<Transaction[]> {
+    return Promise.resolve(transactions);
+}
+
+// Support Tickets
+export async function getSupportTickets(): Promise<SupportTicket[]> {
+    return Promise.resolve(supportTickets);
+}
+
+export async function updateSupportTicketStatus(id: string, status: 'Open' | 'Closed') {
+    supportTickets = supportTickets.map(t => t.id === id ? { ...t, status } : t);
+    revalidatePath("/admin/support");
+    return Promise.resolve(supportTickets.find(t => t.id === id));
 }

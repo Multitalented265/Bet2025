@@ -44,3 +44,21 @@ export async function handleUpdateCandidateStatus(candidateId: number, currentSt
     revalidatePath("/admin/candidates");
 }
 
+
+export async function handleAdminPasswordChange(values: any) {
+    // In a real app, you'd validate the current password and update the database.
+    console.log("Admin password change requested:", values);
+    // No revalidation needed as we are not changing visible data.
+}
+
+export async function handleAdminNotificationSettings(formData: FormData) {
+    const settings = {
+        enable2fa: formData.get("enable-2fa") === "on",
+        newUser: formData.get("newUser") === "on",
+        largeBet: formData.get("largeBet") === "on",
+        largeDeposit: formData.get("largeDeposit") === "on",
+    };
+    // In a real app, you would save these settings to the admin's user profile in the database.
+    console.log("Admin notification settings saved:", settings);
+    // No revalidation needed as we are not changing visible data.
+}
