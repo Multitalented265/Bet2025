@@ -115,7 +115,9 @@ export default function AdminSettingsPage() {
                         </FormItem>
                         )}
                     />
-                    <Button type="submit">Change Password</Button>
+                    <div className="flex justify-end">
+                      <Button type="submit">Change Password</Button>
+                    </div>
                 </form>
             </Form>
           </CardContent>
