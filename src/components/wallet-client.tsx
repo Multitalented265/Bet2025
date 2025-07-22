@@ -173,6 +173,7 @@ export function WalletClient() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Transaction ID</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
@@ -182,6 +183,7 @@ export function WalletClient() {
               <TableBody>
                 {transactions.map((tx) => (
                   <TableRow key={tx.id}>
+                    <TableCell className="font-mono">{tx.id}</TableCell>
                     <TableCell>
                       <Badge variant={tx.type === 'Deposit' ? 'secondary' : 'outline'} className="capitalize">
                         {tx.type === 'Deposit' 
