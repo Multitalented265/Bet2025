@@ -47,15 +47,15 @@ export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProp
 
   const { color, label } = statusConfig[bet.status];
 
-  const calculatePotentialWin = () => {
-    if (bet.status !== 'Pending' || totalBetsOnCandidate === 0) {
+  const calculateWinnings = () => {
+    if (totalBetsOnCandidate === 0) {
       return 0;
     }
     const userShare = bet.amount / totalBetsOnCandidate;
     return userShare * totalPot;
   };
   
-  const potentialWin = calculatePotentialWin();
+  const finalWinnings = calculateWinnings();
 
   return (
     <Card className="flex flex-col shadow-md hover:shadow-lg transition-all duration-300">
@@ -74,13 +74,13 @@ export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProp
          {bet.status === 'Pending' && (
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Potential Win</span>
-            <span className="font-bold text-2xl text-accent">{potentialWin.toLocaleString(undefined, { maximumFractionDigits: 0 })} MWK</span>
+            <span className="font-bold text-2xl text-accent">{finalWinnings.toLocaleString(undefined, { maximumFractionDigits: 0 })} MWK</span>
           </div>
         )}
          {bet.status === 'Won' && (
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Winnings</span>
-            <span className="font-bold text-2xl text-green-500">{potentialWin.toLocaleString(undefined, { maximumFractionDigits: 0 })} MWK</span>
+            <span className="text-muted-foreground">Winnings Paid Out</span>
+            <span className="font-bold text-2xl text-green-500">{finalWinnings.toLocaleString(undefined, { maximumFractionDigits: 0 })} MWK</span>
           </div>
         )}
       </CardContent>
