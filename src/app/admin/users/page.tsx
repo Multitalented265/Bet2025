@@ -2,6 +2,7 @@
 "use client"
 
 import { useState } from "react"
+import { useBets } from "@/context/bet-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
+import type { Bet } from "@/components/bet-ticket";
 
 type User = {
   id: string;
@@ -20,18 +23,26 @@ type User = {
   email: string;
   joined: string;
   status: "Active" | "Suspended";
+  totalBets: number;
+  bets: Bet[];
 };
 
-const initialUsers: User[] = [
-  { id: "USR-001", name: "Alice Johnson", email: "alice@example.com", joined: "2024-07-01", status: "Active" },
-  { id: "USR-002", name: "Bob Smith", email: "bob@example.com", joined: "2024-07-03", status: "Active" },
-  { id: "USR-003", name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended" },
-  { id: "USR-004", name: "Diana Prince", email: "diana@example.com", joined: "2024-07-10", status: "Active" },
-  { id: "USR-005", name: "Ethan Hunt", email: "ethan@example.com", joined: "2024-07-12", status: "Active" },
+const initialUsers: Omit<User, 'totalBets' | 'bets'>[] = [
+  { id: "user-123", name: "John Doe", email: "john.doe@example.com", joined: "2024-07-20", status: "Active" },
+  { id: "user-456", name: "Jane Smith", email: "jane.smith@example.com", joined: "2024-07-15", status: "Active" },
+  { id: "user-789", name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended" },
 ];
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const { bets: allBets } = useBets();
+  
+  const processedUsers: User[] = initialUsers.map(user => {
+    const userBets = allBets.filter(bet => bet.userId === user.id);
+    const totalBets = userBets.reduce((acc, bet) => acc + bet.amount, 0);
+    return { ...user, bets: userBets, totalBets };
+  });
+
+  const [users, setUsers] = useState<User[]>(processedUsers);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setViewDialogOpen] = useState(false);
@@ -98,6 +109,7 @@ export default function AdminUsersPage() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Total Bet Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined Date</TableHead>
                 <TableHead>
@@ -110,6 +122,7 @@ export default function AdminUsersPage() {
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.totalBets.toLocaleString()} MWK</TableCell>
                   <TableCell>
                     <Badge variant={user.status === 'Active' ? 'secondary' : 'destructive'}>
                       {user.status}
@@ -170,33 +183,77 @@ export default function AdminUsersPage() {
       </Dialog>
       
       {/* View User Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedUser?.name}</DialogTitle>
-            <DialogDescription>User ID: {selectedUser?.id}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Email:</span>
-              <span className="font-medium">{selectedUser?.email}</span>
-            </div>
-             <div className="flex justify-between">
-              <span className="text-muted-foreground">Status:</span>
-              <Badge variant={selectedUser?.status === 'Active' ? 'secondary' : 'destructive'}>
-                {selectedUser?.status}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Joined Date:</span>
-              <span className="font-medium">{selectedUser ? new Date(selectedUser.joined + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' }) : ''}</span>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {selectedUser && (
+        <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{selectedUser.name}</DialogTitle>
+                    <DialogDescription>User ID: {selectedUser.id}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Email:</span>
+                            <span className="font-medium">{selectedUser.email}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Joined:</span>
+                            <span className="font-medium">{new Date(selectedUser.joined + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Status:</span>
+                            <Badge variant={selectedUser.status === 'Active' ? 'secondary' : 'destructive'}>
+                                {selectedUser.status}
+                            </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Total Bets:</span>
+                            <span className="font-medium">{selectedUser.totalBets.toLocaleString()} MWK</span>
+                        </div>
+                    </div>
+                    
+                    <Separator />
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Betting History</h3>
+                      {selectedUser.bets.length > 0 ? (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Candidate</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedUser.bets.map(bet => (
+                              <TableRow key={bet.id}>
+                                <TableCell>{bet.candidateName}</TableCell>
+                                <TableCell>{bet.amount.toLocaleString()} MWK</TableCell>
+                                <TableCell>{new Date(bet.placedDate + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</TableCell>
+                                <TableCell>
+                                    <Badge variant={bet.status === 'Won' ? 'default' : bet.status === 'Lost' ? 'destructive' : 'secondary'}>
+                                        {bet.status}
+                                    </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      ) : (
+                        <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
+                          <p>This user has not placed any bets.</p>
+                        </div>
+                      )}
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      )}
 
       {/* Suspend User Alert Dialog */}
       <AlertDialog open={isSuspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
@@ -219,3 +276,5 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+
+    
