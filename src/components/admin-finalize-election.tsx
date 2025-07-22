@@ -32,11 +32,11 @@ import {
 } from "@/components/ui/select"
 import { useState } from "react";
 import { Label } from "./ui/label";
-import { PartyPopper } from "lucide-react";
+import { PartyPopper, Ban, Play } from "lucide-react";
 
 
 export function AdminFinalizeElection() {
-  const { candidates, finalizeElection, electionFinalized, electionWinner } = useBets();
+  const { candidates, finalizeElection, electionFinalized, electionWinner, stopBetting, bettingStopped } = useBets();
   const { toast } = useToast();
   const [selectedWinner, setSelectedWinner] = useState<string | null>(null);
 
@@ -55,6 +55,14 @@ export function AdminFinalizeElection() {
       description: `${selectedWinner} has been declared the winner.`,
     });
   };
+  
+  const handleStopBetting = () => {
+    stopBetting();
+    toast({
+        title: "Betting Stopped",
+        description: "All betting has been disabled for users.",
+    });
+  }
 
   if (electionFinalized && electionWinner) {
      return (
@@ -75,20 +83,51 @@ export function AdminFinalizeElection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Finalize Election</CardTitle>
+        <CardTitle>Election & Betting Controls</CardTitle>
         <CardDescription>
-          Manually select the winner and conclude the betting. This action is irreversible.
+          Manage the election status. These actions are irreversible.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-            <Label htmlFor="winner-select">Select Winner</Label>
+      <CardContent className="space-y-6">
+        <div className="p-4 rounded-lg border bg-muted flex items-center justify-between">
+            <div className="flex items-center gap-3">
+                 {bettingStopped ? <Ban className="h-6 w-6 text-destructive"/> : <Play className="h-6 w-6 text-green-500" />}
+                <div>
+                    <h4 className="font-semibold">Betting Status</h4>
+                    <p className="text-sm text-muted-foreground">
+                        {bettingStopped ? "Betting has been STOPPED." : "Betting is currently LIVE."}
+                    </p>
+                </div>
+            </div>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="outline" disabled={bettingStopped}>Stop All Betting</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will immediately disable all betting for users. They will not be able to place any new bets. This action cannot be undone.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleStopBetting}>
+                        Yes, Stop Betting
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+
+        <div className="space-y-4">
+            <Label htmlFor="winner-select">1. Select Winner to Finalize</Label>
              <Select onValueChange={setSelectedWinner} disabled={electionFinalized}>
                 <SelectTrigger id="winner-select" className="w-[280px]">
                     <SelectValue placeholder="Select a candidate" />
                 </SelectTrigger>
                 <SelectContent>
-                    {candidates.map(c => (
+                    {candidates.filter(c => c.status === 'Active').map(c => (
                         <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
                     ))}
                 </SelectContent>
@@ -99,7 +138,7 @@ export function AdminFinalizeElection() {
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" disabled={!selectedWinner || electionFinalized}>
-                Finalize Election
+                2. Finalize Election & Settle Bets
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>

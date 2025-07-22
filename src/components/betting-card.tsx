@@ -30,7 +30,7 @@ type BettingCardProps = {
 
 export function BettingCard({ candidate, onBet, disabled = false }: BettingCardProps) {
   const { toast } = useToast()
-  const { addBet } = useBets();
+  const { addBet, bettingStopped, electionFinalized } = useBets();
   
   const form = useForm<z.infer<typeof betSchema>>({
     resolver: zodResolver(betSchema),
@@ -51,7 +51,14 @@ export function BettingCard({ candidate, onBet, disabled = false }: BettingCardP
     form.reset()
   }
   
-  const isCardDisabled = disabled || candidate.status === 'Withdrawn';
+  const isCardDisabled = disabled || electionFinalized || bettingStopped || candidate.status === 'Withdrawn';
+  
+  const getButtonText = () => {
+    if (candidate.status === 'Withdrawn') return 'Betting Closed';
+    if (electionFinalized) return 'Election Over';
+    if (bettingStopped) return 'Betting Stopped';
+    return 'Place Bet';
+  }
 
   return (
     <Card className={`w-full transform transition-all duration-300 ${!isCardDisabled ? 'hover:scale-105 hover:shadow-xl' : 'opacity-70'}`}>
@@ -92,7 +99,7 @@ export function BettingCard({ candidate, onBet, disabled = false }: BettingCardP
             </CardContent>
             <CardFooter>
               <Button type="submit" className="w-full font-bold">
-                 {candidate.status === 'Withdrawn' ? 'Betting Closed' : 'Place Bet'}
+                 {getButtonText()}
               </Button>
             </CardFooter>
           </fieldset>

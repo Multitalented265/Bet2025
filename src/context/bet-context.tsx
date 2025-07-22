@@ -33,6 +33,8 @@ type BetContextType = {
   removeCandidate: (id: number) => void;
   totalPot: number;
   currentUser: User;
+  bettingStopped: boolean;
+  stopBetting: () => void;
 };
 
 const BetContext = createContext<BetContextType | undefined>(undefined);
@@ -89,12 +91,13 @@ export function BetProvider({ children }: { children: ReactNode }) {
   const [bets, setBets] = useState<Bet[]>(initialBets);
   const [electionFinalized, setElectionFinalized] = useState(false);
   const [electionWinner, setElectionWinner] = useState<string | null>(null);
+  const [bettingStopped, setBettingStopped] = useState(false);
   
   const [candidates, setCandidates] = useState<CandidateData[]>(initialCandidates);
   const [totalPot, setTotalPot] = useState(initialCandidates.reduce((acc, curr) => acc + curr.totalBets, 0));
 
   useEffect(() => {
-    if (electionFinalized) return;
+    if (electionFinalized || bettingStopped) return;
     
     const interval = setInterval(() => {
       setCandidates((prevData) => {
@@ -137,10 +140,10 @@ export function BetProvider({ children }: { children: ReactNode }) {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [electionFinalized]);
+  }, [electionFinalized, bettingStopped]);
 
   const addBet = (newBet: NewBet) => {
-    if (electionFinalized) return;
+    if (electionFinalized || bettingStopped) return;
     const candidate = candidates.find(c => c.name === newBet.candidateName);
     if (candidate?.status === 'Withdrawn') {
         // Optionally, show a toast or message that bets cannot be placed on withdrawn candidates
@@ -203,6 +206,10 @@ export function BetProvider({ children }: { children: ReactNode }) {
     // For this prototype, we'll just remove them.
     setCandidates(prev => prev.filter(c => c.id !== id));
   };
+  
+  const stopBetting = () => {
+    setBettingStopped(true);
+  }
 
   return (
     <BetContext.Provider value={{ 
@@ -216,7 +223,9 @@ export function BetProvider({ children }: { children: ReactNode }) {
         updateCandidate,
         removeCandidate,
         totalPot, 
-        currentUser: mockCurrentUser 
+        currentUser: mockCurrentUser,
+        bettingStopped,
+        stopBetting
     }}>
       {children}
     </BetContext.Provider>
