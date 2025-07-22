@@ -220,6 +220,7 @@ export default function AdminUsersPage() {
                         <Table>
                           <TableHeader>
                             <TableRow>
+                              <TableHead>Ticket ID</TableHead>
                               <TableHead>Candidate</TableHead>
                               <TableHead>Amount</TableHead>
                               <TableHead>Date</TableHead>
@@ -229,6 +230,7 @@ export default function AdminUsersPage() {
                           <TableBody>
                             {selectedUser.bets.map(bet => (
                               <TableRow key={bet.id}>
+                                <TableCell className="font-mono">{bet.id}</TableCell>
                                 <TableCell>{bet.candidateName}</TableCell>
                                 <TableCell>{bet.amount.toLocaleString()} MWK</TableCell>
                                 <TableCell>{new Date(bet.placedDate + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</TableCell>
