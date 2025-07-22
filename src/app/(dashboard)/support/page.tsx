@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useToast } from "@/hooks/use-toast"
 import { LifeBuoy, Send } from "lucide-react"
+import { handleCreateSupportTicket } from "@/actions/user"
 
 const faqs = [
     {
@@ -31,14 +33,21 @@ const faqs = [
 
 export default function SupportPage() {
     const { toast } = useToast()
+    const [isPending, startTransition] = useTransition();
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        toast({
-            title: "Message Sent!",
-            description: "Our support team has received your message and will get back to you shortly.",
-        })
-        event.currentTarget.reset()
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+        
+        startTransition(async () => {
+            await handleCreateSupportTicket(formData);
+            toast({
+                title: "Message Sent!",
+                description: "Our support team has received your message and will get back to you shortly.",
+            })
+            form.reset();
+        });
     }
 
   return (
@@ -86,19 +95,23 @@ export default function SupportPage() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Full Name</Label>
-                            <Input id="name" required />
+                            <Input id="name" name="name" required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email Address</Label>
-                            <Input id="email" type="email" required />
+                            <Input id="email" name="email" type="email" required />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="subject">Subject</Label>
+                            <Input id="subject" name="subject" required />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="message">Message</Label>
-                            <Textarea id="message" required rows={5} />
+                            <Textarea id="message" name="message" required rows={5} />
                         </div>
-                        <Button type="submit" className="w-full">
+                        <Button type="submit" className="w-full" disabled={isPending}>
                             <Send className="mr-2" />
-                            Send Message
+                            {isPending ? 'Sending...' : 'Send Message'}
                         </Button>
                     </form>
                 </CardContent>

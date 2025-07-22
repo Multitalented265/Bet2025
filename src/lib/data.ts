@@ -156,6 +156,8 @@ export async function getUsers(): Promise<User[]> {
 export async function updateUser(id: string, updatedData: Partial<Omit<User, 'id' | 'bets' | 'totalBets'>>) {
     users = users.map(u => u.id === id ? { ...u, ...updatedData } as User : u);
     revalidatePath("/admin/users");
+    revalidatePath("/(dashboard)/profile");
+    revalidatePath("/(dashboard)/settings");
     return Promise.resolve(users.find(u => u.id === id));
 }
 
@@ -179,8 +181,7 @@ export async function placeBet(newBet: Omit<Bet, 'id' | 'placedDate' | 'status'>
         candidates[candidateIndex].totalBets += newBet.amount;
     }
     
-    revalidatePath("/dashboard");
-    revalidatePath("/bets");
+    // No revalidation needed here as the calling action will do it.
     return Promise.resolve(betWithDetails);
 }
 
@@ -189,9 +190,33 @@ export async function getTransactions(): Promise<Transaction[]> {
     return Promise.resolve(transactions);
 }
 
+export async function addTransaction(transaction: Omit<Transaction, 'id' | 'date'>) {
+    const newTransaction: Transaction = {
+        ...transaction,
+        id: `txn-${String(transactions.length + 1).padStart(3, '0')}`,
+        date: new Date().toISOString().split('T')[0],
+    };
+    transactions.unshift(newTransaction);
+    revalidatePath('/wallet');
+    revalidatePath('/admin/revenue');
+    return Promise.resolve(newTransaction);
+}
+
 // Support Tickets
 export async function getSupportTickets(): Promise<SupportTicket[]> {
     return Promise.resolve(supportTickets);
+}
+
+export async function createSupportTicket(ticket: Omit<SupportTicket, 'id' | 'date' | 'status'>) {
+    const newTicket: SupportTicket = {
+        ...ticket,
+        id: `TKT-${String(supportTickets.length + 1).padStart(3, '0')}`,
+        date: new Date().toISOString().split('T')[0],
+        status: 'Open',
+    }
+    supportTickets.unshift(newTicket);
+    revalidatePath('/admin/support');
+    return Promise.resolve(newTicket);
 }
 
 export async function updateSupportTicketStatus(id: string, status: 'Open' | 'Closed') {

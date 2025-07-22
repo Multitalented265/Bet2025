@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useTransition } from "react"
 import Image from "next/image"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useBets } from "@/context/bet-context"
 import type { CandidateData } from "@/context/bet-context"
+import { handleBetPlacement } from "@/actions/bet"
 
 const betSchema = z.object({
   amount: z.coerce.number().int().min(100, "Minimum bet is 100 MWK.").refine(
@@ -24,13 +25,13 @@ const betSchema = z.object({
 
 type BettingCardProps = {
   candidate: CandidateData;
-  onBet: (candidateId: number, amount: number) => void
   disabled?: boolean
 }
 
-export function BettingCard({ candidate, onBet, disabled = false }: BettingCardProps) {
+export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
   const { toast } = useToast()
   const { addBet, bettingStopped, electionFinalized } = useBets();
+  const [isPending, startTransition] = useTransition();
   
   const form = useForm<z.infer<typeof betSchema>>({
     resolver: zodResolver(betSchema),
@@ -40,20 +41,32 @@ export function BettingCard({ candidate, onBet, disabled = false }: BettingCardP
   })
 
   function onSubmit(values: z.infer<typeof betSchema>) {
-    addBet({
-      candidateName: candidate.name,
-      amount: values.amount,
-    })
-    toast({
-      title: "Bet Placed!",
-      description: `Your ${values.amount.toLocaleString()} MWK bet on ${candidate.name} has been placed.`,
-    })
-    form.reset()
+    startTransition(async () => {
+      try {
+        await handleBetPlacement(candidate.id, values.amount);
+        addBet({
+          candidateName: candidate.name,
+          amount: values.amount,
+        });
+        toast({
+          title: "Bet Placed!",
+          description: `Your ${values.amount.toLocaleString()} MWK bet on ${candidate.name} has been placed.`,
+        });
+        form.reset();
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Betting Failed",
+          description: "There was an error placing your bet. Please try again.",
+        });
+      }
+    });
   }
   
   const isCardDisabled = disabled || electionFinalized || bettingStopped || candidate.status === 'Withdrawn';
   
   const getButtonText = () => {
+    if (isPending) return 'Placing Bet...';
     if (candidate.status === 'Withdrawn') return 'Betting Closed';
     if (electionFinalized) return 'Election Over';
     if (bettingStopped) return 'Betting Stopped';
@@ -64,7 +77,7 @@ export function BettingCard({ candidate, onBet, disabled = false }: BettingCardP
     <Card className={`w-full transform transition-all duration-300 ${!isCardDisabled ? 'hover:scale-105 hover:shadow-xl' : 'opacity-70'}`}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <fieldset disabled={isCardDisabled}>
+          <fieldset disabled={isCardDisabled || isPending}>
             <CardHeader>
               <CardTitle className="text-center font-headline text-2xl">{candidate.name}</CardTitle>
             </CardHeader>

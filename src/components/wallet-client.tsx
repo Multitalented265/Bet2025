@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -23,39 +23,40 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowDown, ArrowUp } from "lucide-react"
+import { handleTransaction } from "@/actions/user"
 
 export function WalletClient() {
   const [balance, setBalance] = useState(50000)
-  const [depositAmount, setDepositAmount] = useState(1000)
-  const [withdrawAmount, setWithdrawAmount] = useState(1000)
+  const [depositAmount, setDepositAmount] = useState("1000")
+  const [withdrawAmount, setWithdrawAmount] = useState("1000")
   const [isDepositOpen, setDepositOpen] = useState(false)
   const [isWithdrawOpen, setWithdrawOpen] = useState(false)
+  const [isPending, startTransition] = useTransition();
   const { toast } = useToast()
 
-  const handleDeposit = () => {
-    setBalance(balance + Number(depositAmount))
-    toast({
-      title: "Deposit Successful",
-      description: `Your balance has been updated.`,
-    })
-    setDepositOpen(false)
-  }
-
-  const handleWithdraw = () => {
-    if (withdrawAmount > balance) {
-      toast({
-        variant: "destructive",
-        title: "Insufficient Funds",
-        description: "You cannot withdraw more than your current balance.",
-      })
-      return
+  const onTransaction = (type: 'Deposit' | 'Withdrawal') => {
+    const amount = type === 'Deposit' ? parseFloat(depositAmount) : parseFloat(withdrawAmount);
+    
+    if (isNaN(amount) || amount <= 0) {
+      toast({ variant: "destructive", title: "Invalid Amount" });
+      return;
     }
-    setBalance(balance - Number(withdrawAmount))
-    toast({
-      title: "Withdrawal Requested",
-      description: "Your withdrawal request has been submitted for processing.",
-    })
-    setWithdrawOpen(false)
+    
+    if (type === 'Withdrawal' && amount > balance) {
+        toast({ variant: "destructive", title: "Insufficient Funds" });
+        return;
+    }
+
+    startTransition(async () => {
+      await handleTransaction(type, amount);
+      setBalance(prev => type === 'Deposit' ? prev + amount : prev - amount);
+      toast({
+        title: `${type} Successful`,
+        description: `Your transaction has been processed.`,
+      });
+      if (type === 'Deposit') setDepositOpen(false);
+      if (type === 'Withdrawal') setWithdrawOpen(false);
+    });
   }
 
   return (
@@ -97,14 +98,16 @@ export function WalletClient() {
                       id="deposit-amount"
                       type="number"
                       value={depositAmount}
-                      onChange={(e) => setDepositAmount(Number(e.target.value))}
+                      onChange={(e) => setDepositAmount(e.target.value)}
                       className="col-span-3"
                       placeholder="e.g., 5000"
                     />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={handleDeposit} type="submit">Proceed to Pay Changu</Button>
+                  <Button onClick={() => onTransaction('Deposit')} type="submit" disabled={isPending}>
+                    {isPending ? 'Processing...' : 'Proceed to Pay Changu'}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -131,14 +134,16 @@ export function WalletClient() {
                       id="withdraw-amount"
                       type="number"
                       value={withdrawAmount}
-                      onChange={(e) => setWithdrawAmount(Number(e.target.value))}
+                      onChange={(e) => setWithdrawAmount(e.target.value)}
                       className="col-span-3"
                       placeholder="e.g., 1000"
                     />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={handleWithdraw} type="submit">Request Withdrawal</Button>
+                  <Button onClick={() => onTransaction('Withdrawal')} type="submit" disabled={isPending}>
+                    {isPending ? 'Processing...' : 'Request Withdrawal'}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

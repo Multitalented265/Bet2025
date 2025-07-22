@@ -3,7 +3,6 @@
 
 import { BettingCard } from "@/components/betting-card"
 import { DashboardChart } from "@/components/dashboard-chart"
-import { handleBetPlacement } from "@/actions/bet"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Info, PartyPopper } from "lucide-react";
 import { useBets } from "@/context/bet-context";
@@ -87,7 +86,6 @@ export default function Dashboard() {
             <BettingCard
               key={candidate.id}
               candidate={candidate}
-              onBet={handleBetPlacement}
               disabled={electionFinalized}
             />
           ))}
