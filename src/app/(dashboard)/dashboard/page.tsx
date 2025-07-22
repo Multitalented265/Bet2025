@@ -104,27 +104,6 @@ export default function Dashboard() {
       <div>
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-3xl font-bold font-headline">Place Your Bet</h2>
-            {!electionFinalized && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">Finalize Election</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will finalize the election, declare a random winner, and update all bets. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleFinalize}>
-                    Yes, Finalize Election
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {candidates.map((candidate) => (

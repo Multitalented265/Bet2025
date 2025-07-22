@@ -62,6 +62,11 @@ export default function LoginPage() {
               Sign up
             </Link>
           </div>
+           <div className="mt-6 text-center text-xs">
+            <Link href="/admin/dashboard" className="underline text-muted-foreground hover:text-primary">
+              Admin Login
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
