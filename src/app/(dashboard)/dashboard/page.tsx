@@ -7,32 +7,9 @@ import { handleBetPlacement } from "@/actions/bet"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Info, PartyPopper } from "lucide-react";
 import { useBets } from "@/context/bet-context";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 export default function Dashboard() {
-  const { candidates, finalizeElection, electionFinalized, electionWinner } = useBets();
-  const { toast } = useToast();
-
-  const handleFinalize = () => {
-    const winner = candidates[Math.floor(Math.random() * candidates.length)];
-    finalizeElection(winner.name);
-    toast({
-      title: "Election Finalized!",
-      description: `${winner.name} has been declared the winner. Check 'My Bets' to see your results.`,
-    });
-  };
+  const { candidates, electionFinalized, electionWinner } = useBets();
 
   return (
     <div className="flex flex-col gap-6">
