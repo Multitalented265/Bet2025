@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo, useEffect, useTransition } from "react"
+import { useState, useMemo, useTransition } from "react"
 import { getUsers, updateUser } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -29,7 +29,7 @@ export default async function AdminUsersPage() {
 }
 
 function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
-  const [users, setLocalUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>(initialUsers);
   let [isPending, startTransition] = useTransition();
   
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -105,7 +105,7 @@ function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
 
     startTransition(async () => {
         await updateUser(selectedUser.id, updatedData);
-        setLocalUsers(await getUsers());
+        setUsers(await getUsers());
         setEditDialogOpen(false);
         toast({ title: "User Updated", description: "The user's details have been saved." });
     });
@@ -118,7 +118,7 @@ function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
     
     startTransition(async () => {
         await updateUser(selectedUser.id, { status: newStatus });
-        setLocalUsers(await getUsers());
+        setUsers(await getUsers());
         setSuspendDialogOpen(false);
         toast({ title: "User Status Changed", description: `${selectedUser.name}'s status has been set to ${newStatus}.` });
     });
@@ -378,5 +378,3 @@ function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
     </div>
   );
 }
-
-    
