@@ -35,13 +35,13 @@ export function AdminHeader() {
             Dashboard
           </Link>
            <Link
-            href="#"
+            href="/admin/users"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Users
           </Link>
            <Link
-            href="#"
+            href="/admin/candidates"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Candidates
@@ -81,14 +81,14 @@ export function AdminHeader() {
                         Dashboard
                     </Link>
                     <Link
-                        href="#"
+                        href="/admin/users"
                         className="text-muted-foreground hover:text-foreground"
                     >
                         <Users className="mr-2 h-4 w-4 inline-block" />
                         Users
                     </Link>
                     <Link
-                        href="#"
+                        href="/admin/candidates"
                         className="text-muted-foreground hover:text-foreground"
                     >
                          <Package className="mr-2 h-4 w-4 inline-block" />
