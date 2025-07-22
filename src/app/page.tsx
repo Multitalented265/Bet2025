@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Logo from "@/components/logo"
+import { GoogleIcon } from "@/components/icons/google-icon"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -71,6 +72,7 @@ export default function LoginPage() {
               <Link href="/dashboard">Login</Link>
             </Button>
             <Button variant="outline" className="w-full">
+              <GoogleIcon className="mr-2 h-4 w-4" />
               Login with Google
             </Button>
           </div>
