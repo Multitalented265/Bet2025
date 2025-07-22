@@ -243,15 +243,6 @@ export default function SettingsPage() {
                 </div>
                 <Switch defaultChecked />
             </div>
-             <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
-                <div className="space-y-0.5">
-                    <Label className="text-base">Promotional Emails</Label>
-                    <p className="text-sm text-muted-foreground">
-                       Receive emails about promotions, new features, and platform news.
-                    </p>
-                </div>
-                <Switch />
-            </div>
         </CardContent>
       </Card>
       
