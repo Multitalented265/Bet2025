@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Logo from "@/components/logo"
 import { LogOut, LayoutDashboard } from "lucide-react"
 
