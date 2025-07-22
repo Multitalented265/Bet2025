@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/chart"
 import { useBets } from "@/context/bet-context"
 import type { CandidateData } from "@/context/bet-context"
+import { useHasMounted } from "@/hooks/use-has-mounted"
 
 const CustomYAxisTick = (props: any) => {
     const { x, y, payload, data } = props;
@@ -54,6 +55,23 @@ const CustomCursor = (props: any) => {
 
 export function DashboardChart() {
   const { candidates, totalPot } = useBets();
+  const hasMounted = useHasMounted();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (!hasMounted) return;
+
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, [hasMounted]);
   
   const chartConfig = candidates.reduce((acc, candidate) => {
     acc[candidate.name] = {
@@ -64,6 +82,22 @@ export function DashboardChart() {
   }, {} as any)
   
   const sortedData = [...candidates].filter(c => c.status === 'Active').sort((a, b) => b.totalBets - a.totalBets);
+
+  if (!hasMounted) {
+    return (
+        <Card className="w-full shadow-lg">
+            <CardHeader>
+                <CardTitle className="font-headline text-3xl">Live Betting Pool</CardTitle>
+                <CardDescription>Total Pot: ...</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="h-[450px] w-full flex items-center justify-center text-muted-foreground">
+                    Loading Chart...
+                </div>
+            </CardContent>
+        </Card>
+    )
+  }
 
   return (
     <Card className="w-full shadow-lg">
@@ -80,7 +114,7 @@ export function DashboardChart() {
             layout="vertical"
             margin={{ left: 10, right: 30, top: 20, bottom: 20 }}
             accessibilityLayer
-            barCategoryGap="20%"
+            barCategoryGap={isMobile ? "35%" : "20%"}
             >
             <XAxis type="number" hide />
             <YAxis 
