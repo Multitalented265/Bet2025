@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Bar, BarChart, XAxis, YAxis, Tooltip, Cell, LabelList } from "recharts"
+import { Bar, BarChart, XAxis, YAxis, Tooltip, Cell, LabelList, Rectangle } from "recharts"
 
 import {
   Card,
@@ -44,6 +44,13 @@ const CustomYAxisTick = (props: any) => {
       </g>
     );
   };
+
+const CustomCursor = (props: any) => {
+  const { x, y, width, height } = props;
+  if (width <= 0) return null; // Don't render for zero-value bars
+  return <Rectangle fill="hsl(var(--muted))" x={x} y={y} width={width} height={height} radius={8} />;
+};
+
 
 export function DashboardChart() {
   const { candidates, totalPot } = useBets();
@@ -86,7 +93,7 @@ export function DashboardChart() {
               interval={0}
               />
             <Tooltip
-                cursor={{ fill: "hsl(var(--muted))", radius: 8 }}
+                cursor={<CustomCursor />}
                 content={<ChartTooltipContent
                   formatter={(value, name) => (
                     <div className="flex items-center">
