@@ -11,90 +11,74 @@ datasource db {
 }
 
 model User {
-  id           String         @id @default(cuid())
-  name         String
-  email        String         @unique
-  password     String
-  joined       DateTime       @default(now())
-  status       UserStatus     @default(Active)
-  bets         Bet[]
+  id          String         @id @default(cuid())
+  name        String
+  email       String         @unique
+  password    String
+  joined      DateTime       @default(now())
+  status      String         @default("Active") // "Active" or "Suspended"
+  bets        Bet[]
   transactions Transaction[]
-  tickets      SupportTicket[]
-
-  @@map("users")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 model Candidate {
-  id          Int              @id @default(autoincrement())
-  name        String           @unique
-  image       String
-  hint        String
-  color       String
-  status      CandidateStatus  @default(Active)
-  bets        Bet[]
-
-  @@map("candidates")
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  image      String
+  hint       String
+  color      String
+  status     String   @default("Active") // "Active" or "Withdrawn"
+  bets       Bet[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Bet {
-  id            String      @id @default(cuid())
+  id            String    @id @default(cuid())
   amount        Float
-  placedDate    DateTime    @default(now())
-  status        BetStatus   @default(Pending)
+  placedDate    DateTime  @default(now())
+  status        String    @default("Pending") // "Pending", "Won", or "Lost"
+  
   userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   candidateId   Int
-  candidate     Candidate   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate     Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  @@map("bets")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([candidateId])
 }
 
 model Transaction {
-  id          String          @id @default(cuid())
-  type        TransactionType
-  amount      Float
-  fee         Float
-  date        DateTime        @default(now())
-  userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  type      String // "Deposit" or "Withdrawal"
+  amount    Float
+  fee       Float
+  date      DateTime @default(now())
 
-  @@map("transactions")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model SupportTicket {
-  id        String       @id @default(cuid())
-  subject   String
-  message   String
-  date      DateTime     @default(now())
-  status    TicketStatus @default(Open)
-  userId    String
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("support_tickets")
-}
-
-enum UserStatus {
-  Active
-  Suspended
-}
-
-enum CandidateStatus {
-  Active
-  Withdrawn
-}
-
-enum BetStatus {
-  Pending
-  Won
-  Lost
-}
-
-enum TransactionType {
-  Deposit
-  Withdrawal
-}
-
-enum TicketStatus {
-  Open
-  Closed
+  id          String   @id @default(cuid())
+  userName    String
+  userEmail   String
+  subject     String
+  message     String
+  date        DateTime @default(now())
+  status      String   @default("Open") // "Open" or "Closed"
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
