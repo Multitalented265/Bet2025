@@ -2,6 +2,7 @@
 "use client";
 
 import { AdminFinalizeElection } from "@/components/admin-finalize-election";
+import { DashboardChart } from "@/components/dashboard-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBets } from "@/context/bet-context";
 import { Users, Vote, CircleDollarSign } from "lucide-react";
@@ -60,6 +61,10 @@ export default function AdminDashboardPage() {
             <div className="text-2xl font-bold">{candidates.length}</div>
           </CardContent>
         </Card>
+      </div>
+
+      <div>
+        <DashboardChart />
       </div>
 
       <AdminFinalizeElection />
