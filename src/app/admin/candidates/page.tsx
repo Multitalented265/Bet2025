@@ -18,14 +18,8 @@ import { PlusCircle, MoreHorizontal } from "lucide-react"
 import type { CandidateData } from "@/lib/data"
 import { useToast } from "@/hooks/use-toast"
 
-type AdminCandidatesPageProps = {
-  searchParams: {
-    [key: string]: string | string[] | undefined;
-  };
-};
-
 // This page now needs to be async to fetch initial data on the server.
-export default async function AdminCandidatesPage({ searchParams }: AdminCandidatesPageProps) {
+export default async function AdminCandidatesPage() {
   const candidates = await getCandidates();
   
   // The client-side logic is wrapped in a new component.
@@ -287,3 +281,4 @@ function AdminCandidatesClient({ candidates: initialCandidates }: { candidates: 
   );
 }
 
+    

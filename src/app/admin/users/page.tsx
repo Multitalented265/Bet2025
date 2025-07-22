@@ -28,7 +28,6 @@ export default async function AdminUsersPage() {
     return <AdminUsersClient initialUsers={users} />
 }
 
-
 function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
   const [users, setLocalUsers] = useState<User[]>(initialUsers);
   let [isPending, startTransition] = useTransition();
