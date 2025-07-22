@@ -80,7 +80,7 @@ export function DashboardChart() {
             layout="vertical"
             margin={{ left: 10, right: 30, top: 20, bottom: 20 }}
             accessibilityLayer
-            barCategoryGap="35%"
+            barCategoryGap="20%"
             >
             <XAxis type="number" hide />
             <YAxis 
