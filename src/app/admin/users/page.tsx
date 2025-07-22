@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
                       {user.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(user.joined).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(user.joined + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
