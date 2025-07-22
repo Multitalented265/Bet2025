@@ -60,14 +60,10 @@ export function BetProvider({ children }: { children: ReactNode }) {
         console.error("Cannot place bet on a withdrawn candidate.");
         return;
     }
-
-    // Call the server action
-    await placeBet({
-        ...newBet,
-        userId: mockCurrentUser.id
-    });
     
-    // Optimistically update UI or re-fetch
+    // We don't need to call placeBet here anymore because the server action handleBetPlacement already does it.
+    // This function's main job now is to re-fetch data to update the UI.
+    
     const [updatedCandidates, updatedBets] = await Promise.all([getCandidates(), getBets()]);
     setCandidates(updatedCandidates);
     setBets(updatedBets);
@@ -119,4 +115,3 @@ export function useBets() {
   }
   return context;
 }
-

@@ -44,6 +44,7 @@ export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
     startTransition(async () => {
       try {
         await handleBetPlacement(candidate.id, values.amount);
+        // This addBet call triggers the context to re-fetch data
         addBet({
           candidateName: candidate.name,
           amount: values.amount,
