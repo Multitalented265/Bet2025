@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import type { Bet } from "@/components/bet-ticket";
-import { getCandidates, getBets, placeBet } from "@/lib/data";
+import { getCandidates, getBets, placeBet, getUsers } from "@/lib/data";
 import type { CandidateData, User as FullUserType } from "@/lib/data";
 
 
@@ -17,22 +17,18 @@ type BetContextType = {
   electionWinner: string | null;
   candidates: CandidateData[];
   totalPot: number;
-  currentUser: User;
+  currentUser: User | null;
   bettingStopped: boolean;
   stopBetting: () => void;
 };
 
 const BetContext = createContext<BetContextType | undefined>(undefined);
 
-const mockCurrentUser: User = {
-    id: 'user-123',
-    name: 'John Doe',
-}
-
 export function BetProvider({ children }: { children: ReactNode }) {
   const [bets, setBets] = useState<Bet[]>([]);
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [totalPot, setTotalPot] = useState(0);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [electionFinalized, setElectionFinalized] = useState(false);
   const [electionWinner, setElectionWinner] = useState<string | null>(null);
@@ -42,13 +38,17 @@ export function BetProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Fetch initial data
     const fetchData = async () => {
-      const [initialCandidates, initialBets] = await Promise.all([
+      const [initialCandidates, initialBets, allUsers] = await Promise.all([
         getCandidates(),
         getBets(),
+        getUsers(),
       ]);
       setCandidates(initialCandidates);
       setBets(initialBets);
       setTotalPot(initialCandidates.reduce((acc, curr) => acc + curr.totalBets, 0));
+      if (allUsers.length > 0) {
+        setCurrentUser({ id: allUsers[0].id, name: allUsers[0].name });
+      }
     };
     fetchData();
   }, []);
@@ -99,7 +99,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         electionWinner, 
         candidates,
         totalPot, 
-        currentUser: mockCurrentUser,
+        currentUser,
         bettingStopped,
         stopBetting,
     }}>

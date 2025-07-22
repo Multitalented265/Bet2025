@@ -7,6 +7,14 @@ import { useBets } from "@/context/bet-context";
 export default function BetsPage() {
   const { bets, candidates, totalPot, currentUser } = useBets();
 
+  if (!currentUser) {
+    return (
+      <div className="flex flex-col gap-6 items-center justify-center h-full">
+         <p className="text-muted-foreground">Loading user data...</p>
+      </div>
+    )
+  }
+
   const userBets = bets.filter(bet => bet.userId === currentUser.id);
 
   return (
