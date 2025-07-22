@@ -58,12 +58,6 @@ export function AdminHeader() {
           >
             Transactions
           </Link>
-           <Link
-            href="/admin/support"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Support
-          </Link>
       </nav>
       
       {/* Mobile Header */}
@@ -119,13 +113,6 @@ export function AdminHeader() {
                     >
                          <DollarSign className="mr-2 h-4 w-4 inline-block" />
                         Transactions
-                    </Link>
-                     <Link
-                        href="/admin/support"
-                        className="text-muted-foreground hover:text-foreground"
-                    >
-                         <ShieldQuestion className="mr-2 h-4 w-4 inline-block" />
-                        Support
                     </Link>
                 </nav>
             </SheetContent>
