@@ -9,6 +9,9 @@ type FormResult = {
   error?: string
 }
 
+// Basic email validation regex
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function handleSignup(formData: FormData): Promise<FormResult> {
   const fullName = formData.get("fullName") as string
   const email = formData.get("email") as string
@@ -17,6 +20,14 @@ export async function handleSignup(formData: FormData): Promise<FormResult> {
 
   if (!fullName || !email || !password || !confirmPassword) {
     return { success: false, error: "Please fill out all fields." }
+  }
+
+  if (!emailRegex.test(email)) {
+    return { success: false, error: "Please enter a valid email address."}
+  }
+
+  if (password.length < 8) {
+      return { success: false, error: "Password must be at least 8 characters long."}
   }
 
   if (password !== confirmPassword) {
@@ -50,7 +61,6 @@ export async function handleLogin(formData: FormData): Promise<FormResult> {
   }
 
   // In a real app, you would use a secure comparison function for the password
-  // For this mock app, we'll just check if the password matches the stored one.
   if (user.password !== password) {
     return { success: false, error: "Incorrect password." }
   }
