@@ -106,7 +106,7 @@ function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
 
     startTransition(async () => {
         await updateUser(selectedUser.id, updatedData);
-        setUsers(await getUsers());
+        setLocalUsers(await getUsers());
         setEditDialogOpen(false);
         toast({ title: "User Updated", description: "The user's details have been saved." });
     });
@@ -119,7 +119,7 @@ function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
     
     startTransition(async () => {
         await updateUser(selectedUser.id, { status: newStatus });
-        setUsers(await getUsers());
+        setLocalUsers(await getUsers());
         setSuspendDialogOpen(false);
         toast({ title: "User Status Changed", description: `${selectedUser.name}'s status has been set to ${newStatus}.` });
     });
@@ -380,3 +380,4 @@ function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
   );
 }
 
+    
