@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -22,8 +22,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowDown, ArrowUp } from "lucide-react"
-import { handleTransaction } from "@/actions/user"
+import { ArrowDown, ArrowUp, History } from "lucide-react"
+import { handleTransaction, getUserTransactions } from "@/actions/user"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
+import { Badge } from "./ui/badge"
+import type { Transaction } from "@/lib/data"
 
 export function WalletClient() {
   const [balance, setBalance] = useState(50000)
@@ -32,7 +35,16 @@ export function WalletClient() {
   const [isDepositOpen, setDepositOpen] = useState(false)
   const [isWithdrawOpen, setWithdrawOpen] = useState(false)
   const [isPending, startTransition] = useTransition();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const { toast } = useToast()
+
+  useEffect(() => {
+    async function fetchTransactions() {
+        const userTransactions = await getUserTransactions();
+        setTransactions(userTransactions);
+    }
+    fetchTransactions();
+  }, [isPending]); // Refetch transactions after a new one is made
 
   const onTransaction = (type: 'Deposit' | 'Withdrawal') => {
     const amount = type === 'Deposit' ? parseFloat(depositAmount) : parseFloat(withdrawAmount);
@@ -157,9 +169,40 @@ export function WalletClient() {
             <CardDescription>A record of your recent deposits and withdrawals.</CardDescription>
         </CardHeader>
         <CardContent>
+          {transactions.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Fee</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell>
+                      <Badge variant={tx.type === 'Deposit' ? 'secondary' : 'outline'} className="capitalize">
+                        {tx.type === 'Deposit' 
+                          ? <ArrowUp className="mr-1 h-3 w-3 text-green-500" /> 
+                          : <ArrowDown className="mr-1 h-3 w-3 text-red-500" />}
+                        {tx.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{new Date(tx.date + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</TableCell>
+                    <TableCell className="text-right font-medium">{tx.amount.toLocaleString()} MWK</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{tx.fee.toLocaleString()} MWK</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
             <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
-                <p>No recent transactions.</p>
+                <History className="mx-auto h-12 w-12" />
+                <p className="mt-4">No recent transactions.</p>
             </div>
+          )}
         </CardContent>
       </Card>
     </div>

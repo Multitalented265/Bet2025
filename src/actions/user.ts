@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addTransaction, createSupportTicket, updateUser as dbUpdateUser } from "@/lib/data";
+import { addTransaction, createSupportTicket, updateUser as dbUpdateUser, getTransactions as dbGetTransactions } from "@/lib/data";
 import type { User } from "@/context/bet-context";
 
 const mockCurrentUser: User = {
@@ -21,6 +21,11 @@ export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: 
   // In a real app, you'd also update the user's balance in the database.
   revalidatePath('/wallet');
   revalidatePath('/admin/revenue');
+}
+
+export async function getUserTransactions() {
+    const allTransactions = await dbGetTransactions();
+    return allTransactions.filter(tx => tx.userId === mockCurrentUser.id);
 }
 
 export async function handleCreateSupportTicket(formData: FormData) {
