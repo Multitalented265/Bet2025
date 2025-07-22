@@ -5,7 +5,9 @@ import { BetTicket } from "@/components/bet-ticket";
 import { useBets } from "@/context/bet-context";
 
 export default function BetsPage() {
-  const { bets, candidates, totalPot } = useBets();
+  const { bets, candidates, totalPot, currentUser } = useBets();
+
+  const userBets = bets.filter(bet => bet.userId === currentUser.id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -16,13 +18,13 @@ export default function BetsPage() {
         </p>
       </div>
 
-      {bets.length === 0 ? (
+      {userBets.length === 0 ? (
          <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
             <p>You haven't placed any bets yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {bets.map((bet) => {
+          {userBets.map((bet) => {
             const candidate = candidates.find(c => c.name === bet.candidateName);
             return (
               <BetTicket 

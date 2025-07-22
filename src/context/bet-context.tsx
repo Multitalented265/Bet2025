@@ -5,7 +5,12 @@ import { createContext, useContext, useState, ReactNode, useEffect } from "react
 import type { Bet } from "@/components/bet-ticket";
 import type { CandidateData } from "@/components/dashboard-chart";
 
-type NewBet = Omit<Bet, 'id' | 'placedDate' | 'status'>;
+type NewBet = Omit<Bet, 'id' | 'placedDate' | 'status' | 'userId'>;
+
+type User = {
+    id: string;
+    name: string;
+}
 
 type BetContextType = {
   bets: Bet[];
@@ -15,13 +20,20 @@ type BetContextType = {
   electionWinner: string | null;
   candidates: CandidateData[];
   totalPot: number;
+  currentUser: User;
 };
 
 const BetContext = createContext<BetContextType | undefined>(undefined);
 
+const mockCurrentUser: User = {
+    id: 'user-123',
+    name: 'John Doe',
+}
+
 const initialBets: Bet[] = [
     {
       id: 'BET-001',
+      userId: 'user-123',
       candidateName: 'Lazarus Chakwera',
       amount: 5000,
       placedDate: '2024-07-20',
@@ -29,6 +41,7 @@ const initialBets: Bet[] = [
     },
     {
       id: 'BET-002',
+      userId: 'user-123',
       candidateName: 'Peter Mutharika',
       amount: 10000,
       placedDate: '2024-07-18',
@@ -36,6 +49,7 @@ const initialBets: Bet[] = [
     },
     {
       id: 'BET-003',
+      userId: 'user-456', // Belongs to another user
       candidateName: 'Dalitso Kabambe',
       amount: 2500,
       placedDate: '2024-07-15',
@@ -43,6 +57,7 @@ const initialBets: Bet[] = [
     },
       {
       id: 'BET-004',
+      userId: 'user-123',
       candidateName: 'Lazarus Chakwera',
       amount: 2000,
       placedDate: '2024-07-21',
@@ -108,6 +123,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
     const betWithDetails: Bet = {
       ...newBet,
       id: `BET-${String(bets.length + 1).padStart(3, '0')}`,
+      userId: mockCurrentUser.id,
       placedDate: new Date().toISOString().split('T')[0],
       status: 'Pending',
     };
@@ -140,7 +156,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <BetContext.Provider value={{ bets, addBet, finalizeElection, electionFinalized, electionWinner, candidates, totalPot }}>
+    <BetContext.Provider value={{ bets, addBet, finalizeElection, electionFinalized, electionWinner, candidates, totalPot, currentUser: mockCurrentUser }}>
       {children}
     </BetContext.Provider>
   );

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 
 export type Bet = {
   id: string;
+  userId: string;
   candidateName: string;
   amount: number;
   placedDate: string;
