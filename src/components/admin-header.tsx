@@ -2,7 +2,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleUser, Menu, Package, Users, DollarSign } from "lucide-react"
+import { CircleUser, Menu, Package, Users, DollarSign, LifeBuoy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -122,7 +122,9 @@ export function AdminHeader() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/support"><LifeBuoy className="mr-2 h-4 w-4"/>Support</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
                <DropdownMenuItem asChild>
                 <Link href="/"><LogOut className="mr-2 h-4 w-4"/>Logout</Link>

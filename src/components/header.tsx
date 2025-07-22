@@ -47,11 +47,11 @@ export function Header() {
                   <Link href="/wallet"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4 lucide lucide-wallet"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Wallet</Link>
               </DropdownMenuItem>
                <DropdownMenuItem asChild>
-                <Link href="#"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
+                <Link href="/settings"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="#"><FileText className="mr-2 h-4 w-4"/>Terms & Conditions</Link>
+                <Link href="/support"><FileText className="mr-2 h-4 w-4"/>Support</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="#"><ShieldCheck className="mr-2 h-4 w-4"/>Privacy Policy</Link>
