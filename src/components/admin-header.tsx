@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import Logo from "@/components/logo"
 import { LogOut, LayoutDashboard } from "lucide-react"
 
@@ -45,12 +45,6 @@ export function AdminHeader() {
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Candidates
-          </Link>
-          <Link
-            href="#"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Settings
           </Link>
       </nav>
       
@@ -115,7 +109,6 @@ export function AdminHeader() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
                <DropdownMenuItem asChild>
