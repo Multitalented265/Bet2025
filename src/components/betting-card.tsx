@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useBets } from "@/context/bet-context"
+import type { CandidateData } from "@/context/bet-context"
 
 const betSchema = z.object({
   amount: z.coerce.number().int().min(100, "Minimum bet is 100 MWK.").refine(
@@ -22,12 +23,7 @@ const betSchema = z.object({
 })
 
 type BettingCardProps = {
-  candidate: {
-    id: number
-    name: string
-    image: string
-    hint: string
-  }
+  candidate: CandidateData;
   onBet: (candidateId: number, amount: number) => void
   disabled?: boolean
 }
@@ -44,23 +40,24 @@ export function BettingCard({ candidate, onBet, disabled = false }: BettingCardP
   })
 
   function onSubmit(values: z.infer<typeof betSchema>) {
-    onBet(candidate.id, values.amount)
     addBet({
       candidateName: candidate.name,
       amount: values.amount,
     })
     toast({
       title: "Bet Placed!",
-      description: `Your ${values.amount} MWK bet on ${candidate.name} has been placed.`,
+      description: `Your ${values.amount.toLocaleString()} MWK bet on ${candidate.name} has been placed.`,
     })
     form.reset()
   }
+  
+  const isCardDisabled = disabled || candidate.status === 'Withdrawn';
 
   return (
-    <Card className={`w-full transform transition-all duration-300 ${!disabled ? 'hover:scale-105 hover:shadow-xl' : 'opacity-70'}`}>
+    <Card className={`w-full transform transition-all duration-300 ${!isCardDisabled ? 'hover:scale-105 hover:shadow-xl' : 'opacity-70'}`}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <fieldset disabled={disabled}>
+          <fieldset disabled={isCardDisabled}>
             <CardHeader>
               <CardTitle className="text-center font-headline text-2xl">{candidate.name}</CardTitle>
             </CardHeader>
@@ -73,6 +70,11 @@ export function BettingCard({ candidate, onBet, disabled = false }: BettingCardP
                   objectFit="cover"
                   data-ai-hint={candidate.hint}
                 />
+                 {candidate.status === 'Withdrawn' && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg rotate-[-15deg] border-2 border-white p-2 rounded">WITHDRAWN</span>
+                  </div>
+                )}
               </div>
               <FormField
                 control={form.control}
@@ -89,7 +91,9 @@ export function BettingCard({ candidate, onBet, disabled = false }: BettingCardP
               />
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full font-bold">Place Bet</Button>
+              <Button type="submit" className="w-full font-bold">
+                 {candidate.status === 'Withdrawn' ? 'Betting Closed' : 'Place Bet'}
+              </Button>
             </CardFooter>
           </fieldset>
         </form>

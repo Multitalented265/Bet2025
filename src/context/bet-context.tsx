@@ -3,7 +3,15 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import type { Bet } from "@/components/bet-ticket";
-import type { CandidateData } from "@/components/dashboard-chart";
+
+export type CandidateData = {
+  id: number;
+  name: string;
+  image: string;
+  hint: string;
+  totalBets: number;
+  status: 'Active' | 'Withdrawn';
+};
 
 type NewBet = Omit<Bet, 'id' | 'placedDate' | 'status' | 'userId'>;
 
@@ -19,6 +27,9 @@ type BetContextType = {
   electionFinalized: boolean;
   electionWinner: string | null;
   candidates: CandidateData[];
+  addCandidate: (candidate: Omit<CandidateData, 'id' | 'totalBets' | 'status'>) => void;
+  updateCandidate: (id: number, updatedData: Partial<Omit<CandidateData, 'id' | 'totalBets'>>) => void;
+  removeCandidate: (id: number) => void;
   totalPot: number;
   currentUser: User;
 };
@@ -66,10 +77,10 @@ const initialBets: Bet[] = [
 ];
 
 const initialCandidates: CandidateData[] = [
-  { id: 1, name: "Lazarus Chakwera", image: "https://times.mw/wp-content/uploads/2023/07/lazarus-chakwera-2-860x1014.jpg", hint: "malawian man politician", totalBets: 75000 },
-  { id: 2, name: "Peter Mutharika", image: "https://www.peaceparks.org/wp-content/uploads/2018/08/image-51-2.jpeg", hint: "malawian man suit", totalBets: 62000 },
-  { id: 3, name: "Dalitso Kabambe", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhCBX_R1SzYblo8R62us3MuJgBw5pIQ_w7pYboMeFzE5eHHmD31CqmrJSjMlXaiKQ0fZQ&usqp=CAU", hint: "malawian man economist", totalBets: 48000 },
-  { id: 4, name: "Atupele Muluzi", image: "https://www.nyasatimes.com/wp-content/uploads/ATUPELE-MINISTER.jpg", hint: "malawian man leader", totalBets: 35000 },
+  { id: 1, name: "Lazarus Chakwera", image: "https://times.mw/wp-content/uploads/2023/07/lazarus-chakwera-2-860x1014.jpg", hint: "malawian man politician", totalBets: 75000, status: 'Active' },
+  { id: 2, name: "Peter Mutharika", image: "https://www.peaceparks.org/wp-content/uploads/2018/08/image-51-2.jpeg", hint: "malawian man suit", totalBets: 62000, status: 'Active' },
+  { id: 3, name: "Dalitso Kabambe", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhCBX_R1SzYblo8R62us3MuJgBw5pIQ_w7pYboMeFzE5eHHmD31CqmrJSjMlXaiKQ0fZQ&usqp=CAU", hint: "malawian man economist", totalBets: 48000, status: 'Active' },
+  { id: 4, name: "Atupele Muluzi", image: "https://www.nyasatimes.com/wp-content/uploads/ATUPELE-MINISTER.jpg", hint: "malawian man leader", totalBets: 35000, status: 'Active' },
 ]
 
 
@@ -86,12 +97,15 @@ export function BetProvider({ children }: { children: ReactNode }) {
     
     const interval = setInterval(() => {
       setCandidates((prevData) => {
+        const activeCandidates = prevData.filter(c => c.status === 'Active');
+        if (activeCandidates.length === 0) return prevData;
+
         const newChartData = [...prevData];
         let betAmount = 0;
 
         // With a 40% chance, give a large boost to a candidate who is not in the lead
-        if (Math.random() < 0.4 && newChartData.length > 1) {
-           const sortedByBets = [...newChartData].sort((a, b) => b.totalBets - a.totalBets);
+        if (Math.random() < 0.4 && activeCandidates.length > 1) {
+           const sortedByBets = [...activeCandidates].sort((a, b) => b.totalBets - a.totalBets);
            const challengers = sortedByBets.slice(1);
           
           if (challengers.length > 0) {
@@ -106,9 +120,14 @@ export function BetProvider({ children }: { children: ReactNode }) {
           }
         } else {
           // Otherwise, add a smaller random bet to any candidate
-          const randomIndex = Math.floor(Math.random() * newChartData.length);
-          betAmount = Math.floor(Math.random() * 5 + 1) * 100; // 100 to 500 MWK
-          newChartData[randomIndex].totalBets += betAmount;
+          const randomIndexInActive = Math.floor(Math.random() * activeCandidates.length);
+          const candidateName = activeCandidates[randomIndexInActive].name;
+          const originalIndex = newChartData.findIndex(c => c.name === candidateName);
+          
+          if(originalIndex !== -1) {
+            betAmount = Math.floor(Math.random() * 5 + 1) * 100; // 100 to 500 MWK
+            newChartData[originalIndex].totalBets += betAmount;
+          }
         }
 
         setTotalPot(pot => pot + betAmount);
@@ -120,6 +139,14 @@ export function BetProvider({ children }: { children: ReactNode }) {
   }, [electionFinalized]);
 
   const addBet = (newBet: NewBet) => {
+    if (electionFinalized) return;
+    const candidate = candidates.find(c => c.name === newBet.candidateName);
+    if (candidate?.status === 'Withdrawn') {
+        // Optionally, show a toast or message that bets cannot be placed on withdrawn candidates
+        console.error("Cannot place bet on a withdrawn candidate.");
+        return;
+    }
+
     const betWithDetails: Bet = {
       ...newBet,
       id: `BET-${String(bets.length + 1).padStart(3, '0')}`,
@@ -155,8 +182,41 @@ export function BetProvider({ children }: { children: ReactNode }) {
     setElectionWinner(winnerCandidateName);
   };
 
+  const addCandidate = (candidate: Omit<CandidateData, 'id' | 'totalBets' | 'status'>) => {
+    const newId = candidates.length > 0 ? Math.max(...candidates.map(c => c.id)) + 1 : 1;
+    const newCandidate: CandidateData = {
+        ...candidate,
+        id: newId,
+        totalBets: 0,
+        status: 'Active',
+    };
+    setCandidates(prev => [...prev, newCandidate]);
+  };
+
+  const updateCandidate = (id: number, updatedData: Partial<Omit<CandidateData, 'id' | 'totalBets'>>) => {
+    setCandidates(prev => prev.map(c => c.id === id ? { ...c, ...updatedData } : c));
+  };
+
+  const removeCandidate = (id: number) => {
+    // Note: In a real app, you'd need to handle what happens to bets on this candidate.
+    // For this prototype, we'll just remove them.
+    setCandidates(prev => prev.filter(c => c.id !== id));
+  };
+
   return (
-    <BetContext.Provider value={{ bets, addBet, finalizeElection, electionFinalized, electionWinner, candidates, totalPot, currentUser: mockCurrentUser }}>
+    <BetContext.Provider value={{ 
+        bets, 
+        addBet, 
+        finalizeElection, 
+        electionFinalized, 
+        electionWinner, 
+        candidates,
+        addCandidate,
+        updateCandidate,
+        removeCandidate,
+        totalPot, 
+        currentUser: mockCurrentUser 
+    }}>
       {children}
     </BetContext.Provider>
   );

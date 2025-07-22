@@ -17,14 +17,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useBets } from "@/context/bet-context"
-
-export type CandidateData = {
-  id: number
-  name: string
-  totalBets: number
-  image: string;
-  hint: string;
-}
+import type { CandidateData } from "@/context/bet-context"
 
 const candidateColors: { [key: string]: string } = {
     "Lazarus Chakwera": "#000000",
@@ -86,7 +79,7 @@ export function DashboardChart() {
     return acc
   }, {} as any)
   
-  const sortedData = [...candidates].sort((a, b) => b.totalBets - a.totalBets);
+  const sortedData = [...candidates].filter(c => c.status === 'Active').sort((a, b) => b.totalBets - a.totalBets);
 
   return (
     <Card className="w-full shadow-lg">
