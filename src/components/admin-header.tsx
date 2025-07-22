@@ -2,7 +2,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleUser, Menu, Package, Users, DollarSign, LifeBuoy } from "lucide-react"
+import { CircleUser, Menu, Package, Users, DollarSign, LifeBuoy, ShieldQuestion } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from "@/components/logo"
 import { LogOut, LayoutDashboard } from "lucide-react"
 
@@ -51,6 +51,12 @@ export function AdminHeader() {
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Revenue
+          </Link>
+          <Link
+            href="/admin/support"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Support
           </Link>
       </nav>
       
@@ -101,6 +107,13 @@ export function AdminHeader() {
                          <DollarSign className="mr-2 h-4 w-4 inline-block" />
                         Revenue
                     </Link>
+                     <Link
+                        href="/admin/support"
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                         <ShieldQuestion className="mr-2 h-4 w-4 inline-block" />
+                        Support
+                    </Link>
                 </nav>
             </SheetContent>
           </Sheet>
@@ -121,10 +134,6 @@ export function AdminHeader() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/support"><LifeBuoy className="mr-2 h-4 w-4"/>Support</Link>
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
                <DropdownMenuItem asChild>
                 <Link href="/"><LogOut className="mr-2 h-4 w-4"/>Logout</Link>
