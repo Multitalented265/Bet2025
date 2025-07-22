@@ -19,13 +19,6 @@ import {
 import { useBets } from "@/context/bet-context"
 import type { CandidateData } from "@/context/bet-context"
 
-const candidateColors: { [key: string]: string } = {
-    "Lazarus Chakwera": "#000000",
-    "Peter Mutharika": "#87CEEB",
-    "Dalitso Kabambe": "#FF0000",
-    "Atupele Muluzi": "#FFD700",
-};
-
 const CustomYAxisTick = (props: any) => {
     const { x, y, payload, data } = props;
     const candidate = data.find((d: CandidateData) => d.name === payload.value);
@@ -74,7 +67,7 @@ export function DashboardChart() {
   const chartConfig = candidates.reduce((acc, candidate) => {
     acc[candidate.name] = {
       label: candidate.name,
-      color: candidateColors[candidate.name] || "#8884d8",
+      color: candidate.color,
     }
     return acc
   }, {} as any)
@@ -132,7 +125,7 @@ export function DashboardChart() {
                 formatter={(value: number) => `${value.toLocaleString()}`}
               />
               {sortedData.map((entry) => (
-                <Cell key={`cell-${entry.id}`} fill={candidateColors[entry.name]} />
+                <Cell key={`cell-${entry.id}`} fill={entry.color} />
               ))}
             </Bar>
           </BarChart>

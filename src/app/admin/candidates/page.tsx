@@ -35,6 +35,7 @@ export default function AdminCandidatesPage() {
       name: formData.get("name") as string,
       image: formData.get("imageUrl") as string,
       hint: formData.get("hint") as string,
+      color: formData.get("color") as string,
     }
     addCandidate(newCandidate)
     toast({ title: "Candidate Added", description: `${newCandidate.name} has been added to the election.` })
@@ -55,6 +56,7 @@ export default function AdminCandidatesPage() {
       name: formData.get("name") as string,
       image: formData.get("imageUrl") as string,
       hint: formData.get("hint") as string,
+      color: formData.get("color") as string,
     }
 
     updateCandidate(selectedCandidate.id, updatedData)
@@ -128,6 +130,10 @@ export default function AdminCandidatesPage() {
                     <Label htmlFor="hint" className="text-right">AI Hint</Label>
                     <Input id="hint" name="hint" placeholder="e.g. malawian man" className="col-span-3" required />
                   </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="color" className="text-right">Color Code</Label>
+                    <Input id="color" name="color" placeholder="#FF0000" className="col-span-3" required />
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button type="button" variant="secondary" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
@@ -156,7 +162,10 @@ export default function AdminCandidatesPage() {
                         <AvatarImage src={candidate.image} alt={candidate.name} />
                         <AvatarFallback>{candidate.name.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{candidate.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: candidate.color }}></span>
+                        <span className="font-medium">{candidate.name}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>{candidate.totalBets.toLocaleString()} MWK</TableCell>
@@ -214,7 +223,11 @@ export default function AdminCandidatesPage() {
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="hint" className="text-right">AI Hint</Label>
                     <Input id="hint" name="hint" defaultValue={selectedCandidate.hint} className="col-span-3" required />
-                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="color" className="text-right">Color Code</Label>
+                    <Input id="color" name="color" defaultValue={selectedCandidate.color} className="col-span-3" required />
+                </div>
               </div>
               <DialogFooter>
                 <Button type="button" variant="secondary" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
