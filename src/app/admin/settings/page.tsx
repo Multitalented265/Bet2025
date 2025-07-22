@@ -1,9 +1,11 @@
 
 "use client"
 
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { Eye, EyeOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,6 +35,9 @@ const passwordFormSchema = z.object({
 
 export default function AdminSettingsPage() {
     const { toast } = useToast()
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
@@ -83,7 +88,18 @@ export default function AdminSettingsPage() {
                         <FormItem>
                             <FormLabel>Current Password</FormLabel>
                             <FormControl>
-                            <Input type="password" {...field} />
+                              <div className="relative">
+                                <Input type={showCurrentPassword ? "text" : "password"} {...field} />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                >
+                                  {showCurrentPassword ? <EyeOff /> : <Eye />}
+                                </Button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -96,7 +112,18 @@ export default function AdminSettingsPage() {
                         <FormItem>
                             <FormLabel>New Password</FormLabel>
                             <FormControl>
-                            <Input type="password" {...field} />
+                               <div className="relative">
+                                <Input type={showNewPassword ? "text" : "password"} {...field} />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                  onClick={() => setShowNewPassword(!showNewPassword)}
+                                >
+                                  {showNewPassword ? <EyeOff /> : <Eye />}
+                                </Button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -109,7 +136,18 @@ export default function AdminSettingsPage() {
                         <FormItem>
                             <FormLabel>Confirm New Password</FormLabel>
                             <FormControl>
-                            <Input type="password" {...field} />
+                               <div className="relative">
+                                <Input type={showConfirmPassword ? "text" : "password"} {...field} />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                >
+                                  {showConfirmPassword ? <EyeOff /> : <Eye />}
+                                </Button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
