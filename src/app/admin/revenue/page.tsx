@@ -5,19 +5,47 @@ import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowDown, ArrowUp, DollarSign, Banknote, Landmark } from 'lucide-react';
-import { getTransactions, Transaction } from '@/lib/data';
+import { ArrowDown, ArrowUp, DollarSign, Search } from 'lucide-react';
+import { getTransactions, Transaction, User, getUsers } from '@/lib/data';
+import { Input } from '@/components/ui/input';
 
 export default function RevenuePage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-        const data = await getTransactions();
-        setTransactions(data);
+    const fetchData = async () => {
+        const [transactionsData, usersData] = await Promise.all([
+            getTransactions(),
+            getUsers()
+        ]);
+        setTransactions(transactionsData);
+        setUsers(usersData);
     };
-    fetchTransactions();
+    fetchData();
   }, [])
+
+  const transactionsWithUserName = useMemo(() => {
+    return transactions.map(tx => {
+      const user = users.find(u => u.id === tx.userId);
+      return {
+        ...tx,
+        userName: user ? user.name : 'Unknown User'
+      }
+    });
+  }, [transactions, users]);
+
+
+  const filteredTransactions = useMemo(() => {
+    return transactionsWithUserName.filter(tx => {
+      const searchMatch = searchQuery === '' ||
+        tx.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tx.userName.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return searchMatch;
+    });
+  }, [searchQuery, transactionsWithUserName]);
 
   const revenueStats = useMemo(() => {
     const totalDeposits = transactions
@@ -48,9 +76,9 @@ export default function RevenuePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold font-headline">Revenue Overview</h1>
+        <h1 className="text-3xl font-bold font-headline">Revenue & Transactions</h1>
         <p className="text-muted-foreground">
-          Track earnings from deposit and withdrawal fees.
+          Track earnings and verify all platform transactions.
         </p>
       </div>
 
@@ -99,11 +127,23 @@ export default function RevenuePage() {
           <CardDescription>A log of all deposits and withdrawals.</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4">
+              <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                      type="search"
+                      placeholder="Search by Transaction ID or User Name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-8 w-full"
+                  />
+              </div>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Transaction ID</TableHead>
-                <TableHead>User ID</TableHead>
+                <TableHead>User</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
@@ -111,10 +151,10 @@ export default function RevenuePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((tx) => (
+              {filteredTransactions.map((tx) => (
                 <TableRow key={tx.id}>
                   <TableCell className="font-mono">{tx.id}</TableCell>
-                  <TableCell>{tx.userId}</TableCell>
+                  <TableCell>{tx.userName}</TableCell>
                   <TableCell>
                     <Badge variant={tx.type === 'Deposit' ? 'secondary' : 'outline'} className="capitalize">
                       {tx.type === 'Deposit' 

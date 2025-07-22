@@ -2,7 +2,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleUser, Menu, Package, Users, DollarSign, LifeBuoy, ShieldQuestion, Settings } from "lucide-react"
+import { CircleUser, Menu, Package, Users, DollarSign, LifeBuoy, ShieldQuestion, Settings, ReceiptText } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -46,11 +46,17 @@ export function AdminHeader() {
           >
             Candidates
           </Link>
+          <Link
+            href="/admin/bets"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Bets
+          </Link>
            <Link
             href="/admin/revenue"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
-            Revenue
+            Transactions
           </Link>
            <Link
             href="/admin/support"
@@ -100,12 +106,19 @@ export function AdminHeader() {
                          <Package className="mr-2 h-4 w-4 inline-block" />
                         Candidates
                     </Link>
+                     <Link
+                        href="/admin/bets"
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                         <ReceiptText className="mr-2 h-4 w-4 inline-block" />
+                        Bets
+                    </Link>
                     <Link
                         href="/admin/revenue"
                         className="text-muted-foreground hover:text-foreground"
                     >
                          <DollarSign className="mr-2 h-4 w-4 inline-block" />
-                        Revenue
+                        Transactions
                     </Link>
                      <Link
                         href="/admin/support"

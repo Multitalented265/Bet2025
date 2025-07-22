@@ -2,14 +2,14 @@
 "use client"
 
 import { useState, useMemo, useTransition, useEffect } from "react"
-import { getUsers, updateUser } from "@/lib/data"
+import { getUsers, updateUser, getTransactions, Transaction } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Search, Calendar as CalendarIcon, X as ClearIcon } from "lucide-react";
+import { MoreHorizontal, Search, Calendar as CalendarIcon, X as ClearIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
   let [isPending, startTransition] = useTransition();
   
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userTransactions, setUserTransactions] = useState<Transaction[]>([]);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setViewDialogOpen] = useState(false);
   const [isSuspendDialogOpen, setSuspendDialogOpen] = useState(false);
@@ -46,6 +47,16 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
     // We update our client state to match it.
     setUsers(initialUsers);
   }, [initialUsers]);
+
+  useEffect(() => {
+    async function fetchUserTransactions() {
+        if (selectedUser) {
+            const allTransactions = await getTransactions();
+            setUserTransactions(allTransactions.filter(tx => tx.userId === selectedUser.id));
+        }
+    }
+    fetchUserTransactions();
+  }, [selectedUser])
 
 
   const handleFilterChange = (key: keyof typeof filters, value: any) => {
@@ -285,7 +296,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
       {/* View User Dialog */}
       {selectedUser && (
         <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>{selectedUser.name}</DialogTitle>
                     <DialogDescription>User ID: {selectedUser.id}</DialogDescription>
@@ -313,43 +324,72 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
                     </div>
                     
                     <Separator />
-
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Betting History</h3>
-                      {selectedUser.bets.length > 0 ? (
-                        <div className="max-h-[300px] overflow-y-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Ticket ID</TableHead>
-                              <TableHead>Candidate</TableHead>
-                              <TableHead>Amount</TableHead>
-                              <TableHead>Date</TableHead>
-                              <TableHead>Status</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {selectedUser.bets.map(bet => (
-                              <TableRow key={bet.id}>
-                                <TableCell className="font-mono">{bet.id}</TableCell>
-                                <TableCell>{bet.candidateName}</TableCell>
-                                <TableCell>{bet.amount.toLocaleString()} MWK</TableCell>
-                                <TableCell>{new Date(bet.placedDate + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</TableCell>
-                                <TableCell>
-                                    <Badge variant={bet.status === 'Won' ? 'default' : bet.status === 'Lost' ? 'destructive' : 'secondary'}>
-                                        {bet.status}
-                                    </Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Betting History</h3>
+                          {selectedUser.bets.length > 0 ? (
+                            <div className="max-h-[300px] overflow-y-auto border rounded-lg">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Ticket ID</TableHead>
+                                  <TableHead>Candidate</TableHead>
+                                  <TableHead>Amount</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {selectedUser.bets.map(bet => (
+                                  <TableRow key={bet.id}>
+                                    <TableCell className="font-mono">{bet.id}</TableCell>
+                                    <TableCell>{bet.candidateName}</TableCell>
+                                    <TableCell>{bet.amount.toLocaleString()} MWK</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                            </div>
+                          ) : (
+                            <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
+                              <p>This user has not placed any bets.</p>
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
-                          <p>This user has not placed any bets.</p>
+                         <div>
+                          <h3 className="text-lg font-semibold mb-2">Transaction History</h3>
+                          {userTransactions.length > 0 ? (
+                            <div className="max-h-[300px] overflow-y-auto border rounded-lg">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Transaction ID</TableHead>
+                                  <TableHead>Type</TableHead>
+                                  <TableHead className="text-right">Amount</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {userTransactions.map(tx => (
+                                  <TableRow key={tx.id}>
+                                    <TableCell className="font-mono">{tx.id}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={tx.type === 'Deposit' ? 'secondary' : 'outline'} className="capitalize">
+                                          {tx.type === 'Deposit' 
+                                            ? <ArrowUp className="mr-1 h-3 w-3 text-green-500" /> 
+                                            : <ArrowDown className="mr-1 h-3 w-3 text-red-500" />}
+                                          {tx.type}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">{tx.amount.toLocaleString()} MWK</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                            </div>
+                          ) : (
+                            <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
+                              <p>This user has no transactions.</p>
+                            </div>
+                          )}
                         </div>
-                      )}
                     </div>
                 </div>
                 <DialogFooter>
