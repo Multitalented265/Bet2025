@@ -23,6 +23,7 @@ export type User = {
   id:string;
   name: string;
   email: string;
+  password?: string; // Add password for auth simulation
   joined: string;
   status: "Active" | "Suspended";
   totalBets: number;
@@ -60,9 +61,9 @@ function generateId(prefix: string) {
 // --- MOCK DATABASE ---
 
 let users: User[] = [
-  { id: 'usr-l9yq3z7a-johndoe', name: "John Doe", email: "john.doe@example.com", joined: "2024-07-20", status: "Active", totalBets: 0, bets: [] },
-  { id: 'usr-l9yq3z7b-janesmith', name: "Jane Smith", email: "jane.smith@example.com", joined: "2024-07-15", status: "Active", totalBets: 0, bets: [] },
-  { id: 'usr-l9yq3z7c-charlie', name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended", totalBets: 0, bets: [] },
+  { id: generateId('usr'), name: "John Doe", email: "john.doe@example.com", password: "password123", joined: "2024-07-20", status: "Active", totalBets: 0, bets: [] },
+  { id: generateId('usr'), name: "Jane Smith", email: "jane.smith@example.com", password: "password123", joined: "2024-07-15", status: "Active", totalBets: 0, bets: [] },
+  { id: generateId('usr'), name: "Charlie Brown", email: "charlie@example.com", password: "password123", joined: "2024-07-05", status: "Suspended", totalBets: 0, bets: [] },
 ];
 
 let candidates: CandidateData[] = [
@@ -158,6 +159,25 @@ export async function getUsers(): Promise<User[]> {
     });
     return Promise.resolve(userWithBets);
 }
+
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+    const user = users.find(u => u.email === email);
+    return Promise.resolve(user);
+}
+
+export async function addUser(userData: Omit<User, 'id' | 'joined' | 'status' | 'totalBets' | 'bets'>): Promise<User> {
+    const newUser: User = {
+        id: generateId('usr'),
+        ...userData,
+        joined: new Date().toISOString().split('T')[0],
+        status: 'Active',
+        totalBets: 0,
+        bets: [],
+    };
+    users.push(newUser);
+    return Promise.resolve(newUser);
+}
+
 
 export async function updateUser(id: string, updatedData: Partial<Omit<User, 'id' | 'bets' | 'totalBets'>>) {
     users = users.map(u => u.id === id ? { ...u, ...updatedData } as User : u);

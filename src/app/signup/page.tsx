@@ -1,8 +1,9 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -16,10 +17,36 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Logo from "@/components/logo"
+import { handleSignup } from "@/actions/auth"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SignupPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const { toast } = useToast()
+  const router = useRouter()
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+    startTransition(async () => {
+      const result = await handleSignup(formData)
+      if (result.success) {
+        toast({
+          title: "Account Created",
+          description: "You have successfully signed up. Please log in.",
+        })
+        router.push("/")
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Signup Failed",
+          description: result.error,
+        })
+      }
+    })
+  }
 
   return (
     <div className="flex sm:items-center sm:justify-center min-h-screen bg-primary sm:p-4">
@@ -34,56 +61,59 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-                <Label htmlFor="full-name">Full Name</Label>
-                <Input id="full-name" placeholder="John Doe" required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input id="password" type={showPassword ? "text" : "password"} required />
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                >
-                    {showPassword ? <EyeOff /> : <Eye />}
-                    <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
-                </Button>
+          <form onSubmit={handleSubmit} className="grid gap-4">
+            <fieldset disabled={isPending}>
+              <div className="grid gap-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input id="fullName" name="fullName" placeholder="John Doe" required />
               </div>
-            </div>
-             <div className="grid gap-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <div className="relative">
-                <Input id="confirm-password" type={showConfirmPassword ? "text" : "password"} required />
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                    {showConfirmPassword ? <EyeOff /> : <Eye />}
-                    <span className="sr-only">{showConfirmPassword ? 'Hide password' : 'Show password'}</span>
-                </Button>
+              <div className="grid gap-2 mt-4">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                />
               </div>
-            </div>
-            <Button type="submit" className="w-full font-bold" asChild>
-                <Link href="/dashboard">Create Account</Link>
-            </Button>
-          </div>
+              <div className="grid gap-2 mt-4">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input id="password" name="password" type={showPassword ? "text" : "password"} required />
+                  <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                      onClick={() => setShowPassword(!showPassword)}
+                  >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                      <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+                  </Button>
+                </div>
+              </div>
+              <div className="grid gap-2 mt-4">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} required />
+                  <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                      {showConfirmPassword ? <EyeOff /> : <Eye />}
+                      <span className="sr-only">{showConfirmPassword ? 'Hide password' : 'Show password'}</span>
+                  </Button>
+                </div>
+              </div>
+              <Button type="submit" className="w-full font-bold mt-4">
+                {isPending ? "Creating Account..." : "Create Account"}
+              </Button>
+            </fieldset>
+          </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link href="/" className="underline text-primary">
