@@ -52,6 +52,12 @@ export function AdminHeader() {
           >
             Revenue
           </Link>
+           <Link
+            href="/admin/support"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Support
+          </Link>
       </nav>
       
       {/* Mobile Header */}

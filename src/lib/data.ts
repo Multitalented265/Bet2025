@@ -60,9 +60,9 @@ function generateId(prefix: string) {
 // --- MOCK DATABASE ---
 
 let users: User[] = [
-  { id: generateId('usr'), name: "John Doe", email: "john.doe@example.com", joined: "2024-07-20", status: "Active", totalBets: 0, bets: [] },
-  { id: generateId('usr'), name: "Jane Smith", email: "jane.smith@example.com", joined: "2024-07-15", status: "Active", totalBets: 0, bets: [] },
-  { id: generateId('usr'), name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended", totalBets: 0, bets: [] },
+  { id: 'usr-l9yq3z7a-johndoe', name: "John Doe", email: "john.doe@example.com", joined: "2024-07-20", status: "Active", totalBets: 0, bets: [] },
+  { id: 'usr-l9yq3z7b-janesmith', name: "Jane Smith", email: "jane.smith@example.com", joined: "2024-07-15", status: "Active", totalBets: 0, bets: [] },
+  { id: 'usr-l9yq3z7c-charlie', name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended", totalBets: 0, bets: [] },
 ];
 
 let candidates: CandidateData[] = [
