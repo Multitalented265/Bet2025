@@ -2,7 +2,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleUser, Menu, Package, Users } from "lucide-react"
+import { CircleUser, Menu, Package, Users, DollarSign } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -46,6 +46,12 @@ export function AdminHeader() {
           >
             Candidates
           </Link>
+           <Link
+            href="/admin/revenue"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Revenue
+          </Link>
       </nav>
       
       {/* Mobile Header */}
@@ -87,6 +93,13 @@ export function AdminHeader() {
                     >
                          <Package className="mr-2 h-4 w-4 inline-block" />
                         Candidates
+                    </Link>
+                    <Link
+                        href="/admin/revenue"
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                         <DollarSign className="mr-2 h-4 w-4 inline-block" />
+                        Revenue
                     </Link>
                 </nav>
             </SheetContent>
