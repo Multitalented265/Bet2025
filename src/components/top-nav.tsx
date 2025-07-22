@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Wallet, ReceiptText, User, FileText, ShieldCheck, LogOut } from 'lucide-react';
+import { LayoutDashboard, Wallet, ReceiptText, User, FileText, ShieldCheck, LogOut, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Logo from './logo';
 import { Separator } from './ui/separator';
@@ -18,6 +18,7 @@ const navItems = [
 
 const accountItems = [
     { href: '/profile', icon: User, label: 'Profile' },
+    { href: '#', icon: Settings, label: 'Settings' },
     { href: '#', icon: FileText, label: 'Terms & Conditions' },
     { href: '#', icon: ShieldCheck, label: 'Privacy Policy' },
 ]
