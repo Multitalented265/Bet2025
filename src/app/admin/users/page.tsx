@@ -1,8 +1,8 @@
 
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
-import { useBets } from "@/context/bet-context"
+import { useState, useMemo, useEffect, useTransition } from "react"
+import { getUsers, updateUser } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -21,20 +21,17 @@ import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import type { User } from "@/context/bet-context"
+import type { User } from "@/lib/data"
 
-export default function AdminUsersPage() {
-  const { bets: allBets, users: initialUsers, setUsers } = useBets();
-  const [users, setLocalUsers] = useState<User[]>([]);
+export default async function AdminUsersPage() {
+    const users = await getUsers();
+    return <AdminUsersClient initialUsers={users} />
+}
 
-  useEffect(() => {
-    const processedUsers: User[] = initialUsers.map(user => {
-      const userBets = allBets.filter(bet => bet.userId === user.id);
-      const totalBets = userBets.reduce((acc, bet) => acc + bet.amount, 0);
-      return { ...user, bets: userBets, totalBets };
-    });
-    setLocalUsers(processedUsers);
-  }, [initialUsers, allBets]);
+
+function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
+  const [users, setLocalUsers] = useState<User[]>(initialUsers);
+  let [isPending, startTransition] = useTransition();
   
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
@@ -66,18 +63,13 @@ export default function AdminUsersPage() {
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
-      // Search Query Filter
       const searchMatch = searchQuery === '' || 
         user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Status Filter
       const statusMatch = filters.status === 'all' || user.status === filters.status;
-
-      // Joined Date Filter
       const dateMatch = !filters.joinedAfter || new Date(user.joined + 'T00:00:00Z') >= filters.joinedAfter;
 
-      // Amount Filter
       const minAmount = parseFloat(filters.minAmount);
       const maxAmount = parseFloat(filters.maxAmount);
       const minAmountMatch = isNaN(minAmount) || user.totalBets >= minAmount;
@@ -105,28 +97,32 @@ export default function AdminUsersPage() {
   const handleSaveEdit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedUser) return;
-
+    
     const formData = new FormData(event.currentTarget);
-    const updatedUser = {
-      ...selectedUser,
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
+    const updatedData = {
+        name: formData.get("name") as string,
+        email: formData.get("email") as string,
     };
 
-    setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
-    setEditDialogOpen(false);
-    toast({ title: "User Updated", description: "The user's details have been saved." });
+    startTransition(async () => {
+        await updateUser(selectedUser.id, updatedData);
+        setUsers(await getUsers());
+        setEditDialogOpen(false);
+        toast({ title: "User Updated", description: "The user's details have been saved." });
+    });
   };
   
   const handleConfirmSuspend = () => {
     if (!selectedUser) return;
     
     const newStatus = selectedUser.status === 'Active' ? 'Suspended' : 'Active';
-    const updatedUser = { ...selectedUser, status: newStatus };
-
-    setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
-    setSuspendDialogOpen(false);
-    toast({ title: "User Status Changed", description: `${selectedUser.name}'s status has been set to ${newStatus}.` });
+    
+    startTransition(async () => {
+        await updateUser(selectedUser.id, { status: newStatus });
+        setUsers(await getUsers());
+        setSuspendDialogOpen(false);
+        toast({ title: "User Status Changed", description: `${selectedUser.name}'s status has been set to ${newStatus}.` });
+    });
   };
 
 
@@ -279,7 +275,7 @@ export default function AdminUsersPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="secondary" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Changes"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -373,8 +369,8 @@ export default function AdminUsersPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmSuspend} className={selectedUser?.status === 'Active' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}>
-              Yes, {selectedUser?.status === 'Active' ? 'Suspend' : 'Reactivate'} User
+            <AlertDialogAction onClick={handleConfirmSuspend} className={selectedUser?.status === 'Active' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''} disabled={isPending}>
+              {isPending ? "Updating..." : `Yes, ${selectedUser?.status === 'Active' ? 'Suspend' : 'Reactivate'} User`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -383,3 +379,4 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+

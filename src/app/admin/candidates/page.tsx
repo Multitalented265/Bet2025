@@ -1,9 +1,9 @@
 
 "use client"
 
-import { useState } from "react"
-import Image from "next/image"
-import { useBets } from "@/context/bet-context"
+import { useState, useTransition } from "react"
+import { getCandidates } from "@/lib/data"
+import { handleAddCandidate, handleUpdateCandidate, handleRemoveCandidate, handleUpdateCandidateStatus } from "@/actions/admin"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -15,12 +15,29 @@ import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { PlusCircle, MoreHorizontal } from "lucide-react"
-import type { CandidateData } from "@/context/bet-context"
+import type { CandidateData } from "@/lib/data"
 import { useToast } from "@/hooks/use-toast"
 
-export default function AdminCandidatesPage() {
-  const { candidates, addCandidate, updateCandidate, removeCandidate } = useBets()
+type AdminCandidatesPageProps = {
+  searchParams: {
+    [key: string]: string | string[] | undefined;
+  };
+};
+
+// This page now needs to be async to fetch initial data on the server.
+export default async function AdminCandidatesPage({ searchParams }: AdminCandidatesPageProps) {
+  const candidates = await getCandidates();
+  
+  // The client-side logic is wrapped in a new component.
+  return <AdminCandidatesClient candidates={candidates} />;
+}
+
+
+// --- Client Component ---
+
+function AdminCandidatesClient({ candidates: initialCandidates }: { candidates: CandidateData[] }) {
   const { toast } = useToast()
+  let [isPending, startTransition] = useTransition();
 
   const [isAddDialogOpen, setAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setEditDialogOpen] = useState(false)
@@ -28,40 +45,45 @@ export default function AdminCandidatesPage() {
   const [isRemoveDialogOpen, setRemoveDialogOpen] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateData | null>(null)
 
-  const handleAddNewCandidate = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const newCandidate = {
-      name: formData.get("name") as string,
-      image: formData.get("imageUrl") as string,
-      hint: formData.get("hint") as string,
-      color: formData.get("color") as string,
-    }
-    addCandidate(newCandidate)
-    toast({ title: "Candidate Added", description: `${newCandidate.name} has been added to the election.` })
-    setAddDialogOpen(false)
-  }
+  const onAddNewCandidate = async (formData: FormData) => {
+    startTransition(async () => {
+      await handleAddCandidate(formData);
+      toast({ title: "Candidate Added", description: `The new candidate has been added.` });
+      setAddDialogOpen(false);
+    });
+  };
+
+  const onEditCandidate = async (formData: FormData) => {
+    if (!selectedCandidate) return;
+    startTransition(async () => {
+      await handleUpdateCandidate(selectedCandidate.id, formData);
+      toast({ title: "Candidate Updated", description: "The candidate's details have been saved." });
+      setEditDialogOpen(false);
+    });
+  };
+
+  const onConfirmStatusChange = async () => {
+    if (!selectedCandidate) return;
+    startTransition(async () => {
+      await handleUpdateCandidateStatus(selectedCandidate.id, selectedCandidate.status);
+      toast({ title: "Status Updated", description: `${selectedCandidate.name}'s status has been changed.` });
+      setStatusDialogOpen(false);
+    });
+  };
+
+  const onConfirmRemove = async () => {
+    if (!selectedCandidate) return;
+    startTransition(async () => {
+      await handleRemoveCandidate(selectedCandidate.id);
+      toast({ title: "Candidate Removed", description: `${selectedCandidate.name} has been removed.` });
+      setRemoveDialogOpen(false);
+    });
+  };
+
 
   const handleEditClick = (candidate: CandidateData) => {
     setSelectedCandidate(candidate)
     setEditDialogOpen(true)
-  }
-
-  const handleSaveEdit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (!selectedCandidate) return
-
-    const formData = new FormData(event.currentTarget)
-    const updatedData: Partial<CandidateData> = {
-      name: formData.get("name") as string,
-      image: formData.get("imageUrl") as string,
-      hint: formData.get("hint") as string,
-      color: formData.get("color") as string,
-    }
-
-    updateCandidate(selectedCandidate.id, updatedData)
-    toast({ title: "Candidate Updated", description: "The candidate's details have been saved." })
-    setEditDialogOpen(false)
   }
 
   const handleStatusClick = (candidate: CandidateData) => {
@@ -69,26 +91,10 @@ export default function AdminCandidatesPage() {
     setStatusDialogOpen(true)
   }
 
-  const handleConfirmStatusChange = () => {
-    if (!selectedCandidate) return
-    const newStatus = selectedCandidate.status === 'Active' ? 'Withdrawn' : 'Active'
-    updateCandidate(selectedCandidate.id, { status: newStatus })
-    toast({ title: "Status Updated", description: `${selectedCandidate.name}'s status has been changed to ${newStatus}.` })
-    setStatusDialogOpen(false)
-  }
-
   const handleRemoveClick = (candidate: CandidateData) => {
     setSelectedCandidate(candidate)
     setRemoveDialogOpen(true)
   }
-
-  const handleConfirmRemove = () => {
-    if (!selectedCandidate) return
-    removeCandidate(selectedCandidate.id)
-    toast({ title: "Candidate Removed", description: `${selectedCandidate.name} has been removed from the election.` })
-    setRemoveDialogOpen(false)
-  }
-
 
   return (
     <div className="flex flex-col gap-6">
@@ -116,7 +122,7 @@ export default function AdminCandidatesPage() {
                   Enter the details for the new candidate below.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleAddNewCandidate}>
+              <form action={onAddNewCandidate}>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">Name</Label>
@@ -137,7 +143,9 @@ export default function AdminCandidatesPage() {
                 </div>
                 <DialogFooter>
                   <Button type="button" variant="secondary" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
-                  <Button type="submit">Add Candidate</Button>
+                  <Button type="submit" disabled={isPending}>
+                    {isPending ? "Adding..." : "Add Candidate"}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -154,7 +162,7 @@ export default function AdminCandidatesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {candidates.map((candidate) => (
+              {initialCandidates.map((candidate) => (
                 <TableRow key={candidate.id}>
                   <TableCell>
                     <div className="flex items-center gap-4">
@@ -210,7 +218,7 @@ export default function AdminCandidatesPage() {
             <DialogHeader>
               <DialogTitle>Edit Candidate: {selectedCandidate.name}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSaveEdit}>
+            <form action={onEditCandidate}>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="name" className="text-right">Name</Label>
@@ -231,7 +239,9 @@ export default function AdminCandidatesPage() {
               </div>
               <DialogFooter>
                 <Button type="button" variant="secondary" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-                <Button type="submit">Save Changes</Button>
+                 <Button type="submit" disabled={isPending}>
+                    {isPending ? "Saving..." : "Save Changes"}
+                  </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -249,7 +259,9 @@ export default function AdminCandidatesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmStatusChange}>Confirm</AlertDialogAction>
+            <AlertDialogAction onClick={onConfirmStatusChange} disabled={isPending}>
+                {isPending ? "Updating..." : "Confirm"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -265,8 +277,8 @@ export default function AdminCandidatesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmRemove} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Remove
+            <AlertDialogAction onClick={onConfirmRemove} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={isPending}>
+              {isPending ? "Removing..." : "Remove"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -274,3 +286,4 @@ export default function AdminCandidatesPage() {
     </div>
   );
 }
+

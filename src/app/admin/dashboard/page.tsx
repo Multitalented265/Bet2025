@@ -6,10 +6,23 @@ import { DashboardChart } from "@/components/dashboard-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBets } from "@/context/bet-context";
 import { Users, Vote, CircleDollarSign } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getUsers as dbGetUsers } from "@/lib/data";
+import type { User } from "@/lib/data";
 
 
 export default function AdminDashboardPage() {
-  const { totalPot, bets, candidates, users } = useBets();
+  const { totalPot, bets, candidates } = useBets();
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const allUsers = await dbGetUsers();
+      setUsers(allUsers);
+    };
+    fetchUsers();
+  }, []);
+
   const totalBetsCount = bets.length;
 
   return (
@@ -71,3 +84,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
