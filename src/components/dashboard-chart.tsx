@@ -27,7 +27,7 @@ const CustomYAxisTick = (props: any) => {
   
     return (
       <g transform={`translate(${x},${y})`}>
-        <foreignObject x={-150} y={-25} width="140" height="70">
+        <foreignObject x={-120} y={-25} width="110" height="70">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
             <Image
               src={candidate.image}
@@ -36,7 +36,7 @@ const CustomYAxisTick = (props: any) => {
               height={40}
               className="rounded-full object-cover"
             />
-            <div style={{ marginTop: '4px', fontSize: '12px', color: 'hsl(var(--foreground))', whiteSpace: 'normal', lineHeight: '1.2' }}>
+            <div style={{ marginTop: '4px', fontSize: '11px', color: 'hsl(var(--foreground))', whiteSpace: 'normal', lineHeight: '1.2' }}>
               {candidate.name}
             </div>
           </div>
@@ -47,22 +47,6 @@ const CustomYAxisTick = (props: any) => {
 
 export function DashboardChart() {
   const { candidates, totalPot } = useBets();
-  const [barCategoryGap, setBarCategoryGap] = useState("35%");
-  
-  useEffect(() => {
-    const checkScreenSize = () => {
-        if (window.matchMedia("(min-width: 768px)").matches) {
-            setBarCategoryGap("20%"); // Wider bars on desktop
-        } else {
-            setBarCategoryGap("35%"); // Default for mobile
-        }
-    }
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
   
   const chartConfig = candidates.reduce((acc, candidate) => {
     acc[candidate.name] = {
@@ -87,9 +71,9 @@ export function DashboardChart() {
           <BarChart 
             data={sortedData} 
             layout="vertical"
-            margin={{ left: 20, right: 30, top: 20, bottom: 20 }}
+            margin={{ left: 10, right: 30, top: 20, bottom: 20 }}
             accessibilityLayer
-            barCategoryGap={barCategoryGap}
+            barCategoryGap="35%"
             >
             <XAxis type="number" hide />
             <YAxis 
@@ -98,7 +82,7 @@ export function DashboardChart() {
               tickLine={false} 
               axisLine={false} 
               tick={<CustomYAxisTick data={candidates} />}
-              width={140}
+              width={120}
               interval={0}
               />
             <Tooltip
@@ -121,7 +105,7 @@ export function DashboardChart() {
                 dataKey="totalBets"
                 position="right"
                 offset={10}
-                className="fill-foreground font-semibold"
+                className="fill-foreground font-semibold text-xs sm:text-sm"
                 formatter={(value: number) => `${value.toLocaleString()}`}
               />
               {sortedData.map((entry) => (
