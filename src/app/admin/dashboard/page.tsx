@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
+          </Header>
           <CardContent>
             <div className="text-2xl font-bold">1,254</div>
              <p className="text-xs text-muted-foreground">
@@ -55,7 +55,7 @@ export default function AdminDashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Candidates</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
+          </Header>
           <CardContent>
             <div className="text-2xl font-bold">{candidates.length}</div>
           </CardContent>

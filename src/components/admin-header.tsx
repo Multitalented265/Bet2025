@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
-import Logo from "./logo"
+import Logo from "@/components/logo"
 import { LogOut, LayoutDashboard } from "lucide-react"
 
 export function AdminHeader() {
