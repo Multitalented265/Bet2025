@@ -2,7 +2,7 @@
 "use client"
 
 import Link from "next/link"
-import { CircleUser, Menu, Settings } from "lucide-react"
+import { CircleUser, Menu, Settings, LifeBuoy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -16,7 +16,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import Logo from "./logo"
 import { TopNav } from "./top-nav"
-import { User, FileText, ShieldCheck, LogOut } from "lucide-react"
+import { User, Wallet, LogOut, ShieldCheck } from "lucide-react"
 
 export function Header() {
   return (
@@ -44,15 +44,15 @@ export function Header() {
                 <Link href="/profile"><User className="mr-2 h-4 w-4"/>Profile</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                  <Link href="/wallet"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4 lucide lucide-wallet"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Wallet</Link>
+                  <Link href="/wallet"><Wallet className="mr-2 h-4 w-4"/>Wallet</Link>
               </DropdownMenuItem>
                <DropdownMenuItem asChild>
                 <Link href="/settings"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/support"><FileText className="mr-2 h-4 w-4"/>Support</Link>
+                <Link href="/support"><LifeBuoy className="mr-2 h-4 w-4"/>Support</Link>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="#"><ShieldCheck className="mr-2 h-4 w-4"/>Privacy Policy</Link>
               </DropdownMenuItem>
