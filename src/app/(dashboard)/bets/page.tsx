@@ -5,7 +5,7 @@ import { BetTicket } from "@/components/bet-ticket";
 import { useBets } from "@/context/bet-context";
 
 export default function BetsPage() {
-  const { bets } = useBets();
+  const { bets, candidates, totalPot } = useBets();
 
   return (
     <div className="flex flex-col gap-6">
@@ -22,9 +22,17 @@ export default function BetsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {bets.map((bet) => (
-            <BetTicket key={bet.id} bet={bet} />
-          ))}
+          {bets.map((bet) => {
+            const candidate = candidates.find(c => c.name === bet.candidateName);
+            return (
+              <BetTicket 
+                key={bet.id} 
+                bet={bet}
+                totalBetsOnCandidate={candidate?.totalBets || 0}
+                totalPot={totalPot}
+              />
+            )
+          })}
         </div>
       )}
     </div>

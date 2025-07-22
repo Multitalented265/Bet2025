@@ -26,10 +26,6 @@ export type CandidateData = {
   hint: string;
 }
 
-type DashboardChartProps = {
-  candidates: CandidateData[]
-}
-
 const candidateColors: { [key: string]: string } = {
     "Lazarus Chakwera": "#000000",
     "Peter Mutharika": "#87CEEB",
@@ -63,12 +59,10 @@ const CustomYAxisTick = (props: any) => {
     );
   };
 
-export function DashboardChart({ candidates }: DashboardChartProps) {
-  const [chartData, setChartData] = useState<CandidateData[]>(candidates)
-  const [totalPot, setTotalPot] = useState(candidates.reduce((acc, curr) => acc + curr.totalBets, 0))
+export function DashboardChart() {
+  const { candidates, totalPot } = useBets();
   const [barCategoryGap, setBarCategoryGap] = useState("35%");
-  const { electionFinalized } = useBets();
-
+  
   useEffect(() => {
     const checkScreenSize = () => {
         if (window.matchMedia("(min-width: 768px)").matches) {
@@ -83,46 +77,8 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
 
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
-
-  useEffect(() => {
-    if (electionFinalized) return;
-    
-    const interval = setInterval(() => {
-      setChartData((prevData) => {
-        const newChartData = [...prevData];
-        let betAmount = 0;
-
-        // With a 40% chance, give a large boost to a candidate who is not in the lead
-        if (Math.random() < 0.4 && newChartData.length > 1) {
-           const sortedByBets = [...newChartData].sort((a, b) => b.totalBets - a.totalBets);
-           const challengers = sortedByBets.slice(1);
-          
-          if (challengers.length > 0) {
-            const challengerIndex = Math.floor(Math.random() * challengers.length);
-            const challengerName = challengers[challengerIndex].name;
-            const originalIndex = newChartData.findIndex(c => c.name === challengerName);
-            
-            if (originalIndex !== -1) {
-              betAmount = Math.floor(Math.random() * 20 + 10) * 100; // 1000 to 3000 MWK
-              newChartData[originalIndex].totalBets += betAmount;
-            }
-          }
-        } else {
-          // Otherwise, add a smaller random bet to any candidate
-          const randomIndex = Math.floor(Math.random() * newChartData.length);
-          betAmount = Math.floor(Math.random() * 5 + 1) * 100; // 100 to 500 MWK
-          newChartData[randomIndex].totalBets += betAmount;
-        }
-
-        setTotalPot(pot => pot + betAmount);
-        return newChartData;
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [candidates, electionFinalized]);
   
-  const chartConfig = chartData.reduce((acc, candidate) => {
+  const chartConfig = candidates.reduce((acc, candidate) => {
     acc[candidate.name] = {
       label: candidate.name,
       color: candidateColors[candidate.name] || "#8884d8",
@@ -130,7 +86,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
     return acc
   }, {} as any)
   
-  const sortedData = [...chartData].sort((a, b) => b.totalBets - a.totalBets);
+  const sortedData = [...candidates].sort((a, b) => b.totalBets - a.totalBets);
 
   return (
     <Card className="w-full shadow-lg">
@@ -155,7 +111,7 @@ export function DashboardChart({ candidates }: DashboardChartProps) {
               type="category" 
               tickLine={false} 
               axisLine={false} 
-              tick={<CustomYAxisTick data={chartData} />}
+              tick={<CustomYAxisTick data={candidates} />}
               width={140}
               interval={0}
               />
