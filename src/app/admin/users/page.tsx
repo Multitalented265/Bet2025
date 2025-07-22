@@ -1,15 +1,28 @@
 
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data for users
-const users = [
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  joined: string;
+  status: "Active" | "Suspended";
+};
+
+const initialUsers: User[] = [
   { id: "USR-001", name: "Alice Johnson", email: "alice@example.com", joined: "2024-07-01", status: "Active" },
   { id: "USR-002", name: "Bob Smith", email: "bob@example.com", joined: "2024-07-03", status: "Active" },
   { id: "USR-003", name: "Charlie Brown", email: "charlie@example.com", joined: "2024-07-05", status: "Suspended" },
@@ -18,6 +31,56 @@ const users = [
 ];
 
 export default function AdminUsersPage() {
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setViewDialogOpen] = useState(false);
+  const [isSuspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleEditClick = (user: User) => {
+    setSelectedUser(user);
+    setEditDialogOpen(true);
+  };
+
+  const handleViewClick = (user: User) => {
+    setSelectedUser(user);
+    setViewDialogOpen(true);
+  };
+
+  const handleSuspendClick = (user: User) => {
+    setSelectedUser(user);
+    setSuspendDialogOpen(true);
+  };
+
+  const handleSaveEdit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedUser) return;
+
+    const formData = new FormData(event.currentTarget);
+    const updatedUser = {
+      ...selectedUser,
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+    };
+
+    setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+    setEditDialogOpen(false);
+    toast({ title: "User Updated", description: "The user's details have been saved." });
+  };
+  
+  const handleConfirmSuspend = () => {
+    if (!selectedUser) return;
+    
+    const newStatus = selectedUser.status === 'Active' ? 'Suspended' : 'Active';
+    const updatedUser = { ...selectedUser, status: newStatus };
+
+    setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+    setSuspendDialogOpen(false);
+    toast({ title: "User Status Changed", description: `${selectedUser.name}'s status has been set to ${newStatus}.` });
+  };
+
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -62,9 +125,14 @@ export default function AdminUsersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditClick(user)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewClick(user)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleSuspendClick(user)} 
+                          className={user.status === 'Active' ? 'text-destructive' : ''}
+                        >
+                          {user.status === 'Active' ? 'Suspend' : 'Reactivate'}
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -74,6 +142,80 @@ export default function AdminUsersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User: {selectedUser?.name}</DialogTitle>
+            <DialogDescription>Make changes to the user's profile below.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveEdit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">Name</Label>
+                <Input id="name" name="name" defaultValue={selectedUser?.name} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">Email</Label>
+                <Input id="email" name="email" type="email" defaultValue={selectedUser?.email} className="col-span-3" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="secondary" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* View User Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedUser?.name}</DialogTitle>
+            <DialogDescription>User ID: {selectedUser?.id}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Email:</span>
+              <span className="font-medium">{selectedUser?.email}</span>
+            </div>
+             <div className="flex justify-between">
+              <span className="text-muted-foreground">Status:</span>
+              <Badge variant={selectedUser?.status === 'Active' ? 'secondary' : 'destructive'}>
+                {selectedUser?.status}
+              </Badge>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Joined Date:</span>
+              <span className="font-medium">{selectedUser ? new Date(selectedUser.joined + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' }) : ''}</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Suspend User Alert Dialog */}
+      <AlertDialog open={isSuspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will {selectedUser?.status === 'Active' ? 'suspend' : 'reactivate'} the user account for <span className="font-bold">{selectedUser?.name}</span>. They {selectedUser?.status === 'Active' ? 'will not' : 'will'} be able to access the platform.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSuspend} className={selectedUser?.status === 'Active' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}>
+              Yes, {selectedUser?.status === 'Active' ? 'Suspend' : 'Reactivate'} User
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
