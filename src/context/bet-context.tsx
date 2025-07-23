@@ -1,13 +1,13 @@
 
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import type { Bet } from "@/components/bet-ticket";
-import { getCandidates, getBets, placeBet, getUsers } from "@/lib/data";
+import { getCandidates, getBets, getCurrentUser as dbGetCurrentUser } from "@/lib/data";
 import type { CandidateData, User as FullUserType } from "@/lib/data";
 
 
-export type User = Omit<FullUserType, 'totalBets' | 'bets' | 'status' | 'joined' | 'email'>;
+export type User = Omit<FullUserType, 'totalBets' | 'bets' | 'status' | 'joined' | 'email' | 'password' | 'emailVerified' | 'image' | 'joinedAt' | 'balance' | 'notifyOnBetStatusUpdates' >;
 
 type BetContextType = {
   bets: Bet[];
@@ -34,24 +34,23 @@ export function BetProvider({ children }: { children: ReactNode }) {
   const [electionWinner, setElectionWinner] = useState<string | null>(null);
   const [bettingStopped, setBettingStopped] = useState(false);
 
-
-  useEffect(() => {
-    // Fetch initial data
-    const fetchData = async () => {
-      const [initialCandidates, initialBets, allUsers] = await Promise.all([
+  const fetchData = useCallback(async () => {
+      const [initialCandidates, initialBets, user] = await Promise.all([
         getCandidates(),
         getBets(),
-        getUsers(),
+        dbGetCurrentUser().catch(() => null),
       ]);
       setCandidates(initialCandidates);
       setBets(initialBets);
       setTotalPot(initialCandidates.reduce((acc, curr) => acc + curr.totalBets, 0));
-      if (allUsers.length > 0) {
-        setCurrentUser({ id: allUsers[0].id, name: allUsers[0].name });
+       if (user) {
+        setCurrentUser({ id: user.id, name: user.name });
       }
-    };
+    }, []);
+
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
   
   const addBetAction = async (newBet: Omit<Bet, 'id' | 'placedDate' | 'status' | 'userId'>) => {
     if (electionFinalized || bettingStopped) return;
@@ -64,10 +63,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
     // We don't need to call placeBet here anymore because the server action handleBetPlacement already does it.
     // This function's main job now is to re-fetch data to update the UI.
     
-    const [updatedCandidates, updatedBets] = await Promise.all([getCandidates(), getBets()]);
-    setCandidates(updatedCandidates);
-    setBets(updatedBets);
-    setTotalPot(updatedCandidates.reduce((acc, curr) => acc + curr.totalBets, 0));
+    await fetchData();
   };
 
 

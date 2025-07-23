@@ -2,21 +2,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addTransaction, createSupportTicket, updateUser as dbUpdateUser, getTransactions as dbGetTransactions, getUserById } from "@/lib/data";
-import { getSession } from "@/lib/auth";
+import { addTransaction, createSupportTicket, updateUser as dbUpdateUser, getTransactions as dbGetTransactions, getCurrentUser } from "@/lib/data";
 
-
-async function getCurrentUser() {
-    const session = await getSession();
-    if (!session?.user?.id) {
-        throw new Error("User not authenticated.");
-    }
-    const user = await getUserById(session.user.id);
-    if (!user) {
-        throw new Error("User not found in database.");
-    }
-    return user;
-}
 
 export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: number) {
   const currentUser = await getCurrentUser();

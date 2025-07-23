@@ -8,11 +8,12 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "./db";
-import type { User as PrismaUser, Candidate as PrismaCandidate, Bet as PrismaBet, Transaction as PrismaTransaction, SupportTicket as PrismaSupportTicket, AdminSettings as PrismaAdminSettings } from "@prisma/client";
+import type { User as PrismaUser, Candidate as PrismaCandidate, Bet as PrismaBet, Transaction as PrismaTransaction, SupportTicket as PrismaSupportTicket, AdminSettings as PrismaAdminSettings, Session as PrismaSession, Account as PrismaAccount, VerificationToken as PrismaVerificationToken } from "@prisma/client";
 import bcrypt from 'bcryptjs';
+import { getSession } from "./auth";
 
 // Re-exporting Prisma types to be used in components if needed
-export type { User, Candidate as CandidateData, Bet, Transaction, SupportTicket, AdminSettings } from "@prisma/client";
+export type { User, Candidate as CandidateData, Bet, Transaction, SupportTicket, AdminSettings, Session, Account, VerificationToken } from "@prisma/client";
 
 
 // --- Candidates ---
@@ -60,7 +61,7 @@ export async function getUsers() {
         bets: true,
       },
        orderBy: {
-        joined: 'desc'
+        joinedAt: 'desc'
       }
     });
 
@@ -68,8 +69,26 @@ export async function getUsers() {
       ...user,
       balance: user.balance.toNumber(),
       totalBets: user.bets.reduce((acc, bet) => acc + bet.amount.toNumber(), 0),
-      bets: user.bets.map(b => ({...b, amount: b.amount.toNumber()}))
+      bets: user.bets.map(b => ({...b, amount: b.amount.toNumber()})),
+      joined: user.joinedAt
     }));
+}
+
+export async function getCurrentUser() {
+    const session = await getSession();
+    if (!session?.user?.id) {
+        throw new Error("User not authenticated.");
+    }
+    const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+    });
+    if (!user) {
+        throw new Error("User not found in database.");
+    }
+    return {
+        ...user,
+        balance: user.balance.toNumber(),
+    }
 }
 
 export async function getUserById(id: string) {
@@ -89,7 +108,7 @@ export async function getUserByEmail(email: string) {
     return { ...user, balance: user.balance.toNumber() };
 }
 
-export async function addUser(userData: Omit<PrismaUser, 'id' | 'joined' | 'status' | 'balance' | 'notifyOnBetStatusUpdates' | 'emailVerified'>) {
+export async function addUser(userData: Omit<PrismaUser, 'id' | 'joinedAt' | 'status' | 'balance' | 'notifyOnBetStatusUpdates' | 'emailVerified' | 'image' >) {
     if (!userData.password) {
         throw new Error("Password is required to create a user.");
     }
@@ -132,12 +151,18 @@ export async function getBets() {
 export async function placeBet(newBet: { userId: string, candidateName: string, amount: number }) {
     // Using a transaction to ensure both Bet creation and Candidate update happen together
     return await prisma.$transaction(async (tx) => {
+        const candidate = await tx.candidate.findUnique({
+             where: { name: newBet.candidateName },
+             select: { id: true }
+        });
+        if (!candidate) throw new Error("Candidate not found for betting.");
+
         const bet = await tx.bet.create({
             data: {
                 userId: newBet.userId,
                 candidateName: newBet.candidateName,
                 amount: newBet.amount,
-                candidateId: (await tx.candidate.findUnique({ where: { name: newBet.candidateName }, select: { id: true } }))!.id,
+                candidateId: candidate.id
             }
         });
 
