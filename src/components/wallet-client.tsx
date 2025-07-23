@@ -35,7 +35,7 @@ type WalletClientProps = {
 }
 
 export function WalletClient({ user, initialTransactions }: WalletClientProps) {
-  const [balance, setBalance] = useState<number | null>(null);
+  const [balance, setBalance] = useState<number | null>(user?.balance ?? null);
   const [depositAmount, setDepositAmount] = useState("1000");
   const [withdrawAmount, setWithdrawAmount] = useState("1000");
   const [isDepositOpen, setDepositOpen] = useState(false);
