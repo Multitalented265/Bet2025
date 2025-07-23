@@ -2,8 +2,9 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import type { Bet } from "@/components/bet-ticket";
-import { getCandidates, getBets, getCurrentUser as dbGetCurrentUser } from "@/lib/data";
+import { getCandidates, getBets } from "@/lib/data";
 import type { CandidateData, User as FullUserType } from "@/lib/data";
 
 
@@ -25,6 +26,7 @@ type BetContextType = {
 const BetContext = createContext<BetContextType | undefined>(undefined);
 
 export function BetProvider({ children }: { children: ReactNode }) {
+  const { data: session } = useSession();
   const [bets, setBets] = useState<Bet[]>([]);
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [totalPot, setTotalPot] = useState(0);
@@ -34,18 +36,22 @@ export function BetProvider({ children }: { children: ReactNode }) {
   const [electionWinner, setElectionWinner] = useState<string | null>(null);
   const [bettingStopped, setBettingStopped] = useState(false);
 
+  useEffect(() => {
+    if (session?.user) {
+      setCurrentUser({ id: session.user.id, name: session.user.name || 'User' });
+    } else {
+      setCurrentUser(null);
+    }
+  }, [session]);
+
   const fetchData = useCallback(async () => {
-      const [initialCandidates, initialBets, user] = await Promise.all([
+      const [initialCandidates, initialBets] = await Promise.all([
         getCandidates(),
         getBets(),
-        dbGetCurrentUser().catch(() => null),
       ]);
       setCandidates(initialCandidates);
       setBets(initialBets);
       setTotalPot(initialCandidates.reduce((acc, curr) => acc + curr.totalBets, 0));
-       if (user) {
-        setCurrentUser({ id: user.id, name: user.name });
-      }
     }, []);
 
   useEffect(() => {
@@ -59,10 +65,6 @@ export function BetProvider({ children }: { children: ReactNode }) {
         console.error("Cannot place bet on a withdrawn candidate.");
         return;
     }
-    
-    // We don't need to call placeBet here anymore because the server action handleBetPlacement already does it.
-    // This function's main job now is to re-fetch data to update the UI.
-    
     await fetchData();
   };
 
