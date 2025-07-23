@@ -1,16 +1,17 @@
 
 import { BetTicket } from "@/components/bet-ticket";
 import { getBets, getCandidates, getUserById } from "@/lib/data";
-import { getSession } from "next-auth/react";
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 
 
 export default async function BetsPage() {
-  const session = await getSession();
+  const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    // This part is for added security, but the main check will happen below.
-    // If no session, we can show a login prompt.
+    // If no session, the user is not logged in.
+    // The page will redirect to login via middleware, but this is a fallback.
      return (
       <div className="flex flex-col gap-6 items-center justify-center h-full">
          <p className="text-muted-foreground">Please log in to see your bets.</p>
