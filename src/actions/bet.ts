@@ -2,12 +2,11 @@
 "use server"
 
 import { revalidatePath } from "next/cache";
-import { placeBet, getCandidates } from "@/lib/data"
-import { getSession } from "@/lib/auth";
+import { placeBet, getCandidates, getCurrentUser } from "@/lib/data"
 
 export const handleBetPlacement = async (candidateId: number, amount: number) => {
-  const session = await getSession();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser();
+  if (!user?.id) {
     throw new Error("You must be logged in to place a bet.");
   }
   
@@ -18,10 +17,14 @@ export const handleBetPlacement = async (candidateId: number, amount: number) =>
       throw new Error("Candidate not found");
   }
 
+  if (candidate.status === 'Withdrawn') {
+    throw new Error("This candidate has withdrawn. Betting is closed.");
+  }
+
   await placeBet({
     candidateName: candidate.name,
     amount,
-    userId: session.user.id
+    userId: user.id
   })
 
   // Revalidate paths to update data on the client

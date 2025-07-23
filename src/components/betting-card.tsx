@@ -84,8 +84,9 @@ export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
                 <Image
                   src={candidate.image}
                   alt={`Photo of ${candidate.name}`}
-                  layout="fill"
-                  objectFit="cover"
+                  fill
+                  sizes="160px"
+                  className="object-cover"
                   data-ai-hint={candidate.hint}
                 />
                  {candidate.status === 'Withdrawn' && (
