@@ -1,13 +1,20 @@
 
 
 import { ProfileClient } from "@/components/profile-client";
-import { getCurrentUser } from "@/lib/data";
+import { getUserById } from "@/lib/data";
 import { redirect } from "next/navigation";
+import { getSession } from "next-auth/react";
 
 export default async function ProfilePage() {
-    const user = await getCurrentUser();
+    const session = await getSession();
+    if (!session?.user?.id) {
+        redirect("/");
+    }
+
+    const user = await getUserById(session.user.id);
 
     if (!user) {
+        // This case would be rare, e.g., user deleted from DB
         redirect("/");
     }
 

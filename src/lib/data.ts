@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview This file acts as the data access layer for the application.
  * It provides functions to fetch and manipulate data for users, candidates, and bets
@@ -10,7 +9,7 @@ import { revalidatePath } from "next/cache";
 import prisma from "./db";
 import type { User as PrismaUser, Candidate as PrismaCandidate, Bet as PrismaBet, Transaction as PrismaTransaction, SupportTicket as PrismaSupportTicket, AdminSettings as PrismaAdminSettings } from "@prisma/client";
 import bcrypt from 'bcryptjs';
-import { getSession } from "./auth";
+import { getSession } from "next-auth/react";
 
 // Re-exporting Prisma types to be used in components if needed
 export type { User, Candidate as CandidateData, Bet, Transaction, SupportTicket, AdminSettings } from "@prisma/client";
@@ -96,26 +95,6 @@ export async function getUsersWithBetDetails() {
     });
 }
 
-
-export async function getCurrentUser() {
-    const session = await getSession();
-    if (!session?.user?.id) {
-        // This case should ideally not be hit if pages are protected
-        return null;
-    }
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-    });
-    if (!user) {
-        // This might happen if the user is deleted but the session is still active
-        return null;
-    }
-    return {
-        ...user,
-        balance: user.balance.toNumber(),
-    }
-}
-
 export async function getUserById(id: string) {
     const user = await prisma.user.findUnique({
         where: { id },
@@ -123,7 +102,6 @@ export async function getUserById(id: string) {
     if (!user) return null;
     return { ...user, balance: user.balance.toNumber() };
 }
-
 
 export async function getUserByEmail(email: string) {
     const user = await prisma.user.findUnique({

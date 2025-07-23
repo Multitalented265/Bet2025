@@ -1,12 +1,17 @@
 
 import { WalletClient } from "@/components/wallet-client"
-import { getCurrentUser, getTransactions } from "@/lib/data"
+import { getTransactions, getUserById } from "@/lib/data"
 import { redirect } from "next/navigation";
+import { getSession } from "next-auth/react";
 
 
 export default async function WalletPage() {
-    const user = await getCurrentUser();
-    
+    const session = await getSession();
+    if (!session?.user?.id) {
+      redirect("/");
+    }
+
+    const user = await getUserById(session.user.id);
     if (!user) {
       redirect("/");
     }

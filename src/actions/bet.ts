@@ -2,11 +2,12 @@
 "use server"
 
 import { revalidatePath } from "next/cache";
-import { placeBet, getCandidates, getCurrentUser } from "@/lib/data"
+import { placeBet, getCandidates, getUserById } from "@/lib/data"
+import { getSession } from "next-auth/react";
 
 export const handleBetPlacement = async (candidateId: number, amount: number) => {
-  const user = await getCurrentUser();
-  if (!user?.id) {
+  const session = await getSession();
+  if (!session?.user?.id) {
     throw new Error("You must be logged in to place a bet.");
   }
   
@@ -24,7 +25,7 @@ export const handleBetPlacement = async (candidateId: number, amount: number) =>
   await placeBet({
     candidateName: candidate.name,
     amount,
-    userId: user.id
+    userId: session.user.id
   })
 
   // Revalidate paths to update data on the client
