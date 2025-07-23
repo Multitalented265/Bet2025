@@ -1,0 +1,41 @@
+[languages.nix]
+language = "nix"
+
+[languages.nix.languageServer]
+start = "nil"
+
+[packager]
+language = "nix"
+
+[packager.features]
+packageSearch = true
+guessImports = true
+
+[run]
+command = ["npm", "run", "dev"]
+
+[[ports]]
+localPort = 9002
+externalPort = 80
+
+[deployment]
+run = ["npm", "run", "start"]
+
+[env]
+PATH = "/home/runner/Nextn/.bin"
+GENKIT_ENV = "dev"
+GOOGLE_API_KEY = ""
+
+[unitTest]
+language = "nix"
+
+[nix]
+channel = "stable-23_11"
+
+[interpreter]
+[interpreter.command]
+args = [
+  "bash",
+  "-c",
+  "while true; do sleep 1; done",
+]

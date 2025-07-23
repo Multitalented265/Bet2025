@@ -2,12 +2,16 @@
 # see: https://firebase.google.com/docs/studio/customize-workspace
 {pkgs}: {
   # Which nixpkgs channel to use.
-  channel = "stable-24.11"; # or "unstable"
-  # Use https://search.nixos.org/packages to find packages
+  channel = "stable-24.11"; # or "unstable";
+  # Use https://search.nixos.org to find packages
   packages = [
     pkgs.nodejs_20
     pkgs.zulu
+    pkgs.apt
+    pkgs.sudo
+    
   ];
+
   # Sets environment variables in the workspace
   env = {};
   # This adds a file watcher to startup the firebase emulators. The emulators will only start if
