@@ -9,7 +9,7 @@
     pkgs.zulu
     pkgs.apt
     pkgs.sudo
-    
+    pkgs.openssl_3.bin
   ];
 
   # Sets environment variables in the workspace

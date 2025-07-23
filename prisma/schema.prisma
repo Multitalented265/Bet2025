@@ -3,7 +3,6 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["dataProxy"]
 }
 
 datasource db {
@@ -12,80 +11,72 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String
-  email        String    @unique
-  password     String
-  joined       DateTime  @default(now())
-  status       UserStatus @default(ACTIVE)
+  id                    String          @id @default(cuid())
+  name                  String
+  email                 String          @unique
+  password              String
+  joined                DateTime        @default(now())
+  status                String          @default("Active") // Active | Suspended
+  balance               Float           @default(0) // User's wallet balance
+  // Notification Settings
+  betStatusUpdates      Boolean         @default(true)
+
   bets         Bet[]
   transactions Transaction[]
+  supportTickets SupportTicket[]
 }
 
 model Candidate {
-  id         Int      @id @default(autoincrement())
-  name       String   @unique
-  image      String
-  hint       String
-  color      String
-  totalBets  Int      @default(0)
-  status     CandidateStatus @default(ACTIVE)
-  bets       Bet[]
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  image       String
+  hint        String
+  color       String
+  status      String   @default("Active") // Active | Withdrawn
+  
+  bets Bet[]
 }
 
 model Bet {
   id            String    @id @default(cuid())
-  userId        String
-  candidateName String
-  amount        Int
+  amount        Float
   placedDate    DateTime  @default(now())
-  status        BetStatus @default(PENDING)
+  status        String    @default("Pending") // Pending | Won | Lost
+
+  userId        String
   user          User      @relation(fields: [userId], references: [id])
-  candidate     Candidate @relation(fields: [candidateName], references: [name])
+
+  candidateId   Int
+  candidate     Candidate @relation(fields: [candidateId], references: [id])
 }
 
 model Transaction {
-  id     String          @id @default(cuid())
-  type   TransactionType
-  amount Int
-  fee    Int
-  date   DateTime        @default(now())
-  userId String
-  user   User            @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  type      String // Deposit | Withdrawal
+  amount    Float
+  fee       Float
+  date      DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model SupportTicket {
-  id      String   @id @default(cuid())
-  userName String
-  userEmail String
-  subject String
-  message String
-  date    DateTime @default(now())
-  status  TicketStatus @default(OPEN)
+  id        String   @id @default(cuid())
+  subject   String
+  message   String
+  date      DateTime @default(now())
+  status    String   @default("Open") // Open | Closed
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-enum UserStatus {
-  ACTIVE
-  SUSPENDED
-}
-
-enum CandidateStatus {
-  ACTIVE
-  WITHDRAWN
-}
-
-enum BetStatus {
-  PENDING
-  WON
-  LOST
-}
-
-enum TransactionType {
-  DEPOSIT
-  WITHDRAWAL
-}
-
-enum TicketStatus {
-  OPEN
-  CLOSED
+// New model for Admin settings
+model AdminSettings {
+  id              String    @id @default(cuid())
+  enable2fa       Boolean   @default(false)
+  newUser         Boolean   @default(true)
+  largeBet        Boolean   @default(false)
+  largeDeposit    Boolean   @default(true)
 }
