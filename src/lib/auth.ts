@@ -33,11 +33,8 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                return {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                };
+                // Return the full user object from the database
+                return user;
             }
         })
     ],
