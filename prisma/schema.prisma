@@ -12,68 +12,80 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
-  password    String
-  joined      DateTime @default(now())
-  status      String   @default("Active") // "Active" | "Suspended"
-  totalBets   Float    @default(0)
-  bets        Bet[]
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  password     String
+  joined       DateTime  @default(now())
+  status       UserStatus @default(ACTIVE)
+  bets         Bet[]
   transactions Transaction[]
-
-  @@map("users")
 }
 
 model Candidate {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  image     String
-  hint      String
-  color     String
-  totalBets Float    @default(0)
-  status    String   @default("Active") // "Active" | "Withdrawn"
-  bets      Bet[]
-
-  @@map("candidates")
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  image      String
+  hint       String
+  color      String
+  totalBets  Int      @default(0)
+  status     CandidateStatus @default(ACTIVE)
+  bets       Bet[]
 }
 
 model Bet {
-  id            String   @id @default(cuid())
-  amount        Float
-  placedDate    DateTime @default(now())
-  status        String   @default("Pending") // "Pending" | "Won" | "Lost"
-  
+  id            String    @id @default(cuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  
   candidateName String
-  candidate     Candidate @relation(fields: [candidateName], references: [name'])
-
-  @@map("bets")
+  amount        Int
+  placedDate    DateTime  @default(now())
+  status        BetStatus @default(PENDING)
+  user          User      @relation(fields: [userId], references: [id])
+  candidate     Candidate @relation(fields: [candidateName], references: [name])
 }
 
 model Transaction {
-  id      String   @id @default(cuid())
-  type    String // "Deposit" | "Withdrawal"
-  amount  Float
-  fee     Float
-  date    DateTime @default(now())
-  
-  userId  String
-  user    User     @relation(fields: [userId], references: [id])
-
-  @@map("transactions")
+  id     String          @id @default(cuid())
+  type   TransactionType
+  amount Int
+  fee    Int
+  date   DateTime        @default(now())
+  userId String
+  user   User            @relation(fields: [userId], references: [id])
 }
 
 model SupportTicket {
-  id        String   @id @default(cuid())
-  userName  String
+  id      String   @id @default(cuid())
+  userName String
   userEmail String
-  subject   String
-  message   String
-  date      DateTime @default(now())
-  status    String   @default("Open") // "Open" | "Closed"
+  subject String
+  message String
+  date    DateTime @default(now())
+  status  TicketStatus @default(OPEN)
+}
 
-  @@map("support_tickets")
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum CandidateStatus {
+  ACTIVE
+  WITHDRAWN
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TicketStatus {
+  OPEN
+  CLOSED
 }
