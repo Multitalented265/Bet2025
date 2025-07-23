@@ -57,9 +57,6 @@ export async function removeCandidate(id: number) {
 // --- Users ---
 export async function getUsers() {
     const users = await prisma.user.findMany({
-      include: {
-        bets: true,
-      },
        orderBy: {
         joinedAt: 'desc'
       }
@@ -68,11 +65,40 @@ export async function getUsers() {
     return users.map(user => ({
       ...user,
       balance: user.balance.toNumber(),
-      totalBets: user.bets.reduce((acc, bet) => acc + bet.amount.toNumber(), 0),
-      bets: user.bets.map(b => ({...b, amount: b.amount.toNumber()})),
-      joined: user.joinedAt.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
     }));
 }
+
+export async function getUsersWithBetDetails() {
+    const users = await prisma.user.findMany({
+      include: {
+        bets: {
+          select: {
+            id: true,
+            candidateName: true,
+            amount: true,
+          }
+        },
+        _count: {
+            select: { bets: true }
+        }
+      },
+       orderBy: {
+        joinedAt: 'desc'
+      }
+    });
+
+    return users.map(user => {
+      const totalBets = user.bets.reduce((acc, bet) => acc + bet.amount.toNumber(), 0);
+      return {
+        ...user,
+        balance: user.balance.toNumber(),
+        totalBets: totalBets,
+        bets: user.bets.map(b => ({...b, amount: b.amount.toNumber()})),
+        joined: user.joinedAt.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
+      }
+    });
+}
+
 
 export async function getCurrentUser() {
     const session = await getSession();
