@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -26,27 +26,42 @@ import { ArrowDown, ArrowUp, History } from "lucide-react"
 import { handleTransaction, getUserTransactions } from "@/actions/user"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Badge } from "./ui/badge"
-import type { Transaction } from "@/lib/data"
+import { getUsers } from "@/lib/data"
+import type { Transaction, User } from "@/lib/data"
+import { Skeleton } from "./ui/skeleton"
 
 export function WalletClient() {
-  const [balance, setBalance] = useState(50000)
-  const [depositAmount, setDepositAmount] = useState("1000")
-  const [withdrawAmount, setWithdrawAmount] = useState("1000")
-  const [isDepositOpen, setDepositOpen] = useState(false)
-  const [isWithdrawOpen, setWithdrawOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [depositAmount, setDepositAmount] = useState("1000");
+  const [withdrawAmount, setWithdrawAmount] = useState("1000");
+  const [isDepositOpen, setDepositOpen] = useState(false);
+  const [isWithdrawOpen, setWithdrawOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const { toast } = useToast()
+  const { toast } = useToast();
+
+  const fetchWalletData = useCallback(async () => {
+    const [allUsers, userTransactions] = await Promise.all([
+      getUsers(),
+      getUserTransactions()
+    ]);
+    
+    if (allUsers.length > 0) {
+      const user = allUsers[0];
+      setCurrentUser(user);
+      setBalance(user.balance);
+    }
+    setTransactions(userTransactions);
+  }, []);
 
   useEffect(() => {
-    async function fetchTransactions() {
-        const userTransactions = await getUserTransactions();
-        setTransactions(userTransactions);
-    }
-    fetchTransactions();
-  }, [isPending]); // Refetch transactions after a new one is made
+    fetchWalletData();
+  }, [fetchWalletData]);
 
   const onTransaction = (type: 'Deposit' | 'Withdrawal') => {
+    if (balance === null) return;
+    
     const amount = type === 'Deposit' ? parseFloat(depositAmount) : parseFloat(withdrawAmount);
     
     if (isNaN(amount) || amount <= 0) {
@@ -61,7 +76,8 @@ export function WalletClient() {
 
     startTransition(async () => {
       await handleTransaction(type, amount);
-      setBalance(prev => type === 'Deposit' ? prev + amount : prev - amount);
+      // After transaction, refetch all data to ensure consistency
+      await fetchWalletData(); 
       toast({
         title: `${type} Successful`,
         description: `Your transaction has been processed.`,
@@ -83,9 +99,13 @@ export function WalletClient() {
         <CardContent className="space-y-6">
           <div className="p-6 rounded-lg bg-primary text-primary-foreground">
             <h3 className="text-lg opacity-80">Current Balance</h3>
-            <p className="text-5xl font-bold font-headline">
-              {balance.toLocaleString()} MWK
-            </p>
+            {balance === null ? (
+              <Skeleton className="h-12 w-1/2 mt-2" />
+            ) : (
+              <p className="text-5xl font-bold font-headline">
+                {balance.toLocaleString()} MWK
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Dialog open={isDepositOpen} onOpenChange={setDepositOpen}>
@@ -153,7 +173,7 @@ export function WalletClient() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={() => onTransaction('Withdrawal')} type="submit" disabled={isPending}>
+                  <Button onClick={() => onTransaction('Withdrawal')} type="submit" disabled={isPending || balance === null}>
                     {isPending ? 'Processing...' : 'Request Withdrawal'}
                   </Button>
                 </DialogFooter>

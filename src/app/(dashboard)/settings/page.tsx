@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -24,10 +24,12 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
-import { Separator } from "@/components/ui/separator"
+import { handleProfileUpdate, handlePasswordChange, handleNotificationSettings } from "@/actions/user"
+import { getUsers } from "@/lib/data"
+import type { User } from "@/lib/data"
+
 
 const profileFormSchema = z.object({
   fullName: z.string().min(2, {
@@ -47,15 +49,34 @@ const passwordFormSchema = z.object({
 
 export default function SettingsPage() {
     const { toast } = useToast()
+    const [isPending, startTransition] = useTransition();
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+     useEffect(() => {
+        async function fetchUser() {
+            // In a real app, you'd get the *specific* logged-in user.
+            // For this prototype, we'll continue to assume it's the first user.
+            const allUsers = await getUsers();
+            if (allUsers.length > 0) {
+                const user = allUsers[0];
+                setCurrentUser(user);
+                profileForm.reset({
+                    fullName: user.name,
+                    email: user.email,
+                });
+            }
+        }
+        fetchUser();
+    }, []);
 
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
-          fullName: "John Doe",
-          email: "m@example.com",
+          fullName: "",
+          email: "",
         },
     })
 
@@ -69,28 +90,40 @@ export default function SettingsPage() {
     })
 
     function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
-        console.log(values)
-        toast({
-            title: "Profile Updated",
-            description: "Your profile details have been successfully updated.",
-        })
+        const formData = new FormData();
+        formData.append('fullName', values.fullName);
+        formData.append('email', values.email);
+
+        startTransition(async () => {
+            await handleProfileUpdate(formData);
+            toast({
+                title: "Profile Updated",
+                description: "Your profile details have been successfully updated.",
+            })
+        });
     }
   
     function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
-        console.log(values)
-        toast({
-            title: "Password Updated",
-            description: "Your password has been changed successfully.",
-        })
-        passwordForm.reset()
+        startTransition(async () => {
+            await handlePasswordChange(values);
+            toast({
+                title: "Password Updated",
+                description: "Your password has been changed successfully.",
+            });
+            passwordForm.reset();
+        });
     }
 
-
-    const handleSaveChanges = () => {
-        toast({
-            title: "Settings Saved",
-            description: "Your preferences have been updated.",
-        })
+    const handleNotificationsSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        startTransition(async () => {
+            await handleNotificationSettings(formData);
+            toast({
+                title: "Settings Saved",
+                description: "Your notification preferences have been updated.",
+            });
+        });
     }
 
   return (
@@ -108,35 +141,39 @@ export default function SettingsPage() {
         <CardContent>
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-              <FormField
-                control={profileForm.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={profileForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="m@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex justify-end">
-                <Button type="submit">Update Profile</Button>
-              </div>
+               <fieldset disabled={isPending || !currentUser}>
+                    <FormField
+                        control={profileForm.control}
+                        name="fullName"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl>
+                            <Input placeholder="John Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={profileForm.control}
+                        name="email"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                            <Input type="email" placeholder="m@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <div className="flex justify-end pt-4">
+                        <Button type="submit" disabled={isPending || !currentUser}>
+                            {isPending ? "Updating..." : "Update Profile"}
+                        </Button>
+                    </div>
+               </fieldset>
             </form>
           </Form>
         </CardContent>
@@ -152,107 +189,119 @@ export default function SettingsPage() {
           <CardContent>
             <Form {...passwordForm}>
                 <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                     <FormField
-                        control={passwordForm.control}
-                        name="currentPassword"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Current Password</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input type={showCurrentPassword ? "text" : "password"} {...field} />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                >
-                                  {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={passwordForm.control}
-                        name="newPassword"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>New Password</FormLabel>
-                            <FormControl>
-                               <div className="relative">
-                                <Input type={showNewPassword ? "text" : "password"} {...field} />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                                  onClick={() => setShowNewPassword(!showNewPassword)}
-                                >
-                                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={passwordForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Confirm New Password</FormLabel>
-                            <FormControl>
-                               <div className="relative">
-                                <Input type={showConfirmPassword ? "text" : "password"} {...field} />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                >
-                                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <div className="flex justify-end">
-                      <Button type="submit">Change Password</Button>
-                    </div>
+                    <fieldset disabled={isPending}>
+                        <FormField
+                            control={passwordForm.control}
+                            name="currentPassword"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Current Password</FormLabel>
+                                <FormControl>
+                                <div className="relative">
+                                    <Input type={showCurrentPassword ? "text" : "password"} {...field} />
+                                    <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    >
+                                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={passwordForm.control}
+                            name="newPassword"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>New Password</FormLabel>
+                                <FormControl>
+                                <div className="relative">
+                                    <Input type={showNewPassword ? "text" : "password"} {...field} />
+                                    <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    >
+                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={passwordForm.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Confirm New Password</FormLabel>
+                                <FormControl>
+                                <div className="relative">
+                                    <Input type={showConfirmPassword ? "text" : "password"} {...field} />
+                                    <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <div className="flex justify-end pt-4">
+                        <Button type="submit" disabled={isPending}>
+                            {isPending ? "Changing..." : "Change Password"}
+                        </Button>
+                        </div>
+                    </fieldset>
                 </form>
             </Form>
           </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-            <CardTitle>Notifications</CardTitle>
-            <CardDescription>Manage how you receive notifications from us.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
-                <div className="space-y-0.5">
-                    <Label className="text-base">Bet Status Updates</Label>
-                    <p className="text-sm text-muted-foreground">
-                        Receive an email when a bet you placed is settled (Won/Lost).
-                    </p>
-                </div>
-                <Switch defaultChecked />
+      <form onSubmit={handleNotificationsSubmit}>
+        <fieldset disabled={isPending || !currentUser}>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Notifications</CardTitle>
+                    <CardDescription>Manage how you receive notifications from us.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <FormLabel htmlFor="bet-status-updates" className="text-base">Bet Status Updates</FormLabel>
+                            <p className="text-sm text-muted-foreground">
+                                Receive an email when a bet you placed is settled (Won/Lost).
+                            </p>
+                        </div>
+                        <Switch 
+                            id="bet-status-updates"
+                            name="bet-status-updates"
+                            defaultChecked={currentUser?.notifyOnBetStatusUpdates} 
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+            
+            <div className="flex justify-end mt-6">
+                <Button type="submit" disabled={isPending || !currentUser}>{isPending ? "Saving..." : "Save Notification Settings"}</Button>
             </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex justify-end">
-        <Button onClick={handleSaveChanges}>Save Notification Settings</Button>
-      </div>
+        </fieldset>
+      </form>
     </div>
   )
 }

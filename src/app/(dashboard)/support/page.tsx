@@ -41,12 +41,20 @@ export default function SupportPage() {
         const formData = new FormData(form);
         
         startTransition(async () => {
-            await handleCreateSupportTicket(formData);
-            toast({
-                title: "Message Sent!",
-                description: "Our support team has received your message and will get back to you shortly.",
-            })
-            form.reset();
+            try {
+                await handleCreateSupportTicket(formData);
+                toast({
+                    title: "Message Sent!",
+                    description: "Our support team has received your message and will get back to you shortly.",
+                })
+                form.reset();
+            } catch (error) {
+                 toast({
+                    variant: "destructive",
+                    title: "Submission Failed",
+                    description: "Please fill out all required fields.",
+                })
+            }
         });
     }
 
@@ -93,14 +101,6 @@ export default function SupportPage() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Full Name</Label>
-                            <Input id="name" name="name" required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email Address</Label>
-                            <Input id="email" name="email" type="email" required />
-                        </div>
                          <div className="space-y-2">
                             <Label htmlFor="subject">Subject</Label>
                             <Input id="subject" name="subject" required />

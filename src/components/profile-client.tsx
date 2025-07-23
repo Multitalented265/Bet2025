@@ -1,8 +1,13 @@
+
 "use client"
 
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useTransition, useState, useEffect } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { handleProfileUpdate } from "@/actions/user"
+import { getUsers } from "@/lib/data"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,8 +26,6 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
-import { Separator } from "@/components/ui/separator"
 
 const profileFormSchema = z.object({
   fullName: z.string().min(2, {
@@ -31,54 +34,45 @@ const profileFormSchema = z.object({
   email: z.string().email(),
 })
 
-const passwordFormSchema = z.object({
-  currentPassword: z.string().min(1, { message: "Current password is required." }),
-  newPassword: z.string().min(8, { message: "New password must be at least 8 characters." }),
-  confirmPassword: z.string()
-}).refine(data => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match.",
-  path: ["confirmPassword"],
-})
-
-
 export function ProfileClient() {
   const { toast } = useToast()
+  const [isPending, startTransition] = useTransition();
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      fullName: "John Doe",
-      email: "m@example.com",
+      fullName: "",
+      email: "",
     },
   })
 
-  const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
-    resolver: zodResolver(passwordFormSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-  })
+  useEffect(() => {
+    async function fetchUser() {
+        const allUsers = await getUsers();
+        if (allUsers.length > 0) {
+            profileForm.reset({
+                fullName: allUsers[0].name,
+                email: allUsers[0].email,
+            })
+        }
+    }
+    fetchUser();
+  }, []);
 
   function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
-    console.log(values)
-    toast({
-      title: "Profile Updated",
-      description: "Your profile details have been successfully updated.",
-    })
+    const formData = new FormData();
+    formData.append("fullName", values.fullName);
+    formData.append("email", values.email);
+    
+    startTransition(async () => {
+      await handleProfileUpdate(formData);
+      toast({
+        title: "Profile Updated",
+        description: "Your profile details have been successfully updated.",
+      });
+    });
   }
   
-  function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
-    console.log(values)
-    toast({
-      title: "Password Updated",
-      description: "Your password has been changed successfully.",
-    })
-    passwordForm.reset()
-  }
-
-
   return (
     <div className="space-y-6">
        <div>
@@ -119,67 +113,13 @@ export function ProfileClient() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Update Profile</Button>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isPending}>{isPending ? "Updating..." : "Update Profile"}</Button>
+              </div>
             </form>
           </Form>
         </CardContent>
       </Card>
-      
-      <Card>
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>
-                Choose a new password for your account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...passwordForm}>
-                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                     <FormField
-                        control={passwordForm.control}
-                        name="currentPassword"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Current Password</FormLabel>
-                            <FormControl>
-                            <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={passwordForm.control}
-                        name="newPassword"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>New Password</FormLabel>
-                            <FormControl>
-                            <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={passwordForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Confirm New Password</FormLabel>
-                            <FormControl>
-                            <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <Button type="submit">Change Password</Button>
-                </form>
-            </Form>
-          </CardContent>
-      </Card>
-
     </div>
   )
 }
