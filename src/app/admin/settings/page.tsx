@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -21,7 +21,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
-import { handleAdminPasswordChange, handleAdminNotificationSettings } from "@/actions/admin"
+import { handleAdminPasswordChange, handleAdminNotificationSettings, getAdminSettings } from "@/actions/admin"
+import type { AdminSettings } from "@/lib/data"
 
 const passwordFormSchema = z.object({
   currentPassword: z.string().min(1, { message: "Current password is required." }),
@@ -38,6 +39,15 @@ export default function AdminSettingsPage() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [settings, setSettings] = useState<AdminSettings | null>(null);
+
+    useEffect(() => {
+      async function fetchSettings() {
+        const adminSettings = await getAdminSettings();
+        setSettings(adminSettings);
+      }
+      fetchSettings();
+    }, []);
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
@@ -104,7 +114,7 @@ export default function AdminSettingsPage() {
                                   className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
                                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                                 >
-                                  {showCurrentPassword ? <EyeOff /> : <Eye />}
+                                  {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                               </div>
                             </FormControl>
@@ -128,7 +138,7 @@ export default function AdminSettingsPage() {
                                   className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
                                   onClick={() => setShowNewPassword(!showNewPassword)}
                                 >
-                                  {showNewPassword ? <EyeOff /> : <Eye />}
+                                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                               </div>
                             </FormControl>
@@ -152,7 +162,7 @@ export default function AdminSettingsPage() {
                                   className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
                                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 >
-                                  {showConfirmPassword ? <EyeOff /> : <Eye />}
+                                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                               </div>
                             </FormControl>
@@ -168,6 +178,7 @@ export default function AdminSettingsPage() {
           </CardContent>
       </Card>
         <form onSubmit={handleSaveSettings}>
+          <fieldset disabled={isPending || !settings}>
             <Card>
                 <CardHeader>
                     <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
@@ -181,12 +192,17 @@ export default function AdminSettingsPage() {
                                 When enabled, you will be required to enter a code from your authenticator app to log in.
                             </p>
                         </div>
-                        <Switch id="enable-2fa" name="enable-2fa" />
+                        <Switch 
+                          id="enable-2fa" 
+                          name="enable-2fa" 
+                          defaultChecked={settings?.enable2fa}
+                          key={settings?.id}
+                        />
                     </div>
                 </CardContent>
             </Card>
 
-            <Card>
+            <Card className="mt-6">
                 <CardHeader>
                     <CardTitle>Admin Notifications</CardTitle>
                     <CardDescription>Manage how you receive important system notifications.</CardDescription>
@@ -199,7 +215,12 @@ export default function AdminSettingsPage() {
                                 Receive an email when a new user signs up on the platform.
                             </p>
                         </div>
-                        <Switch id="new-user-notification" name="newUser" defaultChecked />
+                        <Switch 
+                          id="new-user-notification" 
+                          name="newUser" 
+                          defaultChecked={settings?.notifyOnNewUser}
+                          key={`${settings?.id}-newUser`}
+                        />
                     </div>
                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
                         <div className="space-y-0.5">
@@ -208,7 +229,12 @@ export default function AdminSettingsPage() {
                             Receive an email when a bet over 1,000,000 MWK is placed.
                             </p>
                         </div>
-                        <Switch id="large-bet-alert" name="largeBet" />
+                        <Switch 
+                          id="large-bet-alert" 
+                          name="largeBet" 
+                          defaultChecked={settings?.notifyOnLargeBet}
+                          key={`${settings?.id}-largeBet`}
+                        />
                     </div>
                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
                         <div className="space-y-0.5">
@@ -217,14 +243,20 @@ export default function AdminSettingsPage() {
                             Receive emails when a deposit over 500,000 MWK is made.
                             </p>
                         </div>
-                        <Switch id="large-deposit-alert" name="largeDeposit" defaultChecked />
+                        <Switch 
+                          id="large-deposit-alert" 
+                          name="largeDeposit" 
+                          defaultChecked={settings?.notifyOnLargeDeposit}
+                          key={`${settings?.id}-largeDeposit`}
+                        />
                     </div>
                 </CardContent>
             </Card>
             
             <div className="flex justify-end mt-6">
-                <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Changes"}</Button>
+                <Button type="submit" disabled={isPending || !settings}>{isPending ? "Saving..." : "Save Changes"}</Button>
             </div>
+          </fieldset>
         </form>
     </div>
   )

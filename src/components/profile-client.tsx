@@ -4,10 +4,9 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useTransition, useState, useEffect } from "react"
+import { useTransition, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { handleProfileUpdate } from "@/actions/user"
-import { getUsers } from "@/lib/data"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -26,6 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import type { User } from "@/lib/data"
 
 const profileFormSchema = z.object({
   fullName: z.string().min(2, {
@@ -34,30 +34,30 @@ const profileFormSchema = z.object({
   email: z.string().email(),
 })
 
-export function ProfileClient() {
+type ProfileClientProps = {
+    user: User | null;
+}
+
+export function ProfileClient({ user }: ProfileClientProps) {
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition();
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      fullName: "",
-      email: "",
+      fullName: user?.name || "",
+      email: user?.email || "",
     },
   })
 
   useEffect(() => {
-    async function fetchUser() {
-        const allUsers = await getUsers();
-        if (allUsers.length > 0) {
-            profileForm.reset({
-                fullName: allUsers[0].name,
-                email: allUsers[0].email,
-            })
-        }
+    if (user) {
+        profileForm.reset({
+            fullName: user.name,
+            email: user.email,
+        })
     }
-    fetchUser();
-  }, []);
+  }, [user, profileForm]);
 
   function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
     const formData = new FormData();
@@ -74,11 +74,6 @@ export function ProfileClient() {
   }
   
   return (
-    <div className="space-y-6">
-       <div>
-        <h1 className="text-3xl font-bold font-headline">My Profile</h1>
-        <p className="text-muted-foreground">Manage your account details and password.</p>
-      </div>
       <Card>
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
@@ -87,39 +82,40 @@ export function ProfileClient() {
         <CardContent>
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-              <FormField
-                control={profileForm.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={profileForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="m@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isPending}>{isPending ? "Updating..." : "Update Profile"}</Button>
-              </div>
+              <fieldset disabled={isPending || !user}>
+                <FormField
+                    control={profileForm.control}
+                    name="fullName"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={profileForm.control}
+                    name="email"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                        <Input type="email" placeholder="m@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <div className="flex justify-end pt-4">
+                    <Button type="submit" disabled={isPending || !user}>{isPending ? "Updating..." : "Update Profile"}</Button>
+                </div>
+              </fieldset>
             </form>
           </Form>
         </CardContent>
       </Card>
-    </div>
   )
 }

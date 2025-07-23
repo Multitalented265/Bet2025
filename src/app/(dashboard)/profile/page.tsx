@@ -65,10 +65,11 @@ export default function ProfilePage() {
         // For this prototype, we'll continue to assume it's the first user.
         const allUsers = await getUsers();
         if (allUsers.length > 0) {
-            setCurrentUser(allUsers[0]);
+            const user = allUsers[0];
+            setCurrentUser(user);
             profileForm.reset({
-                fullName: allUsers[0].name,
-                email: allUsers[0].email,
+                fullName: user.name,
+                email: user.email,
             })
         }
     }
@@ -194,7 +195,7 @@ export default function ProfilePage() {
               onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
               className="space-y-4"
             >
-              <fieldset disabled={isPending}>
+              <fieldset disabled={isPending || !currentUser}>
                 <FormField
                   control={passwordForm.control}
                   name="currentPassword"
@@ -293,7 +294,7 @@ export default function ProfilePage() {
                   )}
                 />
                 <div className="flex justify-end pt-4">
-                  <Button type="submit" disabled={isPending}>
+                  <Button type="submit" disabled={isPending || !currentUser}>
                     {isPending ? "Changing..." : "Change Password"}
                   </Button>
                 </div>
