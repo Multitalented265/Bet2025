@@ -2,7 +2,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache";
-import { placeBet, getUsers } from "@/lib/data"
+import { placeBet, getUsers, getCandidates } from "@/lib/data"
 import type { User } from "@/context/bet-context";
 
 
@@ -11,7 +11,9 @@ import type { User } from "@/context/bet-context";
 async function getMockCurrentUser(): Promise<User> {
     const users = await getUsers();
     if (users.length === 0) {
-        throw new Error("No users found in the database.");
+        // This should not happen after signup is implemented.
+        // For now, let's create a dummy user if none exists for development.
+         throw new Error("No users found in database. Please sign up first.");
     }
     const { id, name } = users[0];
     return { id, name };
@@ -19,14 +21,15 @@ async function getMockCurrentUser(): Promise<User> {
 
 export const handleBetPlacement = async (candidateId: number, amount: number) => {
   const currentUser = await getMockCurrentUser();
-  console.log(`Bet placed on candidate ${candidateId} for ${amount} MWK by user ${currentUser.id}`)
-  const candidate = (await import("@/lib/data")).getCandidates().then(c => c.find(can => can.id === candidateId));
+  const allCandidates = await getCandidates();
+  const candidate = allCandidates.find(can => can.id === candidateId);
+  
   if (!candidate) {
       throw new Error("Candidate not found");
   }
 
   await placeBet({
-    candidateName: (await candidate).name,
+    candidateName: candidate.name,
     amount,
     userId: currentUser.id
   })

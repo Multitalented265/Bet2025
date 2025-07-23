@@ -10,8 +10,9 @@ import type { User } from "@/context/bet-context";
 async function getMockCurrentUser(): Promise<User> {
     const users = await getUsers();
     if (users.length === 0) {
-        throw new Error("No users found in the database.");
+        throw new Error("No users found in the database. Please sign up first.");
     }
+    // For now, we'll assume the first user is the logged in one.
     const { id, name } = users[0];
     return { id, name };
 }
@@ -25,7 +26,6 @@ export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: 
     fee,
     userId: currentUser.id,
   });
-  // In a real app, you'd also update the user's balance in the database.
   revalidatePath('/wallet');
   revalidatePath('/admin/revenue');
 }
@@ -37,10 +37,11 @@ export async function getUserTransactions() {
 }
 
 export async function handleCreateSupportTicket(formData: FormData) {
+    const currentUser = await getMockCurrentUser(); // Assume ticket is from current logged in user
     const newTicket = {
         user: {
-            name: formData.get("name") as string,
-            email: formData.get("email") as string,
+            name: currentUser.name,
+            email: (await getUsers()).find(u => u.id === currentUser.id)?.email || 'N/A', // get user's email
         },
         subject: formData.get("subject") as string,
         message: formData.get("message") as string,
@@ -67,15 +68,15 @@ export async function handlePasswordChange(values: any) {
     const currentUser = await getMockCurrentUser();
     // In a real app, you would validate the current password and update it.
     console.log("Password change requested for user:", currentUser.id, values);
-    revalidatePath('/profile');
-    revalidatePath('/settings');
+    // This requires a more complex implementation involving checking current password and hashing the new one.
+    // For now, it remains a console log.
 }
 
 export async function handleNotificationSettings(formData: FormData) {
     const currentUser = await getMockCurrentUser();
     const settings = {
-        betStatusUpdates: formData.get("bet-status-updates") === "on",
+        notifyOnBetStatusUpdates: formData.get("bet-status-updates") === "on",
     };
-    // In a real app, you would save these settings to the user's profile.
-    console.log("Notification settings saved for user:", currentUser.id, settings);
+    await dbUpdateUser(currentUser.id, settings);
+    revalidatePath('/settings');
 }

@@ -2,7 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addCandidate as dbAddCandidate, updateCandidate as dbUpdateCandidate, removeCandidate as dbRemoveCandidate } from "@/lib/data";
+import { addCandidate as dbAddCandidate, updateCandidate as dbUpdateCandidate, removeCandidate as dbRemoveCandidate, updateAdminSettings, getAdminSettings } from "@/lib/data";
 import type { CandidateData } from "@/lib/data";
 
 export async function handleAddCandidate(formData: FormData) {
@@ -48,17 +48,16 @@ export async function handleUpdateCandidateStatus(candidateId: number, currentSt
 export async function handleAdminPasswordChange(values: any) {
     // In a real app, you'd validate the current password and update the database.
     console.log("Admin password change requested:", values);
-    // No revalidation needed as we are not changing visible data.
+    // This is a placeholder; a full implementation would require a separate admin user model.
 }
 
 export async function handleAdminNotificationSettings(formData: FormData) {
     const settings = {
         enable2fa: formData.get("enable-2fa") === "on",
-        newUser: formData.get("newUser") === "on",
-        largeBet: formData.get("largeBet") === "on",
-        largeDeposit: formData.get("largeDeposit") === "on",
+        notifyOnNewUser: formData.get("newUser") === "on",
+        notifyOnLargeBet: formData.get("largeBet") === "on",
+        notifyOnLargeDeposit: formData.get("largeDeposit") === "on",
     };
-    // In a real app, you would save these settings to the admin's user profile in the database.
-    console.log("Admin notification settings saved:", settings);
-    // No revalidation needed as we are not changing visible data.
+    await updateAdminSettings(settings);
+    revalidatePath("/admin/settings");
 }
