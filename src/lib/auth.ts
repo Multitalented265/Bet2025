@@ -1,4 +1,4 @@
-import type { NextAuthOptions, User } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "./db";
@@ -34,17 +34,27 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 // Return the full user object from the database
-                return user;
+                return {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                };
             }
         })
     ],
     session: {
-        strategy: "database",
+        strategy: "jwt",
     },
     callbacks: {
-        session({ session, user }) {
+        jwt({ token, user }) {
+            if (user) {
+                token.id = user.id;
+            }
+            return token;
+        },
+        session({ session, token }) {
             if (session.user) {
-              session.user.id = user.id;
+                session.user.id = token.id as string;
             }
             return session;
         },
