@@ -1,13 +1,12 @@
 
 import { BetTicket } from "@/components/bet-ticket";
-import { getBets, getCandidates } from "@/lib/data";
-import { getSession } from "@/lib/auth";
+import { getBets, getCandidates, getCurrentUser } from "@/lib/data";
 
 
 export default async function BetsPage() {
-  const session = await getSession();
+  const user = await getCurrentUser();
 
-  if (!session?.user?.id) {
+  if (!user) {
     return (
       <div className="flex flex-col gap-6 items-center justify-center h-full">
          <p className="text-muted-foreground">Please log in to see your bets.</p>
@@ -20,7 +19,7 @@ export default async function BetsPage() {
   
   const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
 
-  const userBets = allBets.filter(bet => bet.userId === session.user.id);
+  const userBets = allBets.filter(bet => bet.userId === user.id);
 
   return (
     <div className="flex flex-col gap-6">

@@ -78,9 +78,6 @@ export async function getUsersWithBetDetails() {
             amount: true,
           }
         },
-        _count: {
-            select: { bets: true }
-        }
       },
        orderBy: {
         joinedAt: 'desc'
