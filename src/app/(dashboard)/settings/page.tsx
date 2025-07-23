@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import { handleProfileUpdate, handlePasswordChange, handleNotificationSettings } from "@/actions/user"
-import { getUsers } from "@/lib/data"
+import { getCurrentUser } from "@/lib/data"
 import type { User } from "@/lib/data"
 
 
@@ -47,36 +47,25 @@ const passwordFormSchema = z.object({
   path: ["confirmPassword"],
 })
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+    const user = await getCurrentUser();
+
+    return <SettingsClient user={user} />
+}
+
+
+function SettingsClient({ user }: { user: User | null }) {
     const { toast } = useToast()
     const [isPending, startTransition] = useTransition();
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-
-     useEffect(() => {
-        async function fetchUser() {
-            // In a real app, you'd get the *specific* logged-in user.
-            // For this prototype, we'll continue to assume it's the first user.
-            const allUsers = await getUsers();
-            if (allUsers.length > 0) {
-                const user = allUsers[0];
-                setCurrentUser(user);
-                profileForm.reset({
-                    fullName: user.name,
-                    email: user.email,
-                });
-            }
-        }
-        fetchUser();
-    }, []);
 
     const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
-          fullName: "",
-          email: "",
+          fullName: user?.name || "",
+          email: user?.email || "",
         },
     })
 
@@ -141,7 +130,7 @@ export default function SettingsPage() {
         <CardContent>
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-               <fieldset disabled={isPending || !currentUser}>
+               <fieldset disabled={isPending || !user}>
                     <FormField
                         control={profileForm.control}
                         name="fullName"
@@ -169,7 +158,7 @@ export default function SettingsPage() {
                         )}
                     />
                     <div className="flex justify-end pt-4">
-                        <Button type="submit" disabled={isPending || !currentUser}>
+                        <Button type="submit" disabled={isPending || !user}>
                             {isPending ? "Updating..." : "Update Profile"}
                         </Button>
                     </div>
@@ -274,7 +263,7 @@ export default function SettingsPage() {
       </Card>
 
       <form onSubmit={handleNotificationsSubmit}>
-        <fieldset disabled={isPending || !currentUser}>
+        <fieldset disabled={isPending || !user}>
             <Card>
                 <CardHeader>
                     <CardTitle>Notifications</CardTitle>
@@ -291,14 +280,14 @@ export default function SettingsPage() {
                         <Switch 
                             id="bet-status-updates"
                             name="bet-status-updates"
-                            defaultChecked={currentUser?.notifyOnBetStatusUpdates} 
+                            defaultChecked={user?.notifyOnBetStatusUpdates} 
                         />
                     </div>
                 </CardContent>
             </Card>
             
             <div className="flex justify-end mt-6">
-                <Button type="submit" disabled={isPending || !currentUser}>{isPending ? "Saving..." : "Save Notification Settings"}</Button>
+                <Button type="submit" disabled={isPending || !user}>{isPending ? "Saving..." : "Save Notification Settings"}</Button>
             </div>
         </fieldset>
       </form>
