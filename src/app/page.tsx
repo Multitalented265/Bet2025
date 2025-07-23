@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useTransition } from "react"
@@ -26,14 +27,15 @@ export default function LoginPage() {
   const { toast } = useToast()
   const router = useRouter()
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
+    let result;
     startTransition(async () => {
-      const result = await signIn("credentials", {
+       result = await signIn("credentials", {
         redirect: false,
         email,
         password,
@@ -52,7 +54,7 @@ export default function LoginPage() {
           description: "Incorrect email or password.",
         })
       }
-    })
+    });
   }
 
   return (
@@ -107,7 +109,7 @@ export default function LoginPage() {
             <Button type="submit" className="w-full font-bold mt-4" disabled={isPending}>
               {isPending ? "Logging in..." : "Login"}
             </Button>
-            <Button variant="outline" className="w-full" disabled={isPending}>
+            <Button variant="outline" className="w-full" type="button" disabled={isPending}>
               <GoogleIcon className="mr-2 h-4 w-4" />
               Login with Google
             </Button>
