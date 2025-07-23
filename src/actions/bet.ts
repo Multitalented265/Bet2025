@@ -2,25 +2,15 @@
 "use server"
 
 import { revalidatePath } from "next/cache";
-import { placeBet, getUsers, getCandidates } from "@/lib/data"
-import type { User } from "@/context/bet-context";
-
-
-// A mock function to get the "logged-in" user.
-// In a real app, you'd get this from session/auth state.
-async function getMockCurrentUser(): Promise<User> {
-    const users = await getUsers();
-    if (users.length === 0) {
-        // This should not happen after signup is implemented.
-        // For now, let's create a dummy user if none exists for development.
-         throw new Error("No users found in database. Please sign up first.");
-    }
-    const { id, name } = users[0];
-    return { id, name };
-}
+import { placeBet, getCandidates } from "@/lib/data"
+import { getSession } from "@/lib/auth";
 
 export const handleBetPlacement = async (candidateId: number, amount: number) => {
-  const currentUser = await getMockCurrentUser();
+  const session = await getSession();
+  if (!session?.user?.id) {
+    throw new Error("You must be logged in to place a bet.");
+  }
+  
   const allCandidates = await getCandidates();
   const candidate = allCandidates.find(can => can.id === candidateId);
   
@@ -31,7 +21,7 @@ export const handleBetPlacement = async (candidateId: number, amount: number) =>
   await placeBet({
     candidateName: candidate.name,
     amount,
-    userId: currentUser.id
+    userId: session.user.id
   })
 
   // Revalidate paths to update data on the client

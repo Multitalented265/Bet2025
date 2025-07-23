@@ -4,7 +4,6 @@
 import { addUser, getUserByEmail } from "@/lib/data"
 import { revalidatePath } from "next/cache"
 import bcrypt from 'bcryptjs';
-import { signIn } from "next-auth/react"
 
 type FormResult = {
   success: boolean
@@ -48,4 +47,6 @@ export async function handleSignup(formData: FormData): Promise<FormResult> {
     return { success: true }
   } catch (error) {
     console.error("Signup error:", error);
-    return { success: false, error:
+    return { success: false, error: "An unexpected error occurred." }
+  }
+}
