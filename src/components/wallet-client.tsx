@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useTransition, useEffect, useCallback } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowDown, ArrowUp, History } from "lucide-react"
-import { handleTransaction, getUserTransactions } from "@/actions/user"
+import { handleTransaction } from "@/actions/user"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Badge } from "./ui/badge"
 import type { Transaction, User } from "@/lib/data"
@@ -35,7 +35,7 @@ type WalletClientProps = {
 }
 
 export function WalletClient({ user, initialTransactions }: WalletClientProps) {
-  const [balance, setBalance] = useState<number | null>(user?.balance ?? null);
+  const [balance, setBalance] = useState<number | null>(null);
   const [depositAmount, setDepositAmount] = useState("1000");
   const [withdrawAmount, setWithdrawAmount] = useState("1000");
   const [isDepositOpen, setDepositOpen] = useState(false);
@@ -44,20 +44,10 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const { toast } = useToast();
 
-  const fetchUpdatedTransactions = useCallback(async () => {
-    const updatedTransactions = await getUserTransactions();
-    setTransactions(updatedTransactions);
-    // Note: We can't easily get the new balance without another full user fetch,
-    // so we will rely on the server action revalidation to eventually update the prop.
-    // For immediate feedback, we can calculate it, but it may lead to inconsistencies.
-    // Let's stick to the prop-driven update for now.
-  }, []);
-
    useEffect(() => {
     setBalance(user?.balance ?? null);
     setTransactions(initialTransactions);
   }, [user, initialTransactions]);
-
 
   const onTransaction = (type: 'Deposit' | 'Withdrawal') => {
     if (balance === null) return;
@@ -76,7 +66,8 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
 
     startTransition(async () => {
       await handleTransaction(type, amount);
-      await fetchUpdatedTransactions();
+      // The page will be revalidated by the server action, so we don't need a client-side fetch.
+      // The new props will flow down and update the state in the useEffect hook.
       toast({
         title: `${type} Successful`,
         description: `Your transaction has been processed.`,
@@ -155,7 +146,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
                   <DialogDescription>
                     Enter the amount you wish to withdraw. A 2.5% withdrawal fee will be applied. Funds will be sent to your registered payment method.
                   </DialogDescription>
-                </Header>
+                </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="withdraw-amount" className="text-right">

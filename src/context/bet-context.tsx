@@ -46,7 +46,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
     }
   }, [session]);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = async () => {
       const [initialCandidates, initialBets] = await Promise.all([
         getCandidates(),
         getBets(),
@@ -55,11 +55,11 @@ export function BetProvider({ children }: { children: ReactNode }) {
       setBets(initialBets);
       const newTotalPot = initialCandidates.reduce((acc, curr) => acc + curr.totalBets, 0)
       setTotalPot(newTotalPot);
-    }, []);
+    };
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, []);
   
   const addBetAction = async (newBet: Omit<Bet, 'id' | 'placedDate' | 'status' | 'userId'>) => {
     if (electionFinalized || bettingStopped) return;

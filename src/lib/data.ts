@@ -8,12 +8,12 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "./db";
-import type { User as PrismaUser, Candidate as PrismaCandidate, Bet as PrismaBet, Transaction as PrismaTransaction, SupportTicket as PrismaSupportTicket, AdminSettings as PrismaAdminSettings, Session as PrismaSession, Account as PrismaAccount, VerificationToken as PrismaVerificationToken } from "@prisma/client";
+import type { User as PrismaUser, Candidate as PrismaCandidate, Bet as PrismaBet, Transaction as PrismaTransaction, SupportTicket as PrismaSupportTicket, AdminSettings as PrismaAdminSettings } from "@prisma/client";
 import bcrypt from 'bcryptjs';
 import { getSession } from "./auth";
 
 // Re-exporting Prisma types to be used in components if needed
-export type { User, Candidate as CandidateData, Bet, Transaction, SupportTicket, AdminSettings, Session, Account, VerificationToken } from "@prisma/client";
+export type { User, Candidate as CandidateData, Bet, Transaction, SupportTicket, AdminSettings } from "@prisma/client";
 
 
 // --- Candidates ---
