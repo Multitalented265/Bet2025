@@ -1,25 +1,26 @@
 
 import { BetTicket } from "@/components/bet-ticket";
-import { getBets, getCandidates, getCurrentUser } from "@/lib/data";
+import { getBets, getCandidates } from "@/lib/data";
+import { getSession } from "@/lib/auth";
 
 
 export default async function BetsPage() {
-  const currentUser = await getCurrentUser();
-  const allBets = await getBets();
-  const candidates = await getCandidates();
-  
-  const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
+  const session = await getSession();
 
-
-  if (!currentUser) {
+  if (!session?.user?.id) {
     return (
       <div className="flex flex-col gap-6 items-center justify-center h-full">
          <p className="text-muted-foreground">Please log in to see your bets.</p>
       </div>
     )
   }
+  
+  const allBets = await getBets();
+  const candidates = await getCandidates();
+  
+  const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
 
-  const userBets = allBets.filter(bet => bet.userId === currentUser.id);
+  const userBets = allBets.filter(bet => bet.userId === session.user.id);
 
   return (
     <div className="flex flex-col gap-6">
