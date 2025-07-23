@@ -3,6 +3,7 @@
 
 import { addUser, getUserByEmail } from "@/lib/data"
 import { revalidatePath } from "next/cache"
+import bcrypt from 'bcryptjs';
 
 type FormResult = {
   success: boolean
@@ -34,16 +35,20 @@ export async function handleSignup(formData: FormData): Promise<FormResult> {
     return { success: false, error: "Passwords do not match." }
   }
 
-  const existingUser = await getUserByEmail(email)
-  if (existingUser) {
-    return { success: false, error: "A user with this email already exists." }
+  try {
+    const existingUser = await getUserByEmail(email)
+    if (existingUser) {
+        return { success: false, error: "A user with this email already exists." }
+    }
+
+    await addUser({ name: fullName, email: email, password: password })
+    revalidatePath("/")
+    
+    return { success: true }
+  } catch (error) {
+    console.error("Signup error:", error);
+    return { success: false, error: "An unexpected error occurred. Please try again."}
   }
-
-  // In a real app, you would hash the password here before saving
-  await addUser({ name: fullName, email: email, password: password })
-  revalidatePath("/")
-
-  return { success: true }
 }
 
 export async function handleLogin(formData: FormData): Promise<FormResult> {
@@ -54,18 +59,24 @@ export async function handleLogin(formData: FormData): Promise<FormResult> {
     return { success: false, error: "Please provide both email and password." }
   }
 
-  const user = await getUserByEmail(email)
+  try {
+    const user = await getUserByEmail(email)
 
-  if (!user) {
-    return { success: false, error: "No user found with that email address." }
+    if (!user || !user.password) {
+        return { success: false, error: "Incorrect email or password." }
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+        return { success: false, error: "Incorrect email or password." }
+    }
+
+    // In a real app, you would create a session/JWT here.
+    // For now, we just return success.
+    return { success: true }
+  } catch (error) {
+    console.error("Login error:", error);
+    return { success: false, error: "An unexpected error occurred. Please try again." }
   }
-
-  // In a real app, you would use a secure comparison function for the password
-  if (user.password !== password) {
-    return { success: false, error: "Incorrect password." }
-  }
-
-  // In a real app, you would create a session here.
-  // For now, we just return success.
-  return { success: true }
 }

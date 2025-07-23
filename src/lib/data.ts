@@ -1,252 +1,242 @@
 
 /**
- * @fileoverview This file acts as a mock database for the application.
- * It provides functions to fetch and manipulate data for users, candidates, and bets.
- * In a real-world application, this would be replaced with a proper database connection (e.g., Prisma, Drizzle, etc.).
+ * @fileoverview This file acts as the data access layer for the application.
+ * It provides functions to fetch and manipulate data for users, candidates, and bets
+ * using Prisma to interact with the PostgreSQL database.
  */
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { Bet } from "@/components/bet-ticket";
+import prisma from "./db";
+import type { User as PrismaUser, Candidate as PrismaCandidate, Bet as PrismaBet, Transaction as PrismaTransaction, SupportTicket as PrismaSupportTicket } from "@prisma/client";
+import bcrypt from 'bcryptjs';
 
-export type CandidateData = {
-  id: number;
-  name: string;
-  image: string;
-  hint: string;
-  color: string;
-  totalBets: number;
-  status: 'Active' | 'Withdrawn';
-};
-
-export type User = {
-  id:string;
-  name: string;
-  email: string;
-  password?: string; // Add password for auth simulation
-  joined: string;
-  status: "Active" | "Suspended";
-  totalBets: number;
-  bets: Bet[];
-};
-
-export type Transaction = {
-  id: string;
-  type: 'Deposit' | 'Withdrawal';
-  amount: number;
-  fee: number;
-  date: string;
-  userId: string;
-};
-
-export type SupportTicket = {
-  id: string;
-  user: {
-    name: string;
-    email: string;
-  };
-  subject: string;
-  message: string;
-  date: string;
-  status: 'Open' | 'Closed';
-};
+// Re-exporting Prisma types to be used in components if needed
+export type { User, CandidateData, Bet, Transaction, SupportTicket, AdminSettings } from "@prisma/client";
 
 
-// --- ID Generation ---
-function generateId(prefix: string) {
-    return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
+// --- Candidates ---
+export async function getCandidates() {
+  const candidates = await prisma.candidate.findMany({
+    orderBy: {
+      totalBets: 'desc'
+    }
+  });
+  // Prisma returns Decimal types for money, so we convert them to numbers
+  return candidates.map(c => ({...c, totalBets: c.totalBets.toNumber()}));
 }
 
-
-// --- MOCK DATABASE ---
-
-let users: User[] = [
-  { id: generateId('usr'), name: "John Doe", email: "john.doe@example.com", password: "password123", joined: "2024-07-20", status: "Active", totalBets: 0, bets: [] },
-  { id: generateId('usr'), name: "Jane Smith", email: "jane.smith@example.com", password: "password123", joined: "2024-07-15", status: "Active", totalBets: 0, bets: [] },
-  { id: generateId('usr'), name: "Charlie Brown", email: "charlie@example.com", password: "password123", joined: "2024-07-05", status: "Suspended", totalBets: 0, bets: [] },
-];
-
-let candidates: CandidateData[] = [
-  { id: 1, name: "Lazarus Chakwera", image: "https://times.mw/wp-content/uploads/2023/07/lazarus-chakwera-2-860x1014.jpg", hint: "malawian man politician", color: "#14213d", totalBets: 75000, status: 'Active' },
-  { id: 2, name: "Peter Mutharika", image: "https://www.peaceparks.org/wp-content/uploads/2018/08/image-51-2.jpeg", hint: "malawian man suit", color: "#87CEEB", totalBets: 62000, status: 'Active' },
-  { id: 3, name: "Dalitso Kabambe", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhCBX_R1SzYblo8R62us3MuJgBw5pIQ_w7pYboMeFzE5eHHmD31CqmrJSjMlXaiKQ0fZQ&usqp=CAU", hint: "malawian man economist", color: "#FF0000", totalBets: 48000, status: 'Active' },
-  { id: 4, name: "Atupele Muluzi", image: "https://www.nyasatimes.com/wp-content/uploads/ATUPELE-MINISTER.jpg", hint: "malawian man leader", color: "#FFD700", totalBets: 35000, status: 'Active' },
-];
-
-let bets: Bet[] = [
-    { id: generateId('bet'), userId: users[0].id, candidateName: 'Lazarus Chakwera', amount: 5000, placedDate: '2024-07-20', status: 'Pending' },
-    { id: generateId('bet'), userId: users[0].id, candidateName: 'Peter Mutharika', amount: 10000, placedDate: '2024-07-18', status: 'Pending' },
-    { id: generateId('bet'), userId: users[1].id, candidateName: 'Dalitso Kabambe', amount: 2500, placedDate: '2024-07-15', status: 'Pending' },
-    { id: generateId('bet'), userId: users[0].id, candidateName: 'Lazarus Chakwera', amount: 2000, placedDate: '2024-07-21', status: 'Pending' },
-];
-
-let transactions: Transaction[] = [
-  { id: generateId('txn'), type: 'Deposit', amount: 50000, fee: 1250, date: '2024-07-25', userId: users[0].id },
-  { id: generateId('txn'), type: 'Withdrawal', amount: 10000, fee: 250, date: '2024-07-24', userId: users[1].id },
-  { id: generateId('txn'), type: 'Deposit', amount: 20000, fee: 500, date: '2024-07-23', userId: users[2].id },
-  { id: generateId('txn'), type: 'Deposit', amount: 75000, fee: 1875, date: '2024-07-22', userId: users[0].id },
-  { id: generateId('txn'), type: 'Withdrawal', amount: 5000, fee: 125, date: '2024-07-21', userId: users[2].id },
-  { id: generateId('txn'), type: 'Deposit', amount: 100000, fee: 2500, date: '2024-07-20', userId: users[1].id },
-];
-
-let supportTickets: SupportTicket[] = [
-  {
-    id: generateId('tkt'),
-    user: { name: 'John Doe', email: 'john.doe@example.com' },
-    subject: 'Withdrawal Issue',
-    message: 'I tried to withdraw my winnings but the transaction failed. Can you please check what happened? My balance is correct.',
-    date: '2024-07-26',
-    status: 'Open',
-  },
-  {
-    id: generateId('tkt'),
-    user: { name: 'Jane Smith', email: 'jane.smith@example.com' },
-    subject: 'Question about Bet Settlement',
-    message: "My bet on Lazarus Chakwera was marked as 'Lost' but he won the election. Could this be a mistake?",
-    date: '2024-07-25',
-    status: 'Open',
-  },
-  {
-    id: generateId('tkt'),
-    user: { name: 'Charlie Brown', email: 'charlie@example.com' },
-    subject: 'Account Suspended',
-    message: "Why is my account suspended? I haven't done anything wrong. Please reactivate it.",
-    date: '2024-07-24',
-    status: 'Closed',
-  },
-];
-
-
-// --- DATA ACCESS FUNCTIONS ---
-
-// Candidates
-export async function getCandidates(): Promise<CandidateData[]> {
-  // In a real app, you'd fetch this from your database
-  return Promise.resolve(candidates);
-}
-
-export async function addCandidate(candidate: Omit<CandidateData, 'id' | 'totalBets' | 'status'>) {
-    const newId = candidates.length > 0 ? Math.max(...candidates.map(c => c.id)) + 1 : 1;
-    const newCandidate: CandidateData = {
-        ...candidate,
-        id: newId,
-        totalBets: 0,
-        status: 'Active',
-    };
-    candidates.push(newCandidate);
+export async function addCandidate(candidate: { name: string, image: string, hint: string, color: string }) {
+    const newCandidate = await prisma.candidate.create({
+        data: {
+            ...candidate,
+            totalBets: 0,
+            status: 'Active',
+        }
+    });
     revalidatePath("/admin/candidates");
-    return Promise.resolve(newCandidate);
+    return newCandidate;
 }
 
-export async function updateCandidate(id: number, updatedData: Partial<Omit<CandidateData, 'id' | 'totalBets'>>) {
-    candidates = candidates.map(c => c.id === id ? { ...c, ...updatedData } : c);
+export async function updateCandidate(id: number, updatedData: Partial<{ name: string; image: string; hint: string; color: string; status: 'Active' | 'Withdrawn' }>) {
+    const updatedCandidate = await prisma.candidate.update({
+        where: { id },
+        data: updatedData
+    });
     revalidatePath("/admin/candidates");
-    return Promise.resolve(candidates.find(c => c.id === id));
+    return updatedCandidate;
 }
 
 export async function removeCandidate(id: number) {
-    candidates = candidates.filter(c => c.id !== id);
+    await prisma.candidate.delete({ where: { id } });
     revalidatePath("/admin/candidates");
     return Promise.resolve();
 }
 
-// Users
-export async function getUsers(): Promise<User[]> {
-    const userWithBets = users.map(user => {
-        const userBets = bets.filter(bet => bet.userId === user.id);
-        const totalBets = userBets.reduce((acc, bet) => acc + bet.amount, 0);
-        return { ...user, bets: userBets, totalBets };
+// --- Users ---
+export async function getUsers() {
+    const users = await prisma.user.findMany({
+      include: {
+        bets: true,
+      },
+       orderBy: {
+        joined: 'desc'
+      }
     });
-    return Promise.resolve(userWithBets);
+
+    return users.map(user => ({
+      ...user,
+      balance: user.balance.toNumber(),
+      totalBets: user.bets.reduce((acc, bet) => acc + bet.amount.toNumber(), 0),
+      bets: user.bets.map(b => ({...b, amount: b.amount.toNumber()}))
+    }));
 }
 
-export async function getUserByEmail(email: string): Promise<User | undefined> {
-    const user = users.find(u => u.email === email);
-    return Promise.resolve(user);
+export async function getUserByEmail(email: string) {
+    return prisma.user.findUnique({
+        where: { email },
+    });
 }
 
-export async function addUser(userData: Omit<User, 'id' | 'joined' | 'status' | 'totalBets' | 'bets'>): Promise<User> {
-    const newUser: User = {
-        id: generateId('usr'),
-        ...userData,
-        joined: new Date().toISOString().split('T')[0],
-        status: 'Active',
-        totalBets: 0,
-        bets: [],
-    };
-    users.push(newUser);
-    return Promise.resolve(newUser);
+export async function addUser(userData: Omit<PrismaUser, 'id' | 'joined' | 'status' | 'balance' | 'notifyOnBetStatusUpdates'>) {
+    if (!userData.password) {
+        throw new Error("Password is required to create a user.");
+    }
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+    const newUser = await prisma.user.create({
+        data: {
+            name: userData.name,
+            email: userData.email,
+            password: hashedPassword,
+            balance: 50000, // Starting balance
+        },
+    });
+    return newUser;
 }
 
+export async function updateUser(id: string, updatedData: Partial<Omit<PrismaUser, 'id'>>) {
+    const updatedUser = await prisma.user.update({
+        where: { id },
+        data: updatedData
+    });
 
-export async function updateUser(id: string, updatedData: Partial<Omit<User, 'id' | 'bets' | 'totalBets'>>) {
-    users = users.map(u => u.id === id ? { ...u, ...updatedData } as User : u);
     revalidatePath("/admin/users");
     revalidatePath("/(dashboard)/profile");
     revalidatePath("/(dashboard)/settings");
-    return Promise.resolve(users.find(u => u.id === id));
+
+    return updatedUser;
 }
 
-// Bets
-export async function getBets(): Promise<Bet[]> {
-  return Promise.resolve(bets);
+// --- Bets ---
+export async function getBets() {
+    const bets = await prisma.bet.findMany({
+        orderBy: {
+            placedDate: 'desc'
+        }
+    });
+    return bets.map(b => ({...b, amount: b.amount.toNumber()}));
 }
 
-export async function placeBet(newBet: Omit<Bet, 'id' | 'placedDate' | 'status'>) {
-    const betWithDetails: Bet = {
-      ...newBet,
-      id: generateId('bet'),
-      placedDate: new Date().toISOString().split('T')[0],
-      status: 'Pending',
-    };
-    bets.unshift(betWithDetails);
+export async function placeBet(newBet: { userId: string, candidateName: string, amount: number }) {
+    // Using a transaction to ensure both Bet creation and Candidate update happen together
+    return await prisma.$transaction(async (tx) => {
+        const bet = await tx.bet.create({
+            data: {
+                userId: newBet.userId,
+                candidateName: newBet.candidateName,
+                amount: newBet.amount,
+            }
+        });
 
-    // Update candidate's total bets
-    const candidateIndex = candidates.findIndex(c => c.name === newBet.candidateName);
-    if(candidateIndex !== -1) {
-        candidates[candidateIndex].totalBets += newBet.amount;
-    }
-    
-    // No revalidation needed here as the calling action will do it.
-    return Promise.resolve(betWithDetails);
+        await tx.candidate.update({
+            where: { name: newBet.candidateName },
+            data: {
+                totalBets: {
+                    increment: newBet.amount
+                }
+            }
+        });
+
+        return bet;
+    });
 }
 
-// Transactions
-export async function getTransactions(): Promise<Transaction[]> {
-    return Promise.resolve(transactions);
+// --- Transactions ---
+export async function getTransactions() {
+    const transactions = await prisma.transaction.findMany({
+        orderBy: {
+            date: 'desc'
+        }
+    });
+    return transactions.map(t => ({
+        ...t,
+        amount: t.amount.toNumber(),
+        fee: t.fee.toNumber(),
+    }));
 }
 
-export async function addTransaction(transaction: Omit<Transaction, 'id' | 'date'>) {
-    const newTransaction: Transaction = {
-        ...transaction,
-        id: generateId('txn'),
-        date: new Date().toISOString().split('T')[0],
-    };
-    transactions.unshift(newTransaction);
-    revalidatePath('/wallet');
-    revalidatePath('/admin/revenue');
-    return Promise.resolve(newTransaction);
+export async function addTransaction(transaction: Omit<PrismaTransaction, 'id' | 'date'>) {
+    // In a transaction, update user balance and create transaction record
+    return await prisma.$transaction(async (tx) => {
+        const user = await tx.user.findUnique({ where: { id: transaction.userId }});
+        if (!user) throw new Error("User not found");
+
+        const newBalance = transaction.type === 'Deposit'
+            ? user.balance.toNumber() + transaction.amount
+            : user.balance.toNumber() - transaction.amount;
+
+        if (newBalance < 0) {
+            throw new Error("Insufficient funds for withdrawal.");
+        }
+
+        await tx.user.update({
+            where: { id: transaction.userId },
+            data: { balance: newBalance }
+        });
+
+        const newTransaction = await tx.transaction.create({
+            data: {
+                ...transaction,
+                amount: transaction.amount,
+                fee: transaction.fee,
+            }
+        });
+
+        revalidatePath('/wallet');
+        revalidatePath('/admin/revenue');
+
+        return newTransaction;
+    });
 }
 
-// Support Tickets
-export async function getSupportTickets(): Promise<SupportTicket[]> {
-    return Promise.resolve(supportTickets);
+// --- Support Tickets ---
+export async function getSupportTickets() {
+    return prisma.supportTicket.findMany({
+        orderBy: {
+            date: 'desc'
+        }
+    });
 }
 
-export async function createSupportTicket(ticket: Omit<SupportTicket, 'id' | 'date' | 'status'>) {
-    const newTicket: SupportTicket = {
-        ...ticket,
-        id: generateId('tkt'),
-        date: new Date().toISOString().split('T')[0],
-        status: 'Open',
-    }
-    supportTickets.unshift(newTicket);
+export async function createSupportTicket(ticket: Omit<PrismaSupportTicket, 'id' | 'date' | 'status'>) {
+    const newTicket = await prisma.supportTicket.create({
+        data: ticket,
+    });
     revalidatePath('/admin/support');
-    return Promise.resolve(newTicket);
+    return newTicket;
 }
 
 export async function updateSupportTicketStatus(id: string, status: 'Open' | 'Closed') {
-    supportTickets = supportTickets.map(t => t.id === id ? { ...t, status } : t);
+    const updatedTicket = await prisma.supportTicket.update({
+        where: { id },
+        data: { status }
+    });
     revalidatePath("/admin/support");
-    return Promise.resolve(supportTickets.find(t => t.id === id));
+    return updatedTicket;
+}
+
+// --- Admin Settings ---
+export async function getAdminSettings() {
+    let settings = await prisma.adminSettings.findFirst();
+    if (!settings) {
+        // If no settings exist, create with default values
+        settings = await prisma.adminSettings.create({
+            data: {
+                id: 1, // Singleton ID
+                enable2fa: false,
+                notifyOnNewUser: true,
+                notifyOnLargeBet: false,
+                notifyOnLargeDeposit: true
+            }
+        });
+    }
+    return settings;
+}
+
+export async function updateAdminSettings(data: Partial<Omit<AdminSettings, 'id'>>) {
+    return prisma.adminSettings.update({
+        where: { id: 1 },
+        data
+    });
 }
