@@ -5,10 +5,12 @@ import { createContext, useContext, useState, ReactNode, useEffect, useCallback 
 import { useSession } from "next-auth/react";
 import type { Bet } from "@/components/bet-ticket";
 import { getCandidates, getBets } from "@/lib/data";
-import type { CandidateData, User as FullUserType } from "@/lib/data";
+import type { CandidateData } from "@/lib/data";
 
-
-export type User = Omit<FullUserType, 'totalBets' | 'bets' | 'status' | 'joined' | 'email' | 'password' | 'emailVerified' | 'image' | 'joinedAt' | 'balance' | 'notifyOnBetStatusUpdates' >;
+type CurrentUser = {
+  id: string;
+  name: string;
+}
 
 type BetContextType = {
   bets: Bet[];
@@ -18,7 +20,7 @@ type BetContextType = {
   electionWinner: string | null;
   candidates: CandidateData[];
   totalPot: number;
-  currentUser: User | null;
+  currentUser: CurrentUser | null;
   bettingStopped: boolean;
   stopBetting: () => void;
 };
@@ -30,7 +32,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
   const [bets, setBets] = useState<Bet[]>([]);
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [totalPot, setTotalPot] = useState(0);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   const [electionFinalized, setElectionFinalized] = useState(false);
   const [electionWinner, setElectionWinner] = useState<string | null>(null);
@@ -51,7 +53,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
       ]);
       setCandidates(initialCandidates);
       setBets(initialBets);
-      setTotalPot(initialCandidates.reduce((acc, curr) => acc + curr.totalBets, 0));
+      const newTotalPot = initialCandidates.reduce((acc, curr) => acc + curr.totalBets, 0)
+      setTotalPot(newTotalPot);
     }, []);
 
   useEffect(() => {
@@ -65,6 +68,7 @@ export function BetProvider({ children }: { children: ReactNode }) {
         console.error("Cannot place bet on a withdrawn candidate.");
         return;
     }
+    // After a bet is placed via a server action, re-fetch all data to ensure UI consistency
     await fetchData();
   };
 

@@ -70,20 +70,22 @@ export async function getUsers() {
       balance: user.balance.toNumber(),
       totalBets: user.bets.reduce((acc, bet) => acc + bet.amount.toNumber(), 0),
       bets: user.bets.map(b => ({...b, amount: b.amount.toNumber()})),
-      joined: user.joinedAt
+      joined: user.joinedAt.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
     }));
 }
 
 export async function getCurrentUser() {
     const session = await getSession();
     if (!session?.user?.id) {
-        throw new Error("User not authenticated.");
+        // This case should ideally not be hit if pages are protected
+        return null;
     }
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
     });
     if (!user) {
-        throw new Error("User not found in database.");
+        // This might happen if the user is deleted but the session is still active
+        return null;
     }
     return {
         ...user,

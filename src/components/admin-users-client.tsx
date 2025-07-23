@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useMemo, useTransition, useEffect } from "react"
-import { getUsers, updateUser, getTransactions, Transaction } from "@/lib/data"
+import { updateUser, getTransactions, Transaction, User as FullUserType } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -15,19 +15,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import type { Bet } from "@/components/bet-ticket";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import type { User } from "@/lib/data"
+import type { Bet } from "@/components/bet-ticket";
 
-export function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+type UserForAdmin = FullUserType & {
+  totalBets: number;
+  bets: Bet[];
+  joined: string;
+}
+
+export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[] }) {
+  const [users, setUsers] = useState<UserForAdmin[]>(initialUsers);
   let [isPending, startTransition] = useTransition();
   
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserForAdmin | null>(null);
   const [userTransactions, setUserTransactions] = useState<Transaction[]>([]);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setViewDialogOpen] = useState(false);
@@ -76,11 +81,11 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const searchMatch = searchQuery === '' || 
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase());
+        (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
       const statusMatch = filters.status === 'all' || user.status === filters.status;
-      const dateMatch = !filters.joinedAfter || new Date(user.joined + 'T00:00:00Z') >= filters.joinedAfter;
+      const dateMatch = !filters.joinedAfter || new Date(user.joined) >= filters.joinedAfter;
 
       const minAmount = parseFloat(filters.minAmount);
       const maxAmount = parseFloat(filters.maxAmount);
@@ -91,17 +96,17 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
     });
   }, [searchQuery, users, filters]);
 
-  const handleEditClick = (user: User) => {
+  const handleEditClick = (user: UserForAdmin) => {
     setSelectedUser(user);
     setEditDialogOpen(true);
   };
 
-  const handleViewClick = (user: User) => {
+  const handleViewClick = (user: UserForAdmin) => {
     setSelectedUser(user);
     setViewDialogOpen(true);
   };
 
-  const handleSuspendClick = (user: User) => {
+  const handleSuspendClick = (user: UserForAdmin) => {
     setSelectedUser(user);
     setSuspendDialogOpen(true);
   };
@@ -278,11 +283,11 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: User[] }) {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">Name</Label>
-                <Input id="name" name="name" defaultValue={selectedUser?.name} className="col-span-3" />
+                <Input id="name" name="name" defaultValue={selectedUser?.name ?? ""} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right">Email</Label>
-                <Input id="email" name="email" type="email" defaultValue={selectedUser?.email} className="col-span-3" />
+                <Input id="email" name="email" type="email" defaultValue={selectedUser?.email ?? ""} className="col-span-3" />
               </div>
             </div>
             <DialogFooter>
