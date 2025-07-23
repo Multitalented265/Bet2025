@@ -13,14 +13,15 @@ import type { User } from "@/lib/data";
 
 export default function AdminDashboardPage() {
   const { totalPot, bets, candidates } = useBets();
-  const [users, setUsers] = useState<User[]>([]);
+  const [userCount, setUserCount] = useState<number>(0);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    // We can fetch non-critical, supplementary data on the client if needed
+    const fetchUserCount = async () => {
       const allUsers = await dbGetUsers();
-      setUsers(allUsers);
+      setUserCount(allUsers.length);
     };
-    fetchUsers();
+    fetchUserCount();
   }, []);
 
   const totalBetsCount = bets.length;
@@ -59,7 +60,7 @@ export default function AdminDashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
+            <div className="text-2xl font-bold">{userCount}</div>
              <p className="text-xs text-muted-foreground">
               +24 since last hour
             </p>
@@ -84,4 +85,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
