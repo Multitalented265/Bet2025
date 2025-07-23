@@ -12,8 +12,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useBets } from "@/context/bet-context"
-import type { CandidateData } from "@/context/bet-context"
+import type { CandidateData } from "@/lib/data"
 import { handleBetPlacement } from "@/actions/bet"
 
 const betSchema = z.object({
@@ -28,9 +27,12 @@ type BettingCardProps = {
   disabled?: boolean
 }
 
+// Mock state, in a real app this would be managed globally or fetched.
+const bettingStopped = false;
+
+
 export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
   const { toast } = useToast()
-  const { addBet, bettingStopped, electionFinalized } = useBets();
   const [isPending, startTransition] = useTransition();
   
   const form = useForm<z.infer<typeof betSchema>>({
@@ -44,32 +46,27 @@ export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
     startTransition(async () => {
       try {
         await handleBetPlacement(candidate.id, values.amount);
-        // This addBet call triggers the context to re-fetch data
-        addBet({
-          candidateName: candidate.name,
-          amount: values.amount,
-        });
         toast({
           title: "Bet Placed!",
           description: `Your ${values.amount.toLocaleString()} MWK bet on ${candidate.name} has been placed.`,
         });
         form.reset();
-      } catch (error) {
+      } catch (error: any) {
         toast({
           variant: "destructive",
           title: "Betting Failed",
-          description: "There was an error placing your bet. Please try again.",
+          description: error.message || "There was an error placing your bet. Please try again.",
         });
       }
     });
   }
   
-  const isCardDisabled = disabled || electionFinalized || bettingStopped || candidate.status === 'Withdrawn';
+  const isCardDisabled = disabled || bettingStopped || candidate.status === 'Withdrawn';
   
   const getButtonText = () => {
     if (isPending) return 'Placing Bet...';
     if (candidate.status === 'Withdrawn') return 'Betting Closed';
-    if (electionFinalized) return 'Election Over';
+    if (disabled) return 'Election Over';
     if (bettingStopped) return 'Betting Stopped';
     return 'Place Bet';
   }

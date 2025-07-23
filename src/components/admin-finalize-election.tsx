@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useBets } from "@/context/bet-context";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -32,10 +31,20 @@ import {
 import { useState } from "react";
 import { Label } from "./ui/label";
 import { PartyPopper, Ban, Play } from "lucide-react";
+import type { CandidateData } from "@/lib/data";
+
+type FinalizeElectionProps = {
+  candidates: CandidateData[];
+}
+
+// These would come from a global state or API in a real app.
+// For now, we manage them as simple mock state.
+const electionFinalized = false;
+const bettingStopped = false;
+const electionWinner = null;
 
 
-export function AdminFinalizeElection() {
-  const { candidates, finalizeElection, electionFinalized, electionWinner, stopBetting, bettingStopped } = useBets();
+export function AdminFinalizeElection({ candidates }: FinalizeElectionProps) {
   const { toast } = useToast();
   const [selectedWinner, setSelectedWinner] = useState<string | null>(null);
 
@@ -48,7 +57,8 @@ export function AdminFinalizeElection() {
       });
       return;
     }
-    finalizeElection(selectedWinner);
+    // In a real app, this would call a server action
+    console.log(`Finalizing election. Winner: ${selectedWinner}`);
     toast({
       title: "Election Finalized!",
       description: `${selectedWinner} has been declared the winner.`,
@@ -56,7 +66,8 @@ export function AdminFinalizeElection() {
   };
   
   const handleStopBetting = () => {
-    stopBetting();
+    // In a real app, this would call a server action
+    console.log("Stopping all betting.");
     toast({
         title: "Betting Stopped",
         description: "All betting has been disabled for users.",

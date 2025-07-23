@@ -16,9 +16,13 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useBets } from "@/context/bet-context"
-import type { CandidateData } from "@/context/bet-context"
+import type { CandidateData } from "@/lib/data"
 import { useHasMounted } from "@/hooks/use-has-mounted"
+
+type DashboardChartProps = {
+  candidates: CandidateData[];
+  totalPot: number;
+}
 
 const CustomYAxisTick = (props: any) => {
     const { x, y, payload, data } = props;
@@ -53,8 +57,7 @@ const CustomCursor = (props: any) => {
 };
 
 
-export function DashboardChart() {
-  const { candidates, totalPot } = useBets();
+export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
   const hasMounted = useHasMounted();
   const [isMobile, setIsMobile] = useState(false);
 

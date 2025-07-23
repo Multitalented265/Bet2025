@@ -1,30 +1,22 @@
 
-"use client";
-
 import { AdminFinalizeElection } from "@/components/admin-finalize-election";
 import { DashboardChart } from "@/components/dashboard-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBets } from "@/context/bet-context";
 import { Users, Vote, CircleDollarSign } from "lucide-react";
-import { useEffect, useState } from "react";
-import { getUsers as dbGetUsers } from "@/lib/data";
-import type { User } from "@/lib/data";
+import { getBets, getCandidates, getUsers } from "@/lib/data";
 
 
-export default function AdminDashboardPage() {
-  const { totalPot, bets, candidates } = useBets();
-  const [userCount, setUserCount] = useState<number>(0);
+export default async function AdminDashboardPage() {
+  const [candidates, users, bets] = await Promise.all([
+    getCandidates(),
+    getUsers(),
+    getBets()
+  ]);
 
-  useEffect(() => {
-    // We can fetch non-critical, supplementary data on the client if needed
-    const fetchUserCount = async () => {
-      const allUsers = await dbGetUsers();
-      setUserCount(allUsers.length);
-    };
-    fetchUserCount();
-  }, []);
-
+  const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
+  const userCount = users.length;
   const totalBetsCount = bets.length;
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -78,10 +70,10 @@ export default function AdminDashboardPage() {
       </div>
 
       <div>
-        <DashboardChart />
+        <DashboardChart candidates={candidates} totalPot={totalPot} />
       </div>
 
-      <AdminFinalizeElection />
+      <AdminFinalizeElection candidates={candidates} />
     </div>
   );
 }

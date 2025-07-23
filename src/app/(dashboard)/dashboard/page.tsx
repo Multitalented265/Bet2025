@@ -1,14 +1,19 @@
 
-"use client";
-
 import { BettingCard } from "@/components/betting-card"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Info, PartyPopper } from "lucide-react";
-import { useBets } from "@/context/bet-context";
+import { getCandidates } from "@/lib/data";
 
-export default function Dashboard() {
-  const { candidates, electionFinalized, electionWinner } = useBets();
+// Mock data, in a real app this would come from a database or API
+const electionFinalized = false;
+const electionWinner = null;
+
+
+export default async function Dashboard() {
+  const candidates = await getCandidates();
+  const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -32,7 +37,7 @@ export default function Dashboard() {
       )}
 
       <div>
-        <DashboardChart />
+        <DashboardChart candidates={candidates} totalPot={totalPot} />
       </div>
 
        <Card>

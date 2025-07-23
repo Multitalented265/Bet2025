@@ -1,21 +1,25 @@
 
-"use client"
-
 import { BetTicket } from "@/components/bet-ticket";
-import { useBets } from "@/context/bet-context";
+import { getBets, getCandidates, getCurrentUser } from "@/lib/data";
 
-export default function BetsPage() {
-  const { bets, candidates, totalPot, currentUser } = useBets();
+
+export default async function BetsPage() {
+  const currentUser = await getCurrentUser();
+  const allBets = await getBets();
+  const candidates = await getCandidates();
+  
+  const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
+
 
   if (!currentUser) {
     return (
       <div className="flex flex-col gap-6 items-center justify-center h-full">
-         <p className="text-muted-foreground">Loading user data...</p>
+         <p className="text-muted-foreground">Please log in to see your bets.</p>
       </div>
     )
   }
 
-  const userBets = bets.filter(bet => bet.userId === currentUser.id);
+  const userBets = allBets.filter(bet => bet.userId === currentUser.id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -34,11 +38,12 @@ export default function BetsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {userBets.map((bet) => {
             const candidate = candidates.find(c => c.name === bet.candidateName);
+            const totalBetsOnCandidate = candidate ? candidate.totalBets : 0;
             return (
               <BetTicket 
                 key={bet.id} 
                 bet={bet}
-                totalBetsOnCandidate={candidate?.totalBets || 0}
+                totalBetsOnCandidate={totalBetsOnCandidate}
                 totalPot={totalPot}
               />
             )
