@@ -4,6 +4,7 @@
 import { addUser, getUserByEmail } from "@/lib/data"
 import { revalidatePath } from "next/cache"
 import bcrypt from 'bcryptjs';
+import { signIn } from "next-auth/react"
 
 type FormResult = {
   success: boolean
@@ -47,36 +48,4 @@ export async function handleSignup(formData: FormData): Promise<FormResult> {
     return { success: true }
   } catch (error) {
     console.error("Signup error:", error);
-    return { success: false, error: "An unexpected error occurred. Please try again."}
-  }
-}
-
-export async function handleLogin(formData: FormData): Promise<FormResult> {
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-
-  if (!email || !password) {
-    return { success: false, error: "Please provide both email and password." }
-  }
-
-  try {
-    const user = await getUserByEmail(email)
-
-    if (!user || !user.password) {
-        return { success: false, error: "Incorrect email or password." }
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-        return { success: false, error: "Incorrect email or password." }
-    }
-
-    // In a real app, you would create a session/JWT here.
-    // For now, we just return success.
-    return { success: true }
-  } catch (error) {
-    console.error("Login error:", error);
-    return { success: false, error: "An unexpected error occurred. Please try again." }
-  }
-}
+    return { success: false, error:

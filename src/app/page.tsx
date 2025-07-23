@@ -1,10 +1,10 @@
-
 "use client"
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
+import { signIn } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Logo from "@/components/logo"
 import { GoogleIcon } from "@/components/icons/google-icon"
-import { handleLogin } from "@/actions/auth"
 import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
@@ -30,9 +29,17 @@ export default function LoginPage() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
+
     startTransition(async () => {
-      const result = await handleLogin(formData)
-      if (result.success) {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
+
+      if (result?.ok && !result.error) {
         toast({
           title: "Login Successful",
           description: "Welcome back!",
@@ -42,7 +49,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "Login Failed",
-          description: result.error,
+          description: "Incorrect email or password.",
         })
       }
     })
