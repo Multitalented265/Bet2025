@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -17,6 +18,7 @@ model User {
   password    String
   joined      DateTime       @default(now())
   status      String         @default("Active") // "Active" or "Suspended"
+  totalBets   Float          @default(0)
   bets        Bet[]
   transactions Transaction[]
   createdAt   DateTime       @default(now())
@@ -29,6 +31,7 @@ model Candidate {
   image      String
   hint       String
   color      String
+  totalBets  Float    @default(0)
   status     String   @default("Active") // "Active" or "Withdrawn"
   bets       Bet[]
   createdAt  DateTime @default(now())
@@ -40,18 +43,12 @@ model Bet {
   amount        Float
   placedDate    DateTime  @default(now())
   status        String    @default("Pending") // "Pending", "Won", or "Lost"
-  
   userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  candidateId   Int
-  candidate     Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId])
-  @@index([candidateId])
+  user          User      @relation(fields: [userId], references: [id])
+  candidateName String
+  candidate     Candidate @relation(fields: [candidateName], references: [name])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Transaction {
@@ -60,25 +57,20 @@ model Transaction {
   amount    Float
   fee       Float
   date      DateTime @default(now())
-
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@index([userId])
 }
 
 model SupportTicket {
-  id          String   @id @default(cuid())
-  userName    String
-  userEmail   String
-  subject     String
-  message     String
-  date        DateTime @default(now())
-  status      String   @default("Open") // "Open" or "Closed"
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userName  String
+  userEmail String
+  subject   String
+  message   String
+  date      DateTime @default(now())
+  status    String   @default("Open") // "Open" or "Closed"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
