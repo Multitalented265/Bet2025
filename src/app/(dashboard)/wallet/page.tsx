@@ -1,6 +1,7 @@
 
 import { WalletClient } from "@/components/wallet-client"
-import { getCurrentUser, getUserTransactions } from "@/lib/data"
+import { getCurrentUser } from "@/lib/data"
+import { getUserTransactions } from "@/actions/user";
 
 export default async function WalletPage() {
     const user = await getCurrentUser();
