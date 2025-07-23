@@ -20,7 +20,6 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-  CardFooter
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -132,31 +131,29 @@ export function AdminFinalizeElection() {
                     ))}
                 </SelectContent>
             </Select>
+             <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={!selectedWinner || electionFinalized || !bettingStopped}>
+                    2. Finalize Election & Settle Bets
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will finalize the election, declaring <span className="font-bold">{selectedWinner}</span> as the winner. All bets will be settled accordingly. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleFinalize}>
+                    Yes, Finalize Election
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
         </div>
       </CardContent>
-      <CardFooter>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" disabled={!selectedWinner || electionFinalized || !bettingStopped}>
-                2. Finalize Election & Settle Bets
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will finalize the election, declaring <span className="font-bold">{selectedWinner}</span> as the winner. All bets will be settled accordingly. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleFinalize}>
-                Yes, Finalize Election
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </CardFooter>
     </Card>
   );
 }
