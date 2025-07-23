@@ -62,57 +62,56 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-4">
-            <fieldset disabled={isPending}>
-              <div className="grid gap-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input id="fullName" name="fullName" placeholder="John Doe" required />
+            <div className="grid gap-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input id="fullName" name="fullName" placeholder="John Doe" required disabled={isPending} />
+            </div>
+            <div className="grid gap-2 mt-4">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                disabled={isPending}
+              />
+            </div>
+            <div className="grid gap-2 mt-4">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input id="password" name="password" type={showPassword ? "text" : "password"} required disabled={isPending} />
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowPassword(!showPassword)}
+                >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                    <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+                </Button>
               </div>
-              <div className="grid gap-2 mt-4">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
+            </div>
+            <div className="grid gap-2 mt-4">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} required disabled={isPending} />
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                    {showConfirmPassword ? <EyeOff /> : <Eye />}
+                    <span className="sr-only">{showConfirmPassword ? 'Hide password' : 'Show password'}</span>
+                </Button>
               </div>
-              <div className="grid gap-2 mt-4">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input id="password" name="password" type={showPassword ? "text" : "password"} required />
-                  <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                      onClick={() => setShowPassword(!showPassword)}
-                  >
-                      {showPassword ? <EyeOff /> : <Eye />}
-                      <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
-                  </Button>
-                </div>
-              </div>
-              <div className="grid gap-2 mt-4">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} required />
-                  <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                      {showConfirmPassword ? <EyeOff /> : <Eye />}
-                      <span className="sr-only">{showConfirmPassword ? 'Hide password' : 'Show password'}</span>
-                  </Button>
-                </div>
-              </div>
-              <Button type="submit" className="w-full font-bold mt-4">
-                {isPending ? "Creating Account..." : "Create Account"}
-              </Button>
-            </fieldset>
+            </div>
+            <Button type="submit" className="w-full font-bold mt-4" disabled={isPending}>
+              {isPending ? "Creating Account..." : "Create Account"}
+            </Button>
           </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
