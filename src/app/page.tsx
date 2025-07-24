@@ -23,7 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal } from "lucide-react"
 
 export default function LoginPage() {
-  console.log("--- [Login Page] ---")
+  console.log("--- [Login Page] ---");
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()

@@ -4,8 +4,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "./db";
 import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
 export const authOptions: NextAuthOptions = {
+    adapter: PrismaAdapter(prisma),
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -39,7 +41,7 @@ export const authOptions: NextAuthOptions = {
                 }
                 
                 console.log(`[authorize] Password valid. Returning user object:`, { id: user.id, name: user.name, email: user.email });
-                // Return the user object to be passed to the jwt callback
+                // Return the user object to be passed to the session
                 return {
                     id: user.id,
                     name: user.name,
@@ -49,31 +51,15 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     session: {
-        strategy: 'jwt'
+        strategy: 'database'
     },
     callbacks: {
-        async jwt({ token, user }) {
-            console.log("--- [auth.ts - jwt callback] ---");
-            // The `user` object is passed on the first sign-in
-            if (user) {
-                console.log("[jwt] Initial sign-in. Attaching user data to token.");
-                token.id = user.id;
-                token.name = user.name;
-                token.email = user.email;
-            } else {
-                 console.log("[jwt] Subsequent request. Token already has data.");
-            }
-            console.log("[jwt] Final token:", token);
-            return token;
-        },
-        async session({ session, token }) {
+        async session({ session, user }) {
             console.log("--- [auth.ts - session callback] ---");
-            // The token is passed from the `jwt` callback
-            if (session.user && token) {
-                 console.log("[session] Hydrating session with token data.");
-                (session.user as NextAuthUser & { id: string }).id = token.id as string;
-                session.user.name = token.name;
-                session.user.email = token.email;
+            // The user object here is the one from the database.
+            if (session.user && user) {
+                 console.log("[session] Hydrating session with user ID from database.");
+                (session.user as NextAuthUser & { id: string }).id = user.id;
             } else {
                  console.log("[session] session.user or token is missing. Cannot hydrate session.");
             }
