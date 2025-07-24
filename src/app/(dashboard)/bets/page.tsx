@@ -7,16 +7,9 @@ import { redirect } from "next/navigation";
 
 export default async function BetsPage() {
   const session = await getSession();
-
+  // The layout already protects this page, but we need the session for data fetching.
   if (!session?.user?.id) {
-    redirect("/");
-  }
-
-  const user = await getUserById(session.user.id);
-
-  if (!user) {
-    // This case would be rare, e.g., if the user was deleted from the DB after session was created.
-    redirect("/");
+    return redirect("/");
   }
   
   const allBets = await getBets();
@@ -24,7 +17,7 @@ export default async function BetsPage() {
   
   const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
 
-  const userBets = allBets.filter(bet => bet.userId === user.id);
+  const userBets = allBets.filter(bet => bet.userId === session.user!.id);
 
   return (
     <div className="flex flex-col gap-6">

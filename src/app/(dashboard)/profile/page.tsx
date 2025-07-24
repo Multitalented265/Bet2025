@@ -6,15 +6,17 @@ import { getSession } from "@/lib/auth";
 
 export default async function ProfilePage() {
     const session = await getSession();
+    // The layout protects this page, so we can assume session and user exist.
+    // If not, redirecting is a safe fallback.
     if (!session?.user?.id) {
-        redirect("/");
+        return redirect("/");
     }
 
     const user = await getUserById(session.user.id);
 
     if (!user) {
         // This case would be rare, e.g., user deleted from DB
-        redirect("/");
+        return redirect("/");
     }
 
     return (

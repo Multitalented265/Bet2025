@@ -3,7 +3,7 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
 import { signIn } from "next-auth/react"
 
@@ -20,12 +20,16 @@ import { Label } from "@/components/ui/label"
 import Logo from "@/components/logo"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { useToast } from "@/hooks/use-toast"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Terminal } from "lucide-react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, startTransition] = useTransition()
   const { toast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams();
+  const error = searchParams.get('error');
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -33,27 +37,17 @@ export default function LoginPage() {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
-    let result;
     startTransition(async () => {
-       result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      })
+        // We now let signIn handle the redirect. It will automatically redirect
+        // to the dashboard on success, or to a page with an error on failure.
+        const result = await signIn("credentials", {
+            email,
+            password,
+            callbackUrl: "/dashboard", // Redirect to dashboard on success
+        });
 
-      if (result?.ok && !result.error) {
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-        })
-        router.push("/dashboard")
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "Incorrect email or password.",
-        })
-      }
+        // The error is now handled by displaying the 'error' search param,
+        // so we don't need a toast here.
     });
   }
 
@@ -70,6 +64,15 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+           {error && (
+            <Alert variant="destructive" className="mb-4">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Login Failed</AlertTitle>
+              <AlertDescription>
+                Invalid email or password. Please try again.
+              </AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>

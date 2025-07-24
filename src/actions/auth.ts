@@ -42,7 +42,7 @@ export async function handleSignup(formData: FormData): Promise<FormResult> {
     }
 
     await addUser({ name: fullName, email: email, password: password })
-    revalidatePath("/")
+    // No longer need to revalidate path here, as the user will be redirected.
     
     return { success: true }
   } catch (error) {

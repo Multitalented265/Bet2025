@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label"
 import Logo from "@/components/logo"
 import { handleSignup } from "@/actions/auth"
 import { useToast } from "@/hooks/use-toast"
+import { signIn } from "next-auth/react"
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -29,15 +30,24 @@ export default function SignupPage() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const formData = new FormData(event.currentTarget)
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    
     startTransition(async () => {
       const result = await handleSignup(formData)
       if (result.success) {
         toast({
           title: "Account Created",
-          description: "You have successfully signed up. Please log in.",
+          description: "Welcome! Logging you in...",
         })
-        router.push("/")
+        
+        // Automatically sign in the user after successful registration
+        await signIn("credentials", {
+          email: formData.get("email"),
+          password: formData.get("password"),
+          callbackUrl: "/dashboard",
+        })
+
       } else {
         toast({
           variant: "destructive",
