@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
                 
-                console.log(`[authorize] Password valid. Returning user object:`, { id: user.id, name: user.name, email: user.email });
+                console.log(`[authorize] Password valid. Returning user object for session creation:`, { id: user.id, name: user.name, email: user.email });
                 // Return the user object to be passed to the session
                 return {
                     id: user.id,

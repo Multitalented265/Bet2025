@@ -39,7 +39,7 @@ export default function LoginPage() {
     startTransition(async () => {
         console.log(`[Login Page] Attempting to sign in for email: ${email}`);
         const result = await signIn("credentials", {
-            redirect: false,
+            redirect: false, // Set redirect to false to handle results manually
             email,
             password,
         });
@@ -48,7 +48,7 @@ export default function LoginPage() {
 
         if (result?.error) {
             console.error("[Login Page] SignIn failed. Error:", result.error);
-            // Re-render the page with an error query parameter
+            // Re-render the page with an error query parameter to show the alert
             router.push('/?error=CredentialsSignin');
             router.refresh();
         } else if (result?.ok) {
