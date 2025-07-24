@@ -41,13 +41,18 @@ export default function LoginPage() {
         // We now let signIn handle the redirect. It will automatically redirect
         // to the dashboard on success, or to a page with an error on failure.
         const result = await signIn("credentials", {
+            redirect: false, // We handle the redirect manually based on the result
             email,
             password,
-            callbackUrl: "/dashboard", // Redirect to dashboard on success
         });
 
-        // The error is now handled by displaying the 'error' search param,
-        // so we don't need a toast here.
+        if (result?.error) {
+            // Reload the page with an error query parameter
+            router.replace('/?error=CredentialsSignin');
+        } else if (result?.ok) {
+            // On success, redirect to the dashboard
+            router.push("/dashboard");
+        }
     });
   }
 

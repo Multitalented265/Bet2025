@@ -42,11 +42,22 @@ export default function SignupPage() {
         })
         
         // Automatically sign in the user after successful registration
-        await signIn("credentials", {
+        const signInResult = await signIn("credentials", {
+          redirect: false,
           email: formData.get("email"),
           password: formData.get("password"),
-          callbackUrl: "/dashboard",
-        })
+        });
+
+        if (signInResult?.ok) {
+          router.push("/dashboard");
+        } else {
+           toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: "Something went wrong during login. Please try logging in manually.",
+          });
+          router.push("/"); // Redirect to login page on failure
+        }
 
       } else {
         toast({
