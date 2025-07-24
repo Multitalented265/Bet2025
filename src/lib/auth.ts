@@ -10,7 +10,7 @@ export const authOptions: NextAuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                email: { label: "Email", type: "text", placeholder: "jsmith" },
+                email: { label: "Email", type: "email" },
                 password: {  label: "Password", type: "password" }
             },
             async authorize(credentials) {
@@ -23,6 +23,7 @@ export const authOptions: NextAuthOptions = {
                 });
 
                 if (!user || !user.password) {
+                    // User not found or doesn't have a password (e.g., OAuth user)
                     return null;
                 }
 
@@ -32,6 +33,7 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
                 
+                // Return the user object if credentials are valid
                 return {
                     id: user.id,
                     name: user.name,
@@ -44,12 +46,16 @@ export const authOptions: NextAuthOptions = {
         strategy: 'jwt'
     },
     callbacks: {
+        // The `jwt` callback is called when a new JWT is created.
+        // We add the user's ID to the token here.
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
             }
             return token;
         },
+        // The `session` callback is called whenever a session is accessed.
+        // We add the user's ID from the token to the session object.
         async session({ session, token }) {
             if (session.user) {
                 (session.user as NextAuthUser & { id: string }).id = token.id as string;
@@ -59,10 +65,10 @@ export const authOptions: NextAuthOptions = {
     },
     pages: {
         signIn: '/',
-        error: '/',
+        error: '/', // Redirect to the login page on error
     },
     secret: process.env.NEXTAUTH_SECRET,
 };
 
+// Helper function to get the session on the server side
 export const getSession = () => getServerSession(authOptions);
-
