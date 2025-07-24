@@ -19,7 +19,6 @@ import { Label } from "@/components/ui/label"
 import Logo from "@/components/logo"
 import { handleSignup } from "@/actions/auth"
 import { useToast } from "@/hooks/use-toast"
-import { signIn } from "next-auth/react"
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -37,28 +36,11 @@ export default function SignupPage() {
       const result = await handleSignup(formData)
       if (result.success) {
         toast({
-          title: "Account Created",
-          description: "Welcome! Logging you in...",
-        })
-        
-        // Automatically sign in the user after successful registration
-        const signInResult = await signIn("credentials", {
-          redirect: false,
-          email: formData.get("email"),
-          password: formData.get("password"),
+          title: "Account Created Successfully!",
+          description: "Please log in with your new credentials.",
         });
-
-        if (signInResult?.ok) {
-          router.push("/dashboard");
-        } else {
-           toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: "Something went wrong during login. Please try logging in manually.",
-          });
-          router.push("/"); // Redirect to login page on failure
-        }
-
+        // Redirect to the login page on successful signup
+        router.push("/");
       } else {
         toast({
           variant: "destructive",

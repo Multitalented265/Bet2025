@@ -38,6 +38,7 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
+                // The user object returned here will be used by the adapter
                 return {
                     id: user.id,
                     name: user.name,
@@ -47,10 +48,13 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     session: {
-        strategy: "database", // Use database sessions, managed by the Prisma adapter.
+        // When using a database adapter, the default strategy is "database".
+        // Explicitly setting it can be redundant but is fine. The key is the callback.
+        strategy: "database", 
     },
     callbacks: {
         // This callback is essential to attach the user's ID to the session object.
+        // The `user` object here is provided by the adapter from the database.
         session({ session, user }) {
             if (session.user) {
                 (session.user as CustomUser).id = user.id;
@@ -59,10 +63,11 @@ export const authOptions: NextAuthOptions = {
         },
     },
     pages: {
-        signIn: "/",
+        signIn: "/", // The login page is at the root
         signOut: "/",
     },
     secret: process.env.NEXTAUTH_SECRET,
 };
 
+// Helper function to get the session on the server side
 export const getSession = () => getServerSession(authOptions);
