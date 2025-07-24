@@ -298,7 +298,8 @@ export async function updateAdminSettings(data: Partial<Omit<PrismaAdminSettings
  * @param session The user's session object from `getServerSession`.
  * @returns The user object from the database, or null if not found.
  */
-export async function getCurrentUser(session: Session | null) {
+export async function getCurrentUser() {
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return null;
     }
