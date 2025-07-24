@@ -3,14 +3,14 @@
 
 import { revalidatePath } from "next/cache";
 import { addTransaction, createSupportTicket, updateUser as dbUpdateUser, getTransactions as dbGetTransactions, getUserById } from "@/lib/data";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 
 export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: number) {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (!session?.user?.id) {
-    throw new Error("User not found");
+    redirect("/");
   }
 
   const fee = amount * 0.025; // 2.5% fee
@@ -25,7 +25,7 @@ export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: 
 }
 
 export async function getUserTransactions() {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.id) {
         return [];
     }
@@ -34,9 +34,9 @@ export async function getUserTransactions() {
 }
 
 export async function handleCreateSupportTicket(formData: FormData) {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.id) {
-        throw new Error("User not authenticated.");
+        redirect("/");
     }
     const user = await getUserById(session.user.id);
      if (!user) {
@@ -59,9 +59,9 @@ export async function handleCreateSupportTicket(formData: FormData) {
 }
 
 export async function handleProfileUpdate(formData: FormData) {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.id) {
-        throw new Error("User not authenticated.");
+      redirect("/");
     }
     const updatedData = {
         name: formData.get("fullName") as string,
@@ -73,9 +73,9 @@ export async function handleProfileUpdate(formData: FormData) {
 }
 
 export async function handlePasswordChange(values: any) {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
      if (!session?.user?.id) {
-        throw new Error("User not authenticated.");
+        redirect("/");
     }
     // In a real app, you would validate the current password and update it.
     console.log("Password change requested for user:", session.user.id, values);
@@ -84,9 +84,9 @@ export async function handlePasswordChange(values: any) {
 }
 
 export async function handleNotificationSettings(formData: FormData) {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.id) {
-        throw new Error("User not authenticated.");
+        redirect("/");
     }
     const settings = {
         notifyOnBetStatusUpdates: formData.get("bet-status-updates") === "on",

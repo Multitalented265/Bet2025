@@ -3,13 +3,13 @@
 
 import { revalidatePath } from "next/cache";
 import { placeBet, getCandidates, getUserById } from "@/lib/data"
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const handleBetPlacement = async (candidateId: number, amount: number) => {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (!session?.user?.id) {
-    throw new Error("You must be logged in to place a bet.");
+    redirect("/");
   }
   
   const allCandidates = await getCandidates();

@@ -1,13 +1,12 @@
 
 import { BetTicket } from "@/components/bet-ticket";
 import { getBets, getCandidates, getUserById } from "@/lib/data";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth/next";
+import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 
 export default async function BetsPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
 
   if (!session?.user?.id) {
     redirect("/");

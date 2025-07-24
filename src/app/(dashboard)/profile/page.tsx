@@ -2,11 +2,10 @@
 import { ProfileClient } from "@/components/profile-client";
 import { getUserById } from "@/lib/data";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export default async function ProfilePage() {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.id) {
         redirect("/");
     }

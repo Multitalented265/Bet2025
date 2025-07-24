@@ -1,19 +1,10 @@
 
-import type { NextAuthOptions, User as NextAuthUser, Session } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "./db";
 import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-
-// Extend the default NextAuth User and Session types
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-    } & NextAuthUser;
-  }
-}
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
@@ -60,7 +51,7 @@ export const authOptions: NextAuthOptions = {
               session.user.id = user.id;
             }
             return session;
-          },
+        },
     },
     pages: {
         signIn: "/",
@@ -70,15 +61,3 @@ export const authOptions: NextAuthOptions = {
 };
 
 export const getSession = () => getServerSession(authOptions);
-
-export async function getCurrentUser() {
-    const session = await getSession();
-    if (!session?.user?.id) {
-        return null;
-    }
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-    });
-    if (!user) return null;
-    return { ...user, balance: user.balance.toNumber() };
-}

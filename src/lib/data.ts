@@ -9,8 +9,6 @@ import { revalidatePath } from "next/cache";
 import prisma from "./db";
 import type { User as PrismaUser, Candidate as PrismaCandidate, Bet as PrismaBet, Transaction as PrismaTransaction, SupportTicket as PrismaSupportTicket, AdminSettings as PrismaAdminSettings } from "@prisma/client";
 import bcrypt from 'bcryptjs';
-import { getServerSession, type Session } from "next-auth";
-import { authOptions } from "./auth";
 
 // Re-exporting Prisma types to be used in components if needed
 export type { User, Candidate as CandidateData, Bet, Transaction, SupportTicket, AdminSettings } from "@prisma/client";
@@ -287,22 +285,4 @@ export async function updateAdminSettings(data: Partial<Omit<PrismaAdminSettings
         where: { id: 1 },
         data
     });
-}
-
-/**
- * Gets the full user data for the currently logged-in user.
- * IMPORTANT: This function does NOT verify the session. It assumes a valid session
- * object is passed to it. The calling function (e.g., a Server Component or Action)
- * is responsible for getting the session with `getServerSession`.
- *
- * @param session The user's session object from `getServerSession`.
- * @returns The user object from the database, or null if not found.
- */
-export async function getCurrentUser() {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-        return null;
-    }
-    const user = await getUserById(session.user.id);
-    return user;
 }
