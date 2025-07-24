@@ -1,10 +1,19 @@
 
-import type { NextAuthOptions, User as NextAuthUser } from "next-auth";
+import type { NextAuthOptions, User as NextAuthUser, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "./db";
 import bcrypt from 'bcryptjs';
-import { getServerSession, type Session } from "next-auth";
+import { getServerSession } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+
+// Extend the default NextAuth User and Session types
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+    } & NextAuthUser;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
