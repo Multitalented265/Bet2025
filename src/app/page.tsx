@@ -19,14 +19,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Logo from "@/components/logo"
 import { GoogleIcon } from "@/components/icons/google-icon"
-import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal } from "lucide-react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
@@ -38,19 +36,16 @@ export default function LoginPage() {
     const password = formData.get("password") as string
 
     startTransition(async () => {
-        // We now let signIn handle the redirect. It will automatically redirect
-        // to the dashboard on success, or to a page with an error on failure.
         const result = await signIn("credentials", {
-            redirect: false, // We handle the redirect manually based on the result
+            redirect: false,
             email,
             password,
         });
 
         if (result?.error) {
-            // Reload the page with an error query parameter
             router.replace('/?error=CredentialsSignin');
+            router.refresh();
         } else if (result?.ok) {
-            // On success, redirect to the dashboard
             router.push("/dashboard");
         }
     });
