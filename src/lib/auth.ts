@@ -38,8 +38,8 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
                 
-                console.log(`[authorize] Password valid. Returning user object.`);
-                // Return the full user object to be passed to the jwt callback
+                console.log(`[authorize] Password valid. Returning user object:`, { id: user.id, name: user.name, email: user.email });
+                // Return the user object to be passed to the jwt callback
                 return {
                     id: user.id,
                     name: user.name,
@@ -52,29 +52,30 @@ export const authOptions: NextAuthOptions = {
         strategy: 'jwt'
     },
     callbacks: {
-        // The `user` object is the one returned from the `authorize` function
         async jwt({ token, user }) {
             console.log("--- [auth.ts - jwt callback] ---");
-            // On initial sign in, `user` object is available
+            // The `user` object is passed on the first sign-in
             if (user) {
-                console.log("[jwt] User object exists. Adding user details to token.");
+                console.log("[jwt] Initial sign-in. Attaching user data to token.");
                 token.id = user.id;
                 token.name = user.name;
                 token.email = user.email;
+            } else {
+                 console.log("[jwt] Subsequent request. Token already has data.");
             }
             console.log("[jwt] Final token:", token);
             return token;
         },
-        // The `token` object is the one from the `jwt` callback
         async session({ session, token }) {
             console.log("--- [auth.ts - session callback] ---");
-            if (session.user && token.id) {
-                 console.log("[session] session.user and token.id exist. Hydrating session with token data.");
+            // The token is passed from the `jwt` callback
+            if (session.user && token) {
+                 console.log("[session] Hydrating session with token data.");
                 (session.user as NextAuthUser & { id: string }).id = token.id as string;
                 session.user.name = token.name;
                 session.user.email = token.email;
             } else {
-                 console.log("[session] session.user or token.id is missing. Cannot hydrate session.");
+                 console.log("[session] session.user or token is missing. Cannot hydrate session.");
             }
             console.log("[session] Final session:", session);
             return session;

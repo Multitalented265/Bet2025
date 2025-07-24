@@ -23,6 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal } from "lucide-react"
 
 export default function LoginPage() {
+  console.log("--- [Login Page] ---")
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -36,19 +37,26 @@ export default function LoginPage() {
     const password = formData.get("password") as string
 
     startTransition(async () => {
+        console.log(`[Login Page] Attempting to sign in for email: ${email}`);
         const result = await signIn("credentials", {
             redirect: false,
             email,
             password,
         });
 
+        console.log("[Login Page] signIn result:", result);
+
         if (result?.error) {
+            console.error("[Login Page] SignIn failed. Error:", result.error);
             // Re-render the page with an error query parameter
             router.push('/?error=CredentialsSignin');
             router.refresh();
         } else if (result?.ok) {
             // On success, redirect to the dashboard
+             console.log("[Login Page] SignIn successful. Redirecting to /dashboard");
             router.push("/dashboard");
+        } else {
+             console.warn("[Login Page] signIn result was not 'ok' and not an 'error'. Result:", result);
         }
     });
   }
