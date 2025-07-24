@@ -57,7 +57,7 @@ export async function removeCandidate(id: number) {
 export async function getUsers() {
     const users = await prisma.user.findMany({
        orderBy: {
-        createdAt: 'desc'
+        joined: 'desc'
       }
     });
 
@@ -79,7 +79,7 @@ export async function getUsersWithBetDetails() {
         },
       },
        orderBy: {
-        createdAt: 'desc'
+        joined: 'desc'
       }
     });
 
@@ -90,7 +90,7 @@ export async function getUsersWithBetDetails() {
         balance: user.balance.toNumber(),
         totalBets: totalBets,
         bets: user.bets.map(b => ({...b, amount: b.amount.toNumber()})),
-        joined: user.createdAt.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
+        joined: user.joined.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
       }
     });
 }
@@ -111,7 +111,7 @@ export async function getUserByEmail(email: string) {
     return { ...user, balance: user.balance.toNumber() };
 }
 
-export async function addUser(userData: Omit<PrismaUser, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'balance' | 'notifyOnBetStatusUpdates' | 'emailVerified' | 'image' >) {
+export async function addUser(userData: Omit<PrismaUser, 'id' | 'joined' | 'updatedAt' | 'status' | 'balance' | 'notifyOnBetStatusUpdates' | 'emailVerified' | 'image' >) {
     if (!userData.password) {
         throw new Error("Password is required to create a user.");
     }
