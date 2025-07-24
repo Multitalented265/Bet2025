@@ -35,10 +35,6 @@ export default function LoginPage() {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
-    console.log("--- [Login Page] ---")
-    console.log("[Login Page] Attempting to sign in for email:", email);
-
-
     startTransition(async () => {
         const result = await signIn("credentials", {
             redirect: false,
@@ -46,17 +42,13 @@ export default function LoginPage() {
             password,
         });
 
-        console.log("[Login Page] signIn result:", result);
-
         if (result?.error) {
-            console.error("[Login Page] SignIn Error:", result.error);
+            // Re-render the page with an error query parameter
             router.push('/?error=CredentialsSignin');
             router.refresh();
         } else if (result?.ok) {
-            console.log("[Login Page] SignIn successful. Redirecting to /dashboard");
+            // On success, redirect to the dashboard
             router.push("/dashboard");
-        } else {
-            console.log("[Login Page] signIn result was not 'ok' and not an error. State is unknown.");
         }
     });
   }
