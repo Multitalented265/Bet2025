@@ -1,3 +1,4 @@
+
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -43,18 +44,12 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     session: {
-        strategy: "jwt",
+        strategy: "database",
     },
     callbacks: {
-        jwt({ token, user }) {
-            if (user) {
-                token.id = user.id;
-            }
-            return token;
-        },
-        session({ session, token }) {
+        async session({ session, user }) {
             if (session.user) {
-                session.user.id = token.id as string;
+                session.user.id = user.id;
             }
             return session;
         },
