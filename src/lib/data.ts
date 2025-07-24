@@ -9,7 +9,8 @@ import { revalidatePath } from "next/cache";
 import prisma from "./db";
 import type { User as PrismaUser, Candidate as PrismaCandidate, Bet as PrismaBet, Transaction as PrismaTransaction, SupportTicket as PrismaSupportTicket, AdminSettings as PrismaAdminSettings } from "@prisma/client";
 import bcrypt from 'bcryptjs';
-import { getSession } from "next-auth/react";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./auth";
 
 // Re-exporting Prisma types to be used in components if needed
 export type { User, Candidate as CandidateData, Bet, Transaction, SupportTicket, AdminSettings } from "@prisma/client";
@@ -286,4 +287,13 @@ export async function updateAdminSettings(data: Partial<Omit<PrismaAdminSettings
         where: { id: 1 },
         data
     });
+}
+
+export async function getCurrentUser() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return null;
+    }
+    const user = await getUserById(session.user.id);
+    return user;
 }
