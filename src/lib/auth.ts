@@ -34,7 +34,6 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                // Return the full user object from the database
                 return {
                     id: user.id,
                     name: user.name,
@@ -49,7 +48,7 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         session({ session, user }) {
             if (session.user) {
-              session.user.id = user.id;
+                session.user.id = user.id;
             }
             return session;
         },
