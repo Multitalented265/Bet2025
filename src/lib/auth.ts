@@ -4,12 +4,14 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "./db";
 import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth/next"
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
 interface CustomUser extends NextAuthUser {
     id: string;
 }
 
 export const authOptions: NextAuthOptions = {
+    adapter: PrismaAdapter(prisma),
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -45,20 +47,12 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     session: {
-        strategy: "jwt",
+        strategy: "database",
     },
     callbacks: {
-        async jwt({ token, user }) {
-            // On sign-in, add the user ID to the token
-            if (user) {
-                token.id = user.id;
-            }
-            return token;
-        },
-        async session({ session, token }) {
-            // Add the user ID from the token to the session object
+        session({ session, user }) {
             if (session.user) {
-                (session.user as CustomUser).id = token.id as string;
+                (session.user as CustomUser).id = user.id;
             }
             return session;
         },
