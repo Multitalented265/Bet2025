@@ -10,8 +10,6 @@ export default async function BetsPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    // This is a server-side check. If no session, redirect to login.
-    // Middleware should handle this, but this is a robust fallback.
     redirect("/");
   }
 
@@ -19,7 +17,6 @@ export default async function BetsPage() {
 
   if (!user) {
     // This case would be rare, e.g., if the user was deleted from the DB after session was created.
-    // Log them out and redirect.
     redirect("/");
   }
   
