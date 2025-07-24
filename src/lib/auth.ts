@@ -3,7 +3,7 @@ import type { NextAuthOptions, User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "./db";
 import bcrypt from 'bcryptjs';
-import { getServerSession } from "next-auth/next"
+import { getServerSession, type Session } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
 interface CustomUser extends NextAuthUser {
@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
         strategy: "database",
     },
     callbacks: {
-        session({ session, user }) {
+        async session({ session, user }) {
             if (session.user) {
                 (session.user as CustomUser).id = user.id;
             }
