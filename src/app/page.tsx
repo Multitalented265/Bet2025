@@ -46,6 +46,7 @@ export default function LoginPage() {
             // If there's an error, refresh the page with an error query param
             // This will cause the error Alert to be displayed
             router.push('/?error=CredentialsSignin');
+            router.refresh(); // Ensure the page re-renders with the error
         } else if (result?.ok) {
             // If login is successful, redirect to the dashboard
             router.push("/dashboard");
@@ -87,7 +88,7 @@ export default function LoginPage() {
                 disabled={isPending}
               />
             </div>
-            <div className="grid gap-2 mt-4">
+            <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
                 <Link
