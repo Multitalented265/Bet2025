@@ -43,6 +43,7 @@ export async function updateCandidate(id: number, updatedData: Partial<{ name: s
         data: updatedData
     });
     revalidatePath("/admin/candidates");
+    revalidatePath("/dashboard");
     return updatedCandidate;
 }
 
@@ -127,15 +128,17 @@ export async function addUser(userData: Omit<PrismaUser, 'id' | 'createdAt' | 'u
     return newUser;
 }
 
-export async function updateUser(id: string, updatedData: Partial<Omit<PrismaUser, 'id'>>) {
+export async function updateUser(id: string, updatedData: Partial<Omit<PrismaUser, 'id' | 'password'>> & { password?: string }) {
     
+    const dataToUpdate: Partial<PrismaUser> = { ...updatedData };
+
     if (updatedData.password) {
-        updatedData.password = await bcrypt.hash(updatedData.password, 10);
+        dataToUpdate.password = await bcrypt.hash(updatedData.password, 10);
     }
     
     const updatedUser = await prisma.user.update({
         where: { id },
-        data: updatedData
+        data: dataToUpdate
     });
 
     revalidatePath("/admin/users");
@@ -158,11 +161,12 @@ export async function getBets() {
 export async function placeBet(newBet: { userId: string, candidateName: string, amount: number }) {
     // Using a transaction to ensure both Bet creation and Candidate update happen together
     return await prisma.$transaction(async (tx) => {
-        const candidate = await tx.candidate.findUnique({
+        const candidate = await tx.candidate.findFirst({
              where: { name: newBet.candidateName },
-             select: { id: true }
+             select: { id: true, status: true }
         });
         if (!candidate) throw new Error("Candidate not found for betting.");
+        if (candidate.status === 'Withdrawn') throw new Error("This candidate has withdrawn. You cannot place a bet.");
 
         // Check user balance
         const user = await tx.user.findUnique({ where: { id: newBet.userId } });
@@ -198,7 +202,8 @@ export async function placeBet(newBet: { userId: string, candidateName: string, 
                 }
             }
         });
-
+        
+        revalidatePath("/dashboard");
         return bet;
     });
 }
