@@ -56,7 +56,7 @@ export async function removeCandidate(id: number) {
 export async function getUsers() {
     const users = await prisma.user.findMany({
        orderBy: {
-        joined: 'desc'
+        createdAt: 'desc'
       }
     });
 
@@ -78,7 +78,7 @@ export async function getUsersWithBetDetails() {
         },
       },
        orderBy: {
-        joined: 'desc'
+        createdAt: 'desc'
       }
     });
 
@@ -89,7 +89,7 @@ export async function getUsersWithBetDetails() {
         balance: user.balance.toNumber(),
         totalBets: totalBets,
         bets: user.bets.map(b => ({...b, amount: b.amount.toNumber()})),
-        joined: user.joined.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
+        joined: user.createdAt.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
       }
     });
 }
@@ -110,7 +110,7 @@ export async function getUserByEmail(email: string) {
     return { ...user, balance: user.balance.toNumber() };
 }
 
-export async function addUser(userData: Omit<PrismaUser, 'id' | 'joined' | 'status' | 'balance' | 'notifyOnBetStatusUpdates' | 'emailVerified' | 'image' >) {
+export async function addUser(userData: Omit<PrismaUser, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'balance' | 'notifyOnBetStatusUpdates' | 'emailVerified' | 'image' >) {
     if (!userData.password) {
         throw new Error("Password is required to create a user.");
     }
@@ -128,6 +128,11 @@ export async function addUser(userData: Omit<PrismaUser, 'id' | 'joined' | 'stat
 }
 
 export async function updateUser(id: string, updatedData: Partial<Omit<PrismaUser, 'id'>>) {
+    
+    if (updatedData.password) {
+        updatedData.password = await bcrypt.hash(updatedData.password, 10);
+    }
+    
     const updatedUser = await prisma.user.update({
         where: { id },
         data: updatedData
@@ -158,6 +163,23 @@ export async function placeBet(newBet: { userId: string, candidateName: string, 
              select: { id: true }
         });
         if (!candidate) throw new Error("Candidate not found for betting.");
+
+        // Check user balance
+        const user = await tx.user.findUnique({ where: { id: newBet.userId } });
+        if (!user || user.balance.toNumber() < newBet.amount) {
+            throw new Error("Insufficient balance to place this bet.");
+        }
+
+        // Deduct bet amount from user balance
+        await tx.user.update({
+            where: { id: newBet.userId },
+            data: {
+                balance: {
+                    decrement: newBet.amount
+                }
+            }
+        });
+
 
         const bet = await tx.bet.create({
             data: {
