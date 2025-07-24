@@ -67,6 +67,9 @@ export async function getCurrentUser() {
     if (!session?.user?.id) {
         return null;
     }
-    const user = await getUserById(session.user.id);
-    return user;
+    const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+    });
+    if (!user) return null;
+    return { ...user, balance: user.balance.toNumber() };
 }
