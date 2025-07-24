@@ -2,10 +2,11 @@
 import { SettingsClient } from "@/components/settings-client";
 import { getUserById } from "@/lib/data";
 import { redirect } from "next/navigation";
-import { getSession } from "next-auth/react";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export default async function SettingsPage() {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         redirect("/");
     }
