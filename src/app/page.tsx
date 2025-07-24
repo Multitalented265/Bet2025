@@ -37,15 +37,17 @@ export default function LoginPage() {
 
     startTransition(async () => {
         const result = await signIn("credentials", {
-            redirect: false,
+            redirect: false, // Set to false to handle redirect manually
             email,
             password,
         });
 
         if (result?.error) {
-            router.replace('/?error=CredentialsSignin');
-            router.refresh();
+            // If there's an error, refresh the page with an error query param
+            // This will cause the error Alert to be displayed
+            router.push('/?error=CredentialsSignin');
         } else if (result?.ok) {
+            // If login is successful, redirect to the dashboard
             router.push("/dashboard");
         }
     });

@@ -195,8 +195,8 @@ export default function AdminSettingsPage() {
                         <Switch 
                           id="enable-2fa" 
                           name="enable-2fa" 
-                          defaultChecked={settings?.enable2fa}
-                          key={settings?.id}
+                          checked={settings?.enable2fa}
+                          onCheckedChange={(checked) => setSettings(s => s ? {...s, enable2fa: checked} : null)}
                         />
                     </div>
                 </CardContent>
@@ -218,8 +218,8 @@ export default function AdminSettingsPage() {
                         <Switch 
                           id="new-user-notification" 
                           name="newUser" 
-                          defaultChecked={settings?.notifyOnNewUser}
-                          key={`${settings?.id}-newUser`}
+                          checked={settings?.notifyOnNewUser}
+                          onCheckedChange={(checked) => setSettings(s => s ? {...s, notifyOnNewUser: checked} : null)}
                         />
                     </div>
                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
@@ -232,8 +232,8 @@ export default function AdminSettingsPage() {
                         <Switch 
                           id="large-bet-alert" 
                           name="largeBet" 
-                          defaultChecked={settings?.notifyOnLargeBet}
-                          key={`${settings?.id}-largeBet`}
+                          checked={settings?.notifyOnLargeBet}
+                          onCheckedChange={(checked) => setSettings(s => s ? {...s, notifyOnLargeBet: checked} : null)}
                         />
                     </div>
                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
@@ -246,8 +246,8 @@ export default function AdminSettingsPage() {
                         <Switch 
                           id="large-deposit-alert" 
                           name="largeDeposit" 
-                          defaultChecked={settings?.notifyOnLargeDeposit}
-                          key={`${settings?.id}-largeDeposit`}
+                          checked={settings?.notifyOnLargeDeposit}
+                           onCheckedChange={(checked) => setSettings(s => s ? {...s, notifyOnLargeDeposit: checked} : null)}
                         />
                     </div>
                 </CardContent>
