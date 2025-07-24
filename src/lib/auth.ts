@@ -56,14 +56,14 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async session({ session, user }) {
             console.log("--- [auth.ts - session callback] ---");
-            // The user object here is the one from the database.
+            // The user object here is the one from the database (thanks to the database strategy).
             if (session.user && user) {
-                 console.log("[session] Hydrating session with user ID from database.");
+                 console.log("[session] Hydrating session with user ID from database user object.");
                 (session.user as NextAuthUser & { id: string }).id = user.id;
             } else {
-                 console.log("[session] session.user or token is missing. Cannot hydrate session.");
+                 console.log("[session] session.user or user object is missing. Cannot hydrate session.");
             }
-            console.log("[session] Final session:", session);
+            console.log("[session] Final session object:", session);
             return session;
         }
     },
