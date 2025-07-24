@@ -6,10 +6,6 @@ import bcrypt from 'bcryptjs';
 import { getServerSession, type Session } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
-interface CustomUser extends NextAuthUser {
-    id: string;
-}
-
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     providers: [
@@ -50,12 +46,12 @@ export const authOptions: NextAuthOptions = {
         strategy: "database",
     },
     callbacks: {
-        async session({ session, user }) {
+        session({ session, user }) {
             if (session.user) {
-                (session.user as CustomUser).id = user.id;
+              session.user.id = user.id;
             }
             return session;
-        },
+          },
     },
     pages: {
         signIn: "/",
@@ -65,3 +61,12 @@ export const authOptions: NextAuthOptions = {
 };
 
 export const getSession = () => getServerSession(authOptions);
+
+export async function getCurrentUser() {
+    const session = await getSession();
+    if (!session?.user?.id) {
+        return null;
+    }
+    const user = await getUserById(session.user.id);
+    return user;
+}
