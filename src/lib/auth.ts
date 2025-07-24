@@ -47,18 +47,13 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     session: {
-        strategy: "jwt",
+        strategy: "database", // Use database sessions, managed by the Prisma adapter.
     },
     callbacks: {
-        jwt({ token, user }) {
-            if (user) {
-                token.id = user.id;
-            }
-            return token;
-        },
-        session({ session, token }) {
+        // This callback is essential to attach the user's ID to the session object.
+        session({ session, user }) {
             if (session.user) {
-                (session.user as CustomUser).id = token.id as string;
+                (session.user as CustomUser).id = user.id;
             }
             return session;
         },
