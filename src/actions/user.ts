@@ -3,11 +3,12 @@
 
 import { revalidatePath } from "next/cache";
 import { addTransaction, createSupportTicket, updateUser as dbUpdateUser, getTransactions as dbGetTransactions, getUserById } from "@/lib/data";
-import { getSession } from "next-auth/react";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 
 export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: number) {
-  const session = await getSession();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new Error("User not found");
   }
@@ -24,7 +25,7 @@ export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: 
 }
 
 export async function getUserTransactions() {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return [];
     }
@@ -33,7 +34,7 @@ export async function getUserTransactions() {
 }
 
 export async function handleCreateSupportTicket(formData: FormData) {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         throw new Error("User not authenticated.");
     }
@@ -58,7 +59,7 @@ export async function handleCreateSupportTicket(formData: FormData) {
 }
 
 export async function handleProfileUpdate(formData: FormData) {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         throw new Error("User not authenticated.");
     }
@@ -72,7 +73,7 @@ export async function handleProfileUpdate(formData: FormData) {
 }
 
 export async function handlePasswordChange(values: any) {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
      if (!session?.user?.id) {
         throw new Error("User not authenticated.");
     }
@@ -83,7 +84,7 @@ export async function handlePasswordChange(values: any) {
 }
 
 export async function handleNotificationSettings(formData: FormData) {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         throw new Error("User not authenticated.");
     }
