@@ -13,17 +13,17 @@ services:
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: NEXTAUTH_URL
-        value: https://bet2025.onrender.com
+        value: https://bet2025-2.onrender.com
       - key: PAYCHANGU_PUBLIC_KEY
         sync: false
       - key: PAYCHANGU_SECRET_KEY
         sync: false
       - key: PAYCHANGU_WEBHOOK_URL
-        value: https://bet2025.onrender.com/api/paychangu/webhook
+        value: https://bet2025-2.onrender.com/api/paychangu/webhook
       - key: PAYCHANGU_CALLBACK_URL
-        value: https://bet2025.onrender.com/wallet
+        value: https://bet2025-2.onrender.com/wallet
       - key: PAYCHANGU_RETURN_URL
-        value: https://bet2025.onrender.com/wallet
+        value: https://bet2025-2.onrender.com/wallet
       - key: ADMIN_EMAIL
         value: admin@bet2025.com
       - key: ADMIN_PASSWORD
