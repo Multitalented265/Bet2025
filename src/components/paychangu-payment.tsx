@@ -202,15 +202,34 @@ export function PayChanguPayment({
       return
     }
 
+    // Validate PayChangu configuration
+    if (!paychanguConfig || !paychanguConfig.configuration) {
+      toast({
+        title: "Configuration Error",
+        description: "Payment configuration is not loaded. Please refresh the page and try again.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!paychanguConfig.configuration.publicKey) {
+      toast({
+        title: "Configuration Error",
+        description: "Payment public key is not configured. Please contact support.",
+        variant: "destructive"
+      })
+      return
+    }
+
     try {
       // Create payment data with server-provided config
       const paymentData = {
-        public_key: paychanguConfig.publicKey,
+        public_key: paychanguConfig.configuration.publicKey,
         tx_ref: 'TX_' + Math.floor((Math.random() * 1000000000) + 1),
         amount: amount,
         currency: "MWK",
-        callback_url: paychanguConfig.callbackUrl,
-        return_url: paychanguConfig.returnUrl,
+        callback_url: paychanguConfig.configuration.callbackUrl,
+        return_url: paychanguConfig.configuration.returnUrl,
         customer,
         customization: {
           title: `${transactionType} - Bet2025`,
