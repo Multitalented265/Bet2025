@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Activity, Users, Clock, MapPin, Monitor } from "lucide-react";
 import LoginTrackingDashboard from "@/components/admin/LoginTrackingDashboard";
 
+// Force dynamic rendering for admin pages
+export const dynamic = 'force-dynamic';
+
 interface AdminLoginLog {
   id: string;
   adminId: string;

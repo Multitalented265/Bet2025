@@ -2,6 +2,9 @@
 import { AdminBetsClient } from "@/components/admin-bets-client";
 import { getBets, getUsers } from "@/lib/data";
 
+// Force dynamic rendering for admin pages
+export const dynamic = 'force-dynamic';
+
 export default async function AdminBetsPage() {
     const bets = await getBets();
     const users = await getUsers();

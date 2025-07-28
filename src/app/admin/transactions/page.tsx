@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, TrendingDown, User } from "lucide-react";
 
+// Force dynamic rendering for admin pages
+export const dynamic = 'force-dynamic';
+
 export default async function AdminTransactionsPage() {
   const transactions = await getTransactions();
 

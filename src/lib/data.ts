@@ -76,12 +76,18 @@ export type AdminSettings = {
 // Cached data fetching functions
 const getCachedCandidates = unstable_cache(
   async () => {
-    const candidates = await prisma.candidate.findMany({
-      orderBy: {
-        totalBets: 'desc'
-      }
-    });
-    return candidates.map((c: any) => ({...c, totalBets: c.totalBets.toNumber()}));
+    try {
+      const candidates = await prisma.candidate.findMany({
+        orderBy: {
+          totalBets: 'desc'
+        }
+      });
+      return candidates.map((c: any) => ({...c, totalBets: c.totalBets.toNumber()}));
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      // Return empty array during build if database is not available
+      return [];
+    }
   },
   ['candidates'],
   { revalidate: 30 } // Cache for 30 seconds
@@ -89,15 +95,21 @@ const getCachedCandidates = unstable_cache(
 
 const getCachedUsers = unstable_cache(
   async () => {
-    const users = await prisma.user.findMany({
-      orderBy: {
-        joined: 'desc'
-      }
-    });
-    return users.map((user: any) => ({
-      ...user,
-      balance: user.balance.toNumber(),
-    }));
+    try {
+      const users = await prisma.user.findMany({
+        orderBy: {
+          joined: 'desc'
+        }
+      });
+      return users.map((user: any) => ({
+        ...user,
+        balance: user.balance.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      // Return empty array during build if database is not available
+      return [];
+    }
   },
   ['users'],
   { revalidate: 60 } // Cache for 1 minute
@@ -105,20 +117,26 @@ const getCachedUsers = unstable_cache(
 
 const getCachedBets = unstable_cache(
   async () => {
-    const bets = await prisma.bet.findMany({
-      orderBy: {
-        placedDate: 'desc'
-      }
-    });
-    return bets.map((bet: any) => ({
-      id: bet.id,
-      userId: bet.userId,
-      candidateId: bet.candidateId,
-      candidateName: bet.candidateName,
-      amount: bet.amount.toNumber(),
-      placedDate: bet.placedDate,
-      status: bet.status,
-    }));
+    try {
+      const bets = await prisma.bet.findMany({
+        orderBy: {
+          placedDate: 'desc'
+        }
+      });
+      return bets.map((bet: any) => ({
+        id: bet.id,
+        userId: bet.userId,
+        candidateId: bet.candidateId,
+        candidateName: bet.candidateName,
+        amount: bet.amount.toNumber(),
+        placedDate: bet.placedDate,
+        status: bet.status,
+      }));
+    } catch (error) {
+      console.error('Error fetching bets:', error);
+      // Return empty array during build if database is not available
+      return [];
+    }
   },
   ['bets'],
   { revalidate: 30 } // Cache for 30 seconds
@@ -126,16 +144,22 @@ const getCachedBets = unstable_cache(
 
 const getCachedTransactions = unstable_cache(
   async () => {
-    const transactions = await prisma.transaction.findMany({
-      orderBy: {
-        date: 'desc'
-      }
-    });
-    return transactions.map((tx: any) => ({
-      ...tx,
-      amount: tx.amount.toNumber(),
-      fee: tx.fee.toNumber(),
-    }));
+    try {
+      const transactions = await prisma.transaction.findMany({
+        orderBy: {
+          date: 'desc'
+        }
+      });
+      return transactions.map((tx: any) => ({
+        ...tx,
+        amount: tx.amount.toNumber(),
+        fee: tx.fee.toNumber(),
+      }));
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      // Return empty array during build if database is not available
+      return [];
+    }
   },
   ['transactions'],
   { revalidate: 30 } // Cache for 30 seconds
@@ -143,11 +167,16 @@ const getCachedTransactions = unstable_cache(
 
 const getCachedUserById = unstable_cache(
   async (id: string) => {
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
-    if (!user) return null;
-    return { ...user, balance: user.balance.toNumber() };
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id },
+      });
+      if (!user) return null;
+      return { ...user, balance: user.balance.toNumber() };
+    } catch (error) {
+      console.error('Error fetching user by id:', error);
+      return null;
+    }
   },
   ['user-by-id'],
   { revalidate: 60 } // Cache for 1 minute
@@ -180,27 +209,15 @@ const getCachedAdminSettings = unstable_cache(
       return settings;
     } catch (error) {
       console.error('Error in getAdminSettings:', error);
-      const existingSettings = await prisma.adminSettings.findFirst();
-      if (existingSettings) {
-        if (existingSettings.bettingEnabled === undefined) {
-          return await prisma.adminSettings.update({
-            where: { id: existingSettings.id },
-            data: { bettingEnabled: true }
-          });
-        }
-        return existingSettings;
-      }
-      
-      return await prisma.adminSettings.create({
-        data: {
-          id: 1,
-          enable2fa: false,
-          notifyOnNewUser: true,
-          notifyOnLargeBet: false,
-          notifyOnLargeDeposit: true,
-          bettingEnabled: true
-        }
-      });
+      // Return default settings during build if database is not available
+      return {
+        id: 1,
+        enable2fa: false,
+        notifyOnNewUser: true,
+        notifyOnLargeBet: false,
+        notifyOnLargeDeposit: true,
+        bettingEnabled: true
+      };
     }
   },
   ['admin-settings'],
@@ -209,24 +226,30 @@ const getCachedAdminSettings = unstable_cache(
 
 const getCachedCandidatesWithBetCounts = unstable_cache(
   async () => {
-    console.log('🔍 Fetching candidates with bet counts...');
-    const candidates = await prisma.candidate.findMany({
-      include: {
-        bets: true
-      },
-      orderBy: {
-        totalBets: 'desc'
-      }
-    });
-    
-    const result = candidates.map((c: any) => ({
-      ...c, 
-      totalBets: c.totalBets.toNumber(),
-      betCount: c.bets.length // Number of people who bet on this candidate
-    }));
-    
-    console.log('📊 Bet counts:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
-    return result;
+    try {
+      console.log('🔍 Fetching candidates with bet counts...');
+      const candidates = await prisma.candidate.findMany({
+        include: {
+          bets: true
+        },
+        orderBy: {
+          totalBets: 'desc'
+        }
+      });
+      
+      const result = candidates.map((c: any) => ({
+        ...c, 
+        totalBets: c.totalBets.toNumber(),
+        betCount: c.bets.length // Number of people who bet on this candidate
+      }));
+      
+      console.log('📊 Bet counts:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
+      return result;
+    } catch (error) {
+      console.error('Error fetching candidates with bet counts:', error);
+      // Return empty array during build if database is not available
+      return [];
+    }
   },
   ['candidates-with-bet-counts-v3'],
   { revalidate: 5 } // Cache for 5 seconds to ensure fresh data
@@ -275,31 +298,37 @@ export async function getUsers() {
 }
 
 export async function getUsersWithBetDetails() {
-    const users = await prisma.user.findMany({
-      include: {
-        bets: {
-          select: {
-            id: true,
-            candidateName: true,
-            amount: true,
-          }
+    try {
+      const users = await prisma.user.findMany({
+        include: {
+          bets: {
+            select: {
+              id: true,
+              candidateName: true,
+              amount: true,
+            }
+          },
         },
-      },
-       orderBy: {
-        joined: 'desc'
-      }
-    });
+         orderBy: {
+          joined: 'desc'
+        }
+      });
 
-    return users.map((user: any) => {
-      const totalBets = user.bets.reduce((acc: number, bet: any) => acc + bet.amount.toNumber(), 0);
-      return {
-        ...user,
-        balance: user.balance.toNumber(),
-        totalBets: totalBets,
-        bets: user.bets.map((b: any) => ({...b, amount: b.amount.toNumber()})),
-        joined: user.joined.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
-      }
-    });
+      return users.map((user: any) => {
+        const totalBets = user.bets.reduce((acc: number, bet: any) => acc + bet.amount.toNumber(), 0);
+        return {
+          ...user,
+          balance: user.balance.toNumber(),
+          totalBets: totalBets,
+          bets: user.bets.map((b: any) => ({...b, amount: b.amount.toNumber()})),
+          joined: user.joined.toISOString().split('T')[0] // Return date as YYYY-MM-DD string
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching users with bet details:', error);
+      // Return empty array during build if database is not available
+      return [];
+    }
 }
 
 export async function getUserById(id: string) {
@@ -634,85 +663,118 @@ export async function calculatePotentialWinnings(betAmount: number, candidateNam
 }
 
 export async function getBetStatistics() {
-    const [bets, candidates] = await Promise.all([
-        prisma.bet.findMany({
-            include: {
-                user: {
-                    select: { name: true, email: true }
-                }
-            }
-        }),
-        getCandidates()
-    ]);
+    try {
+      const [bets, candidates] = await Promise.all([
+          prisma.bet.findMany({
+              include: {
+                  user: {
+                      select: { name: true, email: true }
+                  }
+              }
+          }),
+          getCandidates()
+      ]);
 
-    const totalPrizePool = candidates.reduce((acc, candidate) => acc + candidate.totalBets, 0);
-    
-    const stats = {
-        totalBets: bets.length,
-        pendingBets: bets.filter(b => b.status === 'Pending').length,
-        wonBets: bets.filter(b => b.status === 'Won').length,
-        lostBets: bets.filter(b => b.status === 'Lost').length,
-        totalPrizePool,
-        totalAmountBet: bets.reduce((acc, bet) => acc + parseFloat(bet.amount.toString()), 0),
-        averageBetAmount: bets.length > 0 ? 
-            bets.reduce((acc, bet) => acc + parseFloat(bet.amount.toString()), 0) / bets.length : 0
-    };
+      const totalPrizePool = candidates.reduce((acc, candidate) => acc + candidate.totalBets, 0);
+      
+      const stats = {
+          totalBets: bets.length,
+          pendingBets: bets.filter(b => b.status === 'Pending').length,
+          wonBets: bets.filter(b => b.status === 'Won').length,
+          lostBets: bets.filter(b => b.status === 'Lost').length,
+          totalPrizePool,
+          totalAmountBet: bets.reduce((acc, bet) => acc + parseFloat(bet.amount.toString()), 0),
+          averageBetAmount: bets.length > 0 ? 
+              bets.reduce((acc, bet) => acc + parseFloat(bet.amount.toString()), 0) / bets.length : 0
+      };
 
-    return stats;
+      return stats;
+    } catch (error) {
+      console.error('Error fetching bet statistics:', error);
+      // Return default stats during build if database is not available
+      return {
+        totalBets: 0,
+        pendingBets: 0,
+        wonBets: 0,
+        lostBets: 0,
+        totalPrizePool: 0,
+        totalAmountBet: 0,
+        averageBetAmount: 0
+      };
+    }
 }
 
 // --- Admin Login Tracking ---
 export async function getAdminLoginLogs(limit: number = 50) {
-  const logs = await prisma.adminLoginLog.findMany({
-    orderBy: {
-      loginTime: 'desc'
-    },
-    take: limit,
-    include: {
-      admin: {
-        select: {
-          name: true,
-          email: true
+  try {
+    const logs = await prisma.adminLoginLog.findMany({
+      orderBy: {
+        loginTime: 'desc'
+      },
+      take: limit,
+      include: {
+        admin: {
+          select: {
+            name: true,
+            email: true
+          }
         }
       }
-    }
-  });
-  
-  return logs.map(log => ({
-    ...log,
-    latitude: log.latitude?.toNumber(),
-    longitude: log.longitude?.toNumber()
-  }));
+    });
+    
+    return logs.map(log => ({
+      ...log,
+      latitude: log.latitude?.toNumber(),
+      longitude: log.longitude?.toNumber()
+    }));
+  } catch (error) {
+    console.error('Error fetching admin login logs:', error);
+    // Return empty array during build if database is not available
+    return [];
+  }
 }
 
 export async function getAdminLoginStats() {
-  const [
-    totalLogins,
-    successfulLogins,
-    failedLogins,
-    uniqueAdmins,
-    uniqueIPs,
-    avgSessionDuration
-  ] = await Promise.all([
-    prisma.adminLoginLog.count(),
-    prisma.adminLoginLog.count({ where: { isSuccessful: true } }),
-    prisma.adminLoginLog.count({ where: { isSuccessful: false } }),
-    prisma.adminLoginLog.groupBy({ by: ['adminId'], _count: true }),
-    prisma.adminLoginLog.groupBy({ by: ['ipAddress'], _count: true }),
-    prisma.adminLoginLog.aggregate({
-      _avg: { sessionDuration: true },
-      where: { sessionDuration: { not: null } }
-    })
-  ]);
-  
-  return {
-    totalLogins,
-    successfulLogins,
-    failedLogins,
-    uniqueAdmins: uniqueAdmins.length,
-    uniqueIPs: uniqueIPs.length,
-    averageSessionDuration: avgSessionDuration._avg.sessionDuration || 0
-  };
+  try {
+    const [
+      totalLogins,
+      successfulLogins,
+      failedLogins,
+      uniqueAdmins,
+      uniqueIPs,
+      avgSessionDuration
+    ] = await Promise.all([
+      prisma.adminLoginLog.count(),
+      prisma.adminLoginLog.count({ where: { isSuccessful: true } }),
+      prisma.adminLoginLog.count({ where: { isSuccessful: false } }),
+      prisma.adminLoginLog.groupBy({ by: ['adminId'], _count: true }),
+      prisma.adminLoginLog.groupBy({ by: ['ipAddress'], _count: true }),
+      prisma.adminLoginLog.aggregate({
+        _avg: { sessionDuration: true },
+        where: { sessionDuration: { not: null } }
+      })
+    ]);
+    
+    return {
+      totalLogins,
+      successfulLogins,
+      failedLogins,
+      uniqueAdmins: uniqueAdmins.length,
+      uniqueIPs: uniqueIPs.length,
+      averageSessionDuration: avgSessionDuration._avg.sessionDuration || 0
+    };
+  } catch (error) {
+    console.error('Error fetching admin login stats:', error);
+    // Return default stats during build if database is not available
+    return {
+      totalLogins: 0,
+      successfulLogins: 0,
+      failedLogins: 0,
+      uniqueAdmins: 0,
+      uniqueIPs: 0,
+      averageSessionDuration: 0
+    };
+  }
 }
 
 // Add cache invalidation function

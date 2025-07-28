@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Vote, CircleDollarSign } from "lucide-react";
 import { getBets, getCandidates, getUsers, getAdminSettings, getBetStatistics } from "@/lib/data";
 
+// Force dynamic rendering for admin pages
+export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
   const [candidates, users, bets, adminSettings, betStats] = await Promise.all([
