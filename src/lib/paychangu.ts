@@ -41,6 +41,27 @@ export function getPayChanguWebhookUrl(): string {
   return process.env.PAYCHANGU_WEBHOOK_URL!;
 }
 
+// ✅ Render-specific URL helpers
+export function getRenderBaseUrl(): string {
+  // For Render deployment, use the environment variable or construct from request
+  return process.env.NEXTAUTH_URL || process.env.RENDER_EXTERNAL_URL || 'https://bet2025-web.onrender.com';
+}
+
+export function getRenderWebhookUrl(): string {
+  const baseUrl = getRenderBaseUrl();
+  return `${baseUrl}/api/paychangu/webhook`;
+}
+
+export function getRenderCallbackUrl(): string {
+  const baseUrl = getRenderBaseUrl();
+  return `${baseUrl}/dashboard/wallet`;
+}
+
+export function getRenderReturnUrl(): string {
+  const baseUrl = getRenderBaseUrl();
+  return `${baseUrl}/dashboard/wallet`;
+}
+
 export interface PayChanguCallbackData {
   tx_ref: string;
   status: 'success' | 'failed' | 'cancelled';
@@ -73,27 +94,31 @@ export function createPayChanguPaymentData(
   console.log('  PAYCHANGU_CALLBACK_URL:', process.env.PAYCHANGU_CALLBACK_URL || '❌ NOT SET')
   console.log('  PAYCHANGU_RETURN_URL:', process.env.PAYCHANGU_RETURN_URL || '❌ NOT SET')
   console.log('  PAYCHANGU_WEBHOOK_URL:', process.env.PAYCHANGU_WEBHOOK_URL || '❌ NOT SET')
+  console.log('  NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '❌ NOT SET')
+  console.log('  RENDER_EXTERNAL_URL:', process.env.RENDER_EXTERNAL_URL || '❌ NOT SET')
   
-  // ✅ Use correct URLs according to PayChangu documentation
-  const webhookUrl = process.env.PAYCHANGU_WEBHOOK_URL!
-  const callbackUrl = process.env.PAYCHANGU_CALLBACK_URL!
-  const returnUrl = process.env.PAYCHANGU_RETURN_URL!
+  // ✅ Use Render-optimized URLs
+  const webhookUrl = process.env.PAYCHANGU_WEBHOOK_URL || getRenderWebhookUrl()
+  const callbackUrl = process.env.PAYCHANGU_CALLBACK_URL || getRenderCallbackUrl()
+  const returnUrl = process.env.PAYCHANGU_RETURN_URL || getRenderReturnUrl()
   
   console.log('🔗 URL Configuration:')
   console.log('  Callback URL (successful payment redirect):', callbackUrl)
   console.log('  Return URL (failed/cancelled payment redirect):', returnUrl)
-  console.log('  Webhook URL (server callback):', process.env.PAYCHANGU_WEBHOOK_URL!)
+  console.log('  Webhook URL (server callback):', webhookUrl)
   
-  // 🚨 ISSUE DETECTION
-  console.log('🚨 Potential Issues:')
-  if (!returnUrl.includes('/wallet')) {
-    console.log('  ❌ Return URL should point to /wallet')
-  }
-  if (returnUrl.includes('localhost') && returnUrl.includes(':9002')) {
-    console.log('  ❌ Return URL has old port 9002, should use localhost without port')
-  }
-  if (returnUrl.includes('localhost') && !process.env.PAYCHANGU_WEBHOOK_URL?.includes('ngrok')) {
-    console.log('  ⚠️  Using localhost for return URL but no ngrok webhook URL - webhooks may not work')
+  // 🚨 RENDER DEPLOYMENT CHECKS
+  console.log('🚨 Render Deployment Checks:')
+  if (process.env.NODE_ENV === 'production') {
+    console.log('  ✅ Production environment detected')
+    if (!process.env.PAYCHANGU_SECRET_KEY?.startsWith('sec-')) {
+      console.log('  ❌ PayChangu secret key not properly configured for production')
+    }
+    if (!webhookUrl.includes('onrender.com') && !webhookUrl.includes('your-domain.com')) {
+      console.log('  ⚠️  Webhook URL may not be accessible from PayChangu servers')
+    }
+  } else {
+    console.log('  📝 Development environment - using test keys')
   }
   
   console.log('📊 Payment Data Being Sent to PayChangu:')
@@ -182,7 +207,8 @@ export function verifyPayChanguSignature(
       signatureLength: signature.length,
       expectedLength: expectedSignature.length,
       isValid,
-      secretKeyPrefix: secretKey.substring(0, 4)
+      secretKeyPrefix: secretKey.substring(0, 4),
+      environment: process.env.NODE_ENV || 'development'
     })
 
     return isValid;
