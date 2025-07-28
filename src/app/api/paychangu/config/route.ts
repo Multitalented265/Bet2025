@@ -18,18 +18,18 @@ export async function GET(request: NextRequest) {
 
   // Validate configuration
   const validation = {
-    webhookUrlValid: config.webhookUrl && config.webhookUrl.includes('/api/paychangu/webhook'),
-    callbackUrlValid: config.callbackUrl && config.callbackUrl.includes('/dashboard/wallet'),
-    returnUrlValid: config.returnUrl && config.returnUrl.includes('/dashboard/wallet'),
-    publicKeyValid: config.publicKey && config.publicKey.startsWith('pub-'),
+    webhookUrlValid: Boolean(config.webhookUrl && config.webhookUrl.includes('/api/paychangu/webhook')),
+    callbackUrlValid: Boolean(config.callbackUrl && config.callbackUrl.includes('/dashboard/wallet')),
+    returnUrlValid: Boolean(config.returnUrl && config.returnUrl.includes('/dashboard/wallet')),
+    publicKeyValid: Boolean(config.publicKey && config.publicKey.startsWith('pub-')),
     secretKeyValid: config.secretKey === 'SET',
-    nextAuthUrlValid: config.nextAuthUrl && config.nextAuthUrl.startsWith('https://'),
+    nextAuthUrlValid: Boolean(config.nextAuthUrl && config.nextAuthUrl.startsWith('https://')),
     allValid: true
   }
 
   // Check if any validation failed
   Object.values(validation).forEach(valid => {
-    if (!valid && valid !== true) {
+    if (valid === false) {
       validation.allValid = false
     }
   })
