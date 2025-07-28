@@ -49,12 +49,18 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  console.log('🧪 ===== TEST WEBHOOK GET CALLED =====')
-  console.log('📅 Timestamp:', new Date().toISOString())
-  console.log('🌐 Request URL:', request.url)
-  
-  return NextResponse.json({ 
-    message: 'Test webhook endpoint is active',
-    timestamp: new Date().toISOString()
+  return NextResponse.json({
+    message: "PayChangu webhook endpoint is accessible",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    webhookUrl: process.env.PAYCHANGU_WEBHOOK_URL,
+    callbackUrl: process.env.PAYCHANGU_CALLBACK_URL,
+    returnUrl: process.env.PAYCHANGU_RETURN_URL,
+    publicKey: process.env.PAYCHANGU_PUBLIC_KEY ? 'SET' : 'MISSING',
+    secretKey: process.env.PAYCHANGU_SECRET_KEY ? 'SET' : 'MISSING',
+    nextAuthUrl: process.env.NEXTAUTH_URL,
+    // Check if keys are properly formatted
+    publicKeyFormat: process.env.PAYCHANGU_PUBLIC_KEY?.startsWith('pub-') ? 'CORRECT' : 'INCORRECT',
+    secretKeyFormat: process.env.PAYCHANGU_SECRET_KEY?.startsWith('sec-') ? 'CORRECT' : 'INCORRECT'
   })
 } 

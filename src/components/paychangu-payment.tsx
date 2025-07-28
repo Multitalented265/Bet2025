@@ -48,16 +48,24 @@ export function PayChanguPayment({
         script.async = true
         script.crossOrigin = 'anonymous'
         script.onload = () => {
-          console.log('PayChangu script loaded successfully')
+          console.log('✅ PayChangu script loaded successfully')
           // Wait a bit for the script to initialize
           setTimeout(() => {
             scriptLoaded.current = true
-            console.log('PayChangu script ready')
-            console.log('PayChanguCheckout function available:', typeof (window as any).PaychanguCheckout)
+            console.log('✅ PayChangu script ready')
+            console.log('🔍 PayChanguCheckout function available:', typeof (window as any).PaychanguCheckout)
+            console.log('🔍 Window object keys:', Object.keys(window).filter(key => key.toLowerCase().includes('paychangu')))
+            
+            // Test if the function is callable
+            if (typeof (window as any).PaychanguCheckout === 'function') {
+              console.log('✅ PayChanguCheckout function is available and callable')
+            } else {
+              console.error('❌ PayChanguCheckout function is not available')
+            }
           }, 1000)
         }
-        script.onerror = () => {
-          console.error('Failed to load PayChangu script')
+        script.onerror = (error) => {
+          console.error('❌ Failed to load PayChangu script:', error)
           onError?.('Failed to load payment system')
         }
         document.head.appendChild(script)
@@ -106,12 +114,37 @@ export function PayChanguPayment({
   }, [onError])
 
   const handlePayment = () => {
-    console.log('Payment button clicked')
-    console.log('Script loaded:', scriptLoaded.current)
-    console.log('PayChangu function available:', typeof (window as any).PaychanguCheckout)
-    console.log('jQuery available:', typeof (window as any).$)
-    console.log('Available window functions:', Object.keys(window).filter(key => key.toLowerCase().includes('paychangu')))
+    console.log('🔍 Payment button clicked')
+    console.log('📋 Script loaded:', scriptLoaded.current)
+    console.log('📋 PayChangu function available:', typeof (window as any).PaychanguCheckout)
+    console.log('📋 jQuery available:', typeof (window as any).$)
+    console.log('📋 Available window functions:', Object.keys(window).filter(key => key.toLowerCase().includes('paychangu')))
     
+    // Test session before proceeding
+    fetch('/api/test-session')
+      .then(response => {
+        console.log('🔍 Session test response status:', response.status)
+        if (!response.ok) {
+          throw new Error(`Session test failed: ${response.status}`)
+        }
+        return response.json()
+      })
+      .then(data => {
+        console.log('✅ Session test successful:', data)
+        proceedWithPayment()
+      })
+      .catch(error => {
+        console.error('❌ Session test failed:', error)
+        toast({
+          title: "Authentication Error",
+          description: "Please log in again to continue with payment.",
+          variant: "destructive"
+        })
+        return
+      })
+  }
+
+  const proceedWithPayment = () => {
     if (!scriptLoaded.current) {
       toast({
         title: "Payment System Loading",
@@ -130,7 +163,7 @@ export function PayChanguPayment({
       return
     }
 
-    // Additional check for jQuery
+    // Check if jQuery is available
     if (typeof (window as any).$ === 'undefined') {
       toast({
         title: "Payment Error",
@@ -148,26 +181,26 @@ export function PayChanguPayment({
         transactionType
       )
 
-      console.log('Payment data:', paymentData)
-      console.log('PaychanguCheckout function:', typeof (window as any).PaychanguCheckout)
+      console.log('🔍 Payment data:', paymentData)
+      console.log('🔍 PaychanguCheckout function:', typeof (window as any).PaychanguCheckout)
       
       // Call PayChangu with proper error handling
       const paychanguFunction = (window as any).PaychanguCheckout
       
       if (typeof paychanguFunction === 'function') {
-        console.log('Calling PayChangu function with data:', JSON.stringify(paymentData, null, 2))
-        console.log('Public key being used:', paymentData.public_key)
-        console.log('Amount being sent:', paymentData.amount)
-        console.log('Currency being sent:', paymentData.currency)
+        console.log('🔍 Calling PayChangu function with data:', JSON.stringify(paymentData, null, 2))
+        console.log('🔍 Public key being used:', paymentData.public_key)
+        console.log('🔍 Amount being sent:', paymentData.amount)
+        console.log('🔍 Currency being sent:', paymentData.currency)
         
         try {
-          console.log('About to call PayChangu function...')
+          console.log('🔍 About to call PayChangu function...')
           
           // Make wrapper visible before calling PayChangu
           const wrapper = document.getElementById('wrapper')
           if (wrapper) {
             wrapper.style.display = 'block'
-            console.log('Made wrapper visible')
+            console.log('✅ Made wrapper visible')
           }
           
           // Add error handling wrapper to capture API errors
@@ -196,10 +229,18 @@ export function PayChanguPayment({
                   url: url
                 })
                 
+                // Handle 403 errors specifically
+                if (response.status === 403) {
+                  console.error('🚨 403 Forbidden Error - Authentication issue detected')
+                  apiError = { status: 403, details: 'Authentication failed - Please log in again' }
+                }
+                
                 // Try to get error details
                 return response.text().then(text => {
                   console.error('❌ API Error Details:', text)
-                  apiError = { status: response.status, details: text }
+                  if (!apiError) {
+                    apiError = { status: response.status, details: text }
+                  }
                   throw new Error(`API Error: ${response.status} - ${text}`)
                 })
               }
@@ -213,6 +254,7 @@ export function PayChanguPayment({
           // Check if the function expects a callback
           if (paychanguFunction.length > 1) {
             // Function expects a callback
+            console.log('🔍 Calling PayChangu with callback')
             paychanguFunction(paymentData, (response: any) => {
               console.log('🔍 PayChangu callback response:', response)
               if (response && response.error) {
@@ -222,10 +264,17 @@ export function PayChanguPayment({
             })
           } else {
             // Function doesn't expect a callback
-            paychanguFunction(paymentData)
+            console.log('🔍 Calling PayChangu without callback')
+            try {
+              paychanguFunction(paymentData)
+              console.log('✅ PayChangu function called successfully')
+            } catch (callError) {
+              console.error('❌ Error calling PayChangu function:', callError)
+              apiError = { status: 500, details: callError instanceof Error ? callError.message : String(callError) }
+            }
           }
           
-          console.log('PayChangu function called successfully')
+          console.log('✅ PayChangu function called successfully')
           
           // Restore original fetch
           setTimeout(() => {
@@ -236,26 +285,37 @@ export function PayChanguPayment({
           setTimeout(() => {
             const wrapper = document.getElementById('wrapper')
             const iframe = wrapper?.querySelector('iframe')
-            console.log('Wrapper div:', wrapper)
-            console.log('Iframe found:', iframe)
+            console.log('🔍 Wrapper div:', wrapper)
+            console.log('🔍 Iframe found:', iframe)
             if (iframe) {
-              console.log('Iframe src:', iframe.src)
-              console.log('Iframe style:', iframe.style.cssText)
+              console.log('✅ Iframe src:', iframe.src)
+              console.log('✅ Iframe style:', iframe.style.cssText)
             } else {
-              console.log('No iframe found, PayChangu might not be working')
-              console.log('This could be due to:')
+              console.log('❌ No iframe found, PayChangu might not be working')
+              console.log('📋 This could be due to:')
               console.log('1. Invalid public key')
               console.log('2. Network issues')
               console.log('3. PayChangu service issues')
               console.log('4. API endpoint issues')
+              console.log('5. Authentication issues (403 error)')
               
               if (apiError) {
                 console.error('❌ PayChangu API Error:', apiError)
-                toast({
-                  title: "Payment Error",
-                  description: `API Error: ${apiError.status} - ${apiError.details}`,
-                  variant: "destructive"
-                })
+                
+                // Handle 403 errors specifically
+                if (apiError.status === 403) {
+                  toast({
+                    title: "Authentication Error",
+                    description: "Please log in again to continue with payment.",
+                    variant: "destructive"
+                  })
+                } else {
+                  toast({
+                    title: "Payment Error",
+                    description: `API Error: ${apiError.status} - ${apiError.details}`,
+                    variant: "destructive"
+                  })
+                }
               } else {
                 // Try alternative approach - direct redirect
                 console.log('🔄 Trying alternative approach - direct redirect')
@@ -277,8 +337,8 @@ export function PayChanguPayment({
             description: "PayChangu popup should open. If it doesn't, please check your browser's popup blocker.",
           })
         } catch (error) {
-          console.error('PayChangu API Error Details:', error)
-          console.error('Error calling PayChangu function:', error)
+          console.error('❌ PayChangu API Error Details:', error)
+          console.error('❌ Error calling PayChangu function:', error)
           
           // Check if it's a currency issue
           const errorMessage = error instanceof Error ? error.message : String(error)
@@ -286,6 +346,12 @@ export function PayChanguPayment({
             toast({
               title: "Currency Not Supported",
               description: "MWK currency may not be supported. Please contact support.",
+              variant: "destructive"
+            })
+          } else if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+            toast({
+              title: "Authentication Error",
+              description: "Please log in again to continue with payment.",
               variant: "destructive"
             })
           } else {
@@ -298,11 +364,11 @@ export function PayChanguPayment({
           throw error
         }
       } else {
-        console.error('PayChangu function not found. Available functions:', Object.keys(window).filter(key => key.toLowerCase().includes('paychangu')))
+        console.error('❌ PayChangu function not found. Available functions:', Object.keys(window).filter(key => key.toLowerCase().includes('paychangu')))
         throw new Error('PayChangu function not available')
       }
     } catch (error) {
-      console.error('Payment initialization error:', error)
+      console.error('❌ Payment initialization error:', error)
       toast({
         title: "Payment Error",
         description: "Failed to initialize payment. Please try again.",
