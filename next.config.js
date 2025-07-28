@@ -75,7 +75,7 @@ const nextConfig = {
   // Enable compression
   compress: true,
   // Optimize bundle size
-  swcMinify: true,
+  // swcMinify is enabled by default in Next.js 15+
 };
 
 module.exports = nextConfig;
