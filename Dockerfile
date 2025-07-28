@@ -1,5 +1,5 @@
 # Use the official Node.js runtime as the base image
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Set the working directory in the container
 WORKDIR /app
@@ -7,14 +7,17 @@ WORKDIR /app
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies without running postinstall script
+RUN npm ci --only=production --ignore-scripts
 
-# Copy the rest of the application code
-COPY . .
+# Copy Prisma schema files
+COPY prisma ./prisma/
 
 # Generate Prisma client
 RUN npx prisma generate
+
+# Copy the rest of the application code
+COPY . .
 
 # Build the Next.js application
 RUN npm run build

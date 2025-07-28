@@ -18,4 +18,6 @@ coverage
 .idea
 *.swp
 *.swo
-*~ 
+*~
+# Keep prisma directory
+!prisma/ 
