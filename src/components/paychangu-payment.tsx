@@ -35,10 +35,28 @@ export function PayChanguPayment({
   const { toast } = useToast()
   const scriptLoaded = useRef(false)
   const [isClient, setIsClient] = useState(false)
+  const [paychanguConfig, setPaychanguConfig] = useState<any>(null)
 
   useEffect(() => {
     // Set client-side flag
     setIsClient(true)
+    
+    // Fetch PayChangu configuration from server
+    fetch('/api/paychangu/config')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Config fetch failed: ${response.status}`)
+        }
+        return response.json()
+      })
+      .then(config => {
+        console.log('✅ PayChangu config loaded:', config)
+        setPaychanguConfig(config)
+      })
+      .catch(error => {
+        console.error('❌ Failed to load PayChangu config:', error)
+        onError?.('Failed to load payment configuration')
+      })
     
     // Ensure jQuery is loaded before PayChangu script
     if (!scriptLoaded.current && typeof window !== 'undefined') {
@@ -118,7 +136,18 @@ export function PayChanguPayment({
     console.log('📋 Script loaded:', scriptLoaded.current)
     console.log('📋 PayChangu function available:', typeof (window as any).PaychanguCheckout)
     console.log('📋 jQuery available:', typeof (window as any).$)
+    console.log('📋 PayChangu config loaded:', !!paychanguConfig)
     console.log('📋 Available window functions:', Object.keys(window).filter(key => key.toLowerCase().includes('paychangu')))
+    
+    // Check if PayChangu config is loaded
+    if (!paychanguConfig) {
+      toast({
+        title: "Configuration Error",
+        description: "Payment configuration is not loaded. Please try again.",
+        variant: "destructive"
+      })
+      return
+    }
     
     // Test session before proceeding
     fetch('/api/test-session')
@@ -174,12 +203,25 @@ export function PayChanguPayment({
     }
 
     try {
-      const paymentData = createPayChanguPaymentData(
-        amount,
+      // Create payment data with server-provided config
+      const paymentData = {
+        public_key: paychanguConfig.publicKey,
+        tx_ref: 'TX_' + Math.floor((Math.random() * 1000000000) + 1),
+        amount: amount,
+        currency: "MWK",
+        callback_url: paychanguConfig.callbackUrl,
+        return_url: paychanguConfig.returnUrl,
         customer,
-        userId,
-        transactionType
-      )
+        customization: {
+          title: `${transactionType} - Bet2025`,
+          description: `${transactionType} funds to your Bet2025 wallet`,
+        },
+        meta: {
+          userId,
+          transactionType,
+          amount,
+        },
+      }
 
       console.log('🔍 Payment data:', paymentData)
       console.log('🔍 PaychanguCheckout function:', typeof (window as any).PaychanguCheckout)

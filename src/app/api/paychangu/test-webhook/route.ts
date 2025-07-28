@@ -61,6 +61,9 @@ export async function GET(request: NextRequest) {
     nextAuthUrl: process.env.NEXTAUTH_URL,
     // Check if keys are properly formatted
     publicKeyFormat: process.env.PAYCHANGU_PUBLIC_KEY?.startsWith('pub-') ? 'CORRECT' : 'INCORRECT',
-    secretKeyFormat: process.env.PAYCHANGU_SECRET_KEY?.startsWith('sec-') ? 'CORRECT' : 'INCORRECT'
+    secretKeyFormat: process.env.PAYCHANGU_SECRET_KEY?.startsWith('sec-') ? 'CORRECT' : 'INCORRECT',
+    // Show actual values for debugging (be careful with secrets in production)
+    publicKeyValue: process.env.PAYCHANGU_PUBLIC_KEY || 'NOT_SET',
+    secretKeyPrefix: process.env.PAYCHANGU_SECRET_KEY?.substring(0, 10) + '...' || 'NOT_SET'
   })
 } 
