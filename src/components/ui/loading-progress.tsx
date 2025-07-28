@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 interface LoadingProgressProps {
   className?: string
-  size?: "sm" | "md" | "lg"
+  size?: "sm" | "md" | "lg" | "xl"
   variant?: "default" | "accent" | "primary"
   showText?: boolean
   text?: string
@@ -34,7 +34,8 @@ const LoadingProgress = React.forwardRef<HTMLDivElement, LoadingProgressProps>(
     const sizeClasses = {
       sm: "h-2",
       md: "h-4",
-      lg: "h-6"
+      lg: "h-6",
+      xl: "h-8"
     }
 
     const variantClasses = {
