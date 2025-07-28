@@ -1,29 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { env } from '@/lib/env'
 
 export async function GET(request: NextRequest) {
-  try {
-    // Verify user session
-    const session = await getSession()
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Return PayChangu configuration (only public key, keep secret key server-side)
-    return NextResponse.json({
-      publicKey: process.env.PAYCHANGU_PUBLIC_KEY,
-      callbackUrl: process.env.PAYCHANGU_CALLBACK_URL,
-      returnUrl: process.env.PAYCHANGU_RETURN_URL,
-      webhookUrl: process.env.PAYCHANGU_WEBHOOK_URL,
-      environment: process.env.NODE_ENV
-    })
-    
-  } catch (error) {
-    console.error('PayChangu config API error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+  console.log('🔍 ===== PAYCHANGU CONFIG VERIFICATION =====')
+  console.log('📅 Timestamp:', new Date().toISOString())
+  
+  // Verify all required environment variables
+  const config = {
+    webhookUrl: env.PAYCHANGU_WEBHOOK_URL,
+    callbackUrl: env.PAYCHANGU_CALLBACK_URL,
+    returnUrl: env.PAYCHANGU_RETURN_URL,
+    publicKey: env.PAYCHANGU_PUBLIC_KEY,
+    secretKey: env.PAYCHANGU_SECRET_KEY ? 'SET' : 'MISSING',
+    nextAuthUrl: env.NEXTAUTH_URL,
+    environment: process.env.NODE_ENV || 'development'
   }
+
+  // Validate configuration
+  const validation = {
+    webhookUrlValid: config.webhookUrl && config.webhookUrl.includes('/api/paychangu/webhook'),
+    callbackUrlValid: config.callbackUrl && config.callbackUrl.includes('/dashboard/wallet'),
+    returnUrlValid: config.returnUrl && config.returnUrl.includes('/dashboard/wallet'),
+    publicKeyValid: config.publicKey && config.publicKey.startsWith('pub-'),
+    secretKeyValid: config.secretKey === 'SET',
+    nextAuthUrlValid: config.nextAuthUrl && config.nextAuthUrl.startsWith('https://'),
+    allValid: true
+  }
+
+  // Check if any validation failed
+  Object.values(validation).forEach(valid => {
+    if (!valid && valid !== true) {
+      validation.allValid = false
+    }
+  })
+
+  console.log('📋 Configuration validation:', validation)
+
+  return NextResponse.json({
+    message: validation.allValid ? 'PayChangu configuration is valid' : 'PayChangu configuration has issues',
+    timestamp: new Date().toISOString(),
+    environment: config.environment,
+    configuration: {
+      webhookUrl: config.webhookUrl,
+      callbackUrl: config.callbackUrl,
+      returnUrl: config.returnUrl,
+      publicKey: config.publicKey ? 'SET' : 'MISSING',
+      secretKey: config.secretKey,
+      nextAuthUrl: config.nextAuthUrl
+    },
+    validation: validation,
+    status: validation.allValid ? 'OK' : 'ERROR'
+  })
 } 
