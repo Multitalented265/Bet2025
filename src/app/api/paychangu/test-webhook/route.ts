@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
       status: webhookStatus,
       accessible: webhookAccessible
     })
-
-    return NextResponse.json({
+    
+    return NextResponse.json({ 
       message: 'PayChangu webhook endpoint is accessible',
       timestamp: new Date().toISOString(),
       environment: config.environment,
@@ -55,11 +55,11 @@ export async function GET(request: NextRequest) {
       webhookAccessible: webhookAccessible,
       webhookStatus: webhookStatus
     })
-
+    
   } catch (error) {
     console.error('❌ Webhook test error:', error)
     
-    return NextResponse.json({
+    return NextResponse.json({ 
       message: 'PayChangu webhook test failed',
       timestamp: new Date().toISOString(),
       environment: config.environment,
@@ -86,9 +86,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('📦 Test webhook payload:', body)
     
-    return NextResponse.json({
+  return NextResponse.json({
       message: 'Test webhook received successfully',
-      timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString(),
       receivedData: body
     })
   } catch (error) {

@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       webhookUrl: config.webhookUrl,
       callbackUrl: config.callbackUrl,
       returnUrl: config.returnUrl,
-      publicKey: config.publicKey ? 'SET' : 'MISSING',
+      publicKey: config.publicKey, // Return the actual public key value
       secretKey: config.secretKey,
       nextAuthUrl: config.nextAuthUrl
     },
