@@ -19,8 +19,10 @@ import {
 import type { CandidateData } from "@/lib/data"
 import { useHasMounted } from "@/hooks/use-has-mounted"
 
+type CandidateWithBetCount = CandidateData & { betCount: number };
+
 type DashboardChartProps = {
-  candidates: CandidateData[];
+  candidates: CandidateWithBetCount[];
   totalPot: number;
 }
 
@@ -61,6 +63,8 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
   const hasMounted = useHasMounted();
   const [isMobile, setIsMobile] = useState(false);
 
+
+
   useEffect(() => {
     if (!hasMounted) return;
 
@@ -86,6 +90,8 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
   
   const sortedData = [...candidates].filter(c => c.status === 'Active').sort((a, b) => b.totalBets - a.totalBets);
 
+
+
   if (!hasMounted) {
     return (
         <Card className="w-full shadow-lg">
@@ -107,15 +113,20 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
       <CardHeader>
         <CardTitle className="font-headline text-3xl">Live Betting Pool</CardTitle>
         <CardDescription>
-          Total Pot: <span className="font-bold text-primary">{totalPot.toLocaleString()} MWK</span>
+          Total Pot: <span className="font-bold text-primary">{totalPot.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[450px] w-full">
+        <ChartContainer config={chartConfig} className="h-[500px] w-full">
           <BarChart 
             data={sortedData} 
             layout="vertical"
-            margin={{ left: 10, right: 30, top: 20, bottom: 20 }}
+            margin={{ 
+              left: 10, 
+              right: isMobile ? 100 : 120, 
+              top: 20, 
+              bottom: 20 
+            }}
             accessibilityLayer
             barCategoryGap={isMobile ? "35%" : "20%"}
             >
@@ -132,15 +143,19 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
             <Tooltip
                 cursor={<CustomCursor />}
                 content={<ChartTooltipContent
-                  formatter={(value, name) => (
-                    <div className="flex items-center">
-                        <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: chartConfig[name as string]?.color }} />
-                        <div className="flex flex-col">
-                            <span className="font-medium">{name}</span>
-                            <span className="text-muted-foreground">{`${Number(value).toLocaleString()} MWK`}</span>
-                        </div>
-                    </div>
-                  )}
+                  formatter={(value, name) => {
+                    const candidate = sortedData.find(c => c.name === name);
+                    return (
+                      <div className="flex items-center">
+                          <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: chartConfig[name as string]?.color }} />
+                          <div className="flex flex-col">
+                              <span className="font-medium">{name}</span>
+                              <span className="text-muted-foreground">{Number(value).toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              <span className="text-muted-foreground text-xs">{candidate?.betCount || 0} bets placed</span>
+                          </div>
+                      </div>
+                    );
+                  }}
                   nameKey="name"
                   hideLabel />}
               />
@@ -148,9 +163,9 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
               <LabelList
                 dataKey="totalBets"
                 position="right"
-                offset={10}
+                offset={isMobile ? 20 : 25}
                 className="fill-foreground font-semibold text-xs sm:text-sm"
-                formatter={(value: number) => `${value.toLocaleString()}`}
+                formatter={(value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               />
               {sortedData.map((entry) => (
                 <Cell key={`cell-${entry.id}`} fill={entry.color} />

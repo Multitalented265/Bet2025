@@ -3,20 +3,27 @@ import { BetTicket } from "@/components/bet-ticket";
 import { getBets, getCandidates, getUserById } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-
+import type { CandidateData } from "@/lib/data";
 
 export default async function BetsPage() {
   const session = await getSession();
-  // The layout already protects this page, but we need the session for data fetching.
+  
   if (!session?.user?.id) {
     return redirect("/");
   }
   
-  const allBets = await getBets();
-  const candidates = await getCandidates();
+  // Fetch data in parallel for better performance
+  const [allBets, candidates, user] = await Promise.all([
+    getBets(),
+    getCandidates(),
+    getUserById(session.user.id)
+  ]);
   
-  const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
-
+  if (!user) {
+    return redirect("/");
+  }
+  
+  const totalPot = candidates.reduce((acc: number, curr: CandidateData) => acc + curr.totalBets, 0);
   const userBets = allBets.filter(bet => bet.userId === session.user!.id);
 
   return (

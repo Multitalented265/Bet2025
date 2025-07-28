@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { handleProfileUpdate, handlePasswordChange, handleNotificationSettings } from "@/actions/user"
 import type { User } from "@/lib/data"
@@ -265,7 +266,7 @@ export function SettingsClient({ user }: { user: User | null }) {
                 <CardContent className="space-y-6">
                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
                         <div className="space-y-0.5">
-                            <FormLabel htmlFor="bet-status-updates" className="text-base">Bet Status Updates</FormLabel>
+                            <Label htmlFor="bet-status-updates" className="text-base">Bet Status Updates</Label>
                             <p className="text-sm text-muted-foreground">
                                 Receive an email when a bet you placed is settled (Won/Lost).
                             </p>

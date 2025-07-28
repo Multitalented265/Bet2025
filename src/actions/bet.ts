@@ -2,7 +2,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache";
-import { placeBet, getCandidates, getUserById } from "@/lib/data"
+import { placeBet, getCandidates, getUserById, getAdminSettings } from "@/lib/data"
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
@@ -10,6 +10,12 @@ export const handleBetPlacement = async (candidateId: number, amount: number) =>
   const session = await getSession();
   if (!session?.user?.id) {
     redirect("/");
+  }
+  
+  // Check if betting is enabled
+  const adminSettings = await getAdminSettings();
+  if (!adminSettings.bettingEnabled) {
+    throw new Error("Betting has been disabled by the administrator.");
   }
   
   const allCandidates = await getCandidates();

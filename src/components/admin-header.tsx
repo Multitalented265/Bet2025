@@ -1,153 +1,135 @@
 
-"use client"
+"use client";
 
-import Link from "next/link"
-import { CircleUser, Menu, Package, Users, DollarSign, LifeBuoy, ShieldQuestion, Settings, ReceiptText } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import Logo from "@/components/logo"
-import { LogOut, LayoutDashboard } from "lucide-react"
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Shield, LogOut, Settings, Users, BarChart3, Wallet, UserCheck, DollarSign, Activity, MessageSquare } from "lucide-react";
 
 export function AdminHeader() {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/admin/logout", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out.",
+        });
+        router.push("/admin/login");
+        router.refresh();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Logout failed",
+          description: "Please try again.",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An error occurred during logout.",
+      });
+    }
+  };
+
   return (
-    <header className="sticky top-0 flex h-16 items-center border-b bg-card px-4 md:px-6 z-30">
-      <nav className="hidden w-full md:flex md:items-center md:gap-6 text-sm font-medium">
-         <Link
-            href="/admin/dashboard"
-            className="flex items-center gap-2 text-lg font-semibold md:text-base"
-          >
-            <Logo />
-            <span className="sr-only">Bet2025 Admin</span>
-          </Link>
-          <Link
-            href="/admin/dashboard"
-            className="text-foreground transition-colors hover:text-foreground"
-          >
-            Dashboard
-          </Link>
-           <Link
-            href="/admin/users"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Users
-          </Link>
-           <Link
-            href="/admin/candidates"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Candidates
-          </Link>
-          <Link
-            href="/admin/bets"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Bets
-          </Link>
-           <Link
-            href="/admin/revenue"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Transactions
-          </Link>
-      </nav>
-      
-      {/* Mobile Header */}
-      <div className="flex w-full items-center gap-4 md:hidden">
-         <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-                <nav className="grid gap-6 text-lg font-medium">
-                    <Link
-                        href="/admin/dashboard"
-                        className="flex items-center gap-2 text-lg font-semibold"
-                    >
-                        <Logo />
-                        <span className="sr-only">Bet2025 Admin</span>
-                    </Link>
-                    <Link href="/admin/dashboard" className="hover:text-foreground">
-                        <LayoutDashboard className="mr-2 h-4 w-4 inline-block" />
-                        Dashboard
-                    </Link>
-                    <Link
-                        href="/admin/users"
-                        className="text-muted-foreground hover:text-foreground"
-                    >
-                        <Users className="mr-2 h-4 w-4 inline-block" />
-                        Users
-                    </Link>
-                    <Link
-                        href="/admin/candidates"
-                        className="text-muted-foreground hover:text-foreground"
-                    >
-                         <Package className="mr-2 h-4 w-4 inline-block" />
-                        Candidates
-                    </Link>
-                     <Link
-                        href="/admin/bets"
-                        className="text-muted-foreground hover:text-foreground"
-                    >
-                         <ReceiptText className="mr-2 h-4 w-4 inline-block" />
-                        Bets
-                    </Link>
-                    <Link
-                        href="/admin/revenue"
-                        className="text-muted-foreground hover:text-foreground"
-                    >
-                         <DollarSign className="mr-2 h-4 w-4 inline-block" />
-                        Transactions
-                    </Link>
-                </nav>
-            </SheetContent>
-          </Sheet>
-
-          <div className="w-full flex-1">
-             <h1 className="text-lg font-semibold">Admin Panel</h1>
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Link href="/admin/dashboard" className="flex items-center space-x-2">
+              <Shield className="h-6 w-6 text-primary" />
+              <span className="text-xl font-bold">Admin Panel</span>
+            </Link>
           </div>
-      </div>
 
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link
+              href="/admin/dashboard"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Dashboard</span>
+            </Link>
+            <Link
+              href="/admin/users"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Users className="h-4 w-4" />
+              <span>Users</span>
+            </Link>
+            <Link
+              href="/admin/candidates"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <UserCheck className="h-4 w-4" />
+              <span>Candidates</span>
+            </Link>
+            <Link
+              href="/admin/bets"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Wallet className="h-4 w-4" />
+              <span>Bets</span>
+            </Link>
+            <Link
+              href="/admin/transactions"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <DollarSign className="h-4 w-4" />
+              <span>Transactions</span>
+            </Link>
+            <Link
+              href="/admin/revenue"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Revenue</span>
+            </Link>
+            <Link
+              href="/admin/support"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>Support</span>
+            </Link>
+            <Link
+              href="/admin/login-tracking"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Activity className="h-4 w-4" />
+              <span>Login Tracking</span>
+            </Link>
+            <Link
+              href="/admin/settings"
+              className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
+            </Link>
+          </nav>
 
-      <div className="flex w-full items-center justify-end gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-               <DropdownMenuItem asChild>
-                 <Link href="/admin/support"><ShieldQuestion className="mr-2 h-4 w-4"/>Support</Link>
-              </DropdownMenuItem>
-               <DropdownMenuItem asChild>
-                <Link href="/admin/settings"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-               <DropdownMenuItem asChild>
-                <Link href="/"><LogOut className="mr-2 h-4 w-4"/>Logout</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="flex items-center space-x-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
+          </div>
+        </div>
       </div>
     </header>
-  )
+  );
 }

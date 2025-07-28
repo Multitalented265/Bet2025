@@ -16,7 +16,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import Logo from "./logo"
 import { TopNav } from "./top-nav"
-import { User, Wallet, LogOut, ShieldCheck } from "lucide-react"
+import { Wallet, LogOut, ShieldCheck } from "lucide-react"
 
 export function Header() {
   return (
@@ -29,6 +29,7 @@ export function Header() {
           </Link>
           <TopNav />
         </div>
+        
         <div className="flex-none">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -40,9 +41,6 @@ export function Header() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile"><User className="mr-2 h-4 w-4"/>Profile</Link>
-              </DropdownMenuItem>
                <DropdownMenuItem asChild>
                 <Link href="/settings"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
               </DropdownMenuItem>

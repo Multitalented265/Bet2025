@@ -22,7 +22,7 @@ export function AdminRevenueClient({ initialTransactions, users }: RevenueClient
       const user = users.find(u => u.id === tx.userId);
       return {
         ...tx,
-        userName: user ? user.name : 'Unknown User'
+        userName: user ? (user.name || 'Unknown User') : 'Unknown User'
       }
     });
   }, [initialTransactions, users]);

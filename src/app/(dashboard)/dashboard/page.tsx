@@ -1,46 +1,77 @@
 
-import { BettingCard } from "@/components/betting-card"
+import { BettingGrid } from "@/components/betting-grid"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Info, PartyPopper } from "lucide-react";
-import { getCandidates } from "@/lib/data";
-
-// Mock data, in a real app this would come from a database or API
-const electionFinalized = false;
-const electionWinner = null;
-
+import { getCandidatesWithBetCounts, getUserById, getAdminSettings } from "@/lib/data";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import type { User, CandidateData } from "@/lib/data";
 
 export default async function Dashboard() {
-  const candidates = await getCandidates();
-  const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
+  const session = await getSession();
+  
+  if (!session?.user?.id) {
+    return redirect("/");
+  }
 
+  // Fetch all data in parallel for better performance
+  const [user, candidates, adminSettings] = await Promise.all([
+    getUserById(session.user.id),
+    getCandidatesWithBetCounts(),
+    getAdminSettings()
+  ]);
+
+  console.log('📊 Dashboard candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
+
+  if (!user) {
+    return redirect("/");
+  }
+  
+  const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2 font-headline">Home</h1>
-        <p className="text-muted-foreground">An overview of the betting landscape.</p>
+        <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back! Here's what's happening with your bets.
+        </p>
       </div>
 
-       {electionFinalized && electionWinner && (
-        <Card className="bg-primary text-primary-foreground">
-          <CardHeader className="flex flex-row items-center gap-4">
-            <PartyPopper className="h-10 w-10" />
-            <div>
-              <CardTitle className="text-2xl font-headline">The Winner has been Declared!</CardTitle>
-              <CardDescription className="text-primary-foreground/80">
-                Congratulations to everyone who bet on {electionWinner}.
-              </CardDescription>
-            </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Balance</CardTitle>
+            <Info className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{user.balance.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground">
+              Available for betting
+            </p>
+          </CardContent>
         </Card>
-      )}
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Pot</CardTitle>
+            <PartyPopper className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalPot.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground">
+              Total bets placed
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       <div>
         <DashboardChart candidates={candidates} totalPot={totalPot} />
       </div>
 
-       <Card>
+      <Card>
         <CardHeader className="flex flex-row items-center gap-4">
           <div className="p-3 bg-muted rounded-full">
             <Info className="h-6 w-6 text-primary" />
@@ -65,37 +96,26 @@ export default async function Dashboard() {
               <strong className="text-foreground">Calculating Payouts:</strong> The total prize pool is distributed among all the people who bet on the winning candidate. Your share of the winnings is proportional to how much you bet.
             </li>
           </ul>
-           <div className="mt-4 pt-4 border-t">
+          <div className="mt-4 pt-4 border-t">
             <h4 className="font-semibold text-foreground mb-2">Example Payout Calculation:</h4>
             <ul className="list-none space-y-1 text-sm">
-                <li>• <span className="font-medium">Total Prize Pool:</span> <strong className="text-primary">10,000,000 MWK</strong></li>
-                <li>• <span className="font-medium">Total Bets on Winning Candidate:</span> <strong className="text-foreground">2,000,000 MWK</strong></li>
-                <li>• <span className="font-medium">Your Bet on that Candidate:</span> <strong className="text-foreground">100,000 MWK</strong></li>
+                <li>• <span className="font-medium">Total Prize Pool:</span> <strong className="text-primary">MWK 10,000,000</strong></li>
+                <li>• <span className="font-medium">Total Bets on Winning Candidate:</span> <strong className="text-foreground">MWK 2,000,000</strong></li>
+                <li>• <span className="font-medium">Your Bet on that Candidate:</span> <strong className="text-foreground">MWK 100,000</strong></li>
             </ul>
             <div className="mt-3 text-sm">
                 <p>First, we calculate your percentage share of the winning candidate's bet pool:</p>
-                <p className="my-2 p-2 bg-muted rounded-md text-center font-mono text-foreground">(100,000 MWK / 2,000,000 MWK) = 5%</p>
+                <p className="my-2 p-2 bg-muted rounded-md text-center font-mono text-foreground">(MWK 100,000 / MWK 2,000,000) = 5%</p>
                 <p>You get 5% of the total prize pool. Your payout would be:</p>
-                <p className="my-2 p-3 bg-primary text-primary-foreground rounded-md text-center font-mono font-bold text-lg">5% of 10,000,000 MWK = 500,000 MWK</p>
+                <p className="my-2 p-3 bg-primary text-primary-foreground rounded-md text-center font-mono font-bold text-lg">5% of MWK 10,000,000 = MWK 500,000</p>
             </div>
-           </div>
+          </div>
         </CardContent>
       </Card>
 
       <div>
-        <div className="flex justify-between items-center mb-4">
-            <h2 className="text-3xl font-bold font-headline">Place Your Bet</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          {candidates.map((candidate) => (
-            <BettingCard
-              key={candidate.id}
-              candidate={candidate}
-              disabled={electionFinalized}
-            />
-          ))}
-        </div>
+        <BettingGrid candidates={candidates} user={user} bettingEnabled={adminSettings.bettingEnabled} />
       </div>
     </div>
-  )
+  );
 }

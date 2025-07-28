@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
-import { handleAdminPasswordChange, handleAdminNotificationSettings, getAdminSettings } from "@/actions/admin"
+import { handleAdminPasswordChange, handleAdminNotificationSettings, fetchAdminSettings } from "@/actions/admin"
 import type { AdminSettings } from "@/lib/data"
 
 const passwordFormSchema = z.object({
@@ -43,11 +43,20 @@ export default function AdminSettingsPage() {
 
     useEffect(() => {
       async function fetchSettings() {
-        const adminSettings = await getAdminSettings();
-        setSettings(adminSettings);
+        try {
+          const adminSettings = await fetchAdminSettings();
+          setSettings(adminSettings);
+        } catch (error) {
+          console.error('Error fetching admin settings:', error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load admin settings.",
+          });
+        }
       }
       fetchSettings();
-    }, []);
+    }, [toast]);
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),

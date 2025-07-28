@@ -15,7 +15,7 @@ guessImports = true
 command = ["npm", "run", "dev"]
 
 [[ports]]
-localPort = 9002
+localPort = 80
 externalPort = 80
 
 [deployment]

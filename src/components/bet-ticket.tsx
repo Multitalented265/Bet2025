@@ -37,13 +37,26 @@ const statusConfig = {
 };
 
 export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProps) {
-  // Parsing date as UTC to avoid timezone issues between server and client
-  const placedDate = new Date(bet.placedDate + 'T00:00:00Z').toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    timeZone: 'UTC',
-  });
+  // Format date from ISO string
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
+  const placedDate = formatDate(bet.placedDate);
 
   const { color, label } = statusConfig[bet.status];
 

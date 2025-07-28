@@ -28,25 +28,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Label } from "./ui/label";
 import { PartyPopper, Ban, Play } from "lucide-react";
 import type { CandidateData } from "@/lib/data";
+import { stopAllBetting, enableBetting, finalizeElectionAction } from "@/actions/admin";
 
 type FinalizeElectionProps = {
   candidates: CandidateData[];
+  bettingEnabled: boolean;
 }
 
 // These would come from a global state or API in a real app.
 // For now, we manage them as simple mock state.
 const electionFinalized = false;
-const bettingStopped = false;
 const electionWinner = null;
 
-
-export function AdminFinalizeElection({ candidates }: FinalizeElectionProps) {
+export function AdminFinalizeElection({ candidates, bettingEnabled }: FinalizeElectionProps) {
   const { toast } = useToast();
   const [selectedWinner, setSelectedWinner] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const handleFinalize = () => {
     if (!selectedWinner) {
@@ -57,22 +58,59 @@ export function AdminFinalizeElection({ candidates }: FinalizeElectionProps) {
       });
       return;
     }
-    // In a real app, this would call a server action
-    console.log(`Finalizing election. Winner: ${selectedWinner}`);
-    toast({
-      title: "Election Finalized!",
-      description: `${selectedWinner} has been declared the winner.`,
+    
+    startTransition(async () => {
+      try {
+        const result = await finalizeElectionAction(selectedWinner);
+        toast({
+          title: "Election Finalized!",
+          description: `${selectedWinner} has been declared the winner. ${result.winningBetsCount} winning bets processed.`,
+        });
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Finalization Failed",
+          description: error.message || "Failed to finalize election. Please try again.",
+        });
+      }
     });
   };
   
   const handleStopBetting = () => {
-    // In a real app, this would call a server action
-    console.log("Stopping all betting.");
-    toast({
-        title: "Betting Stopped",
-        description: "All betting has been disabled for users.",
+    startTransition(async () => {
+      try {
+        await stopAllBetting();
+        toast({
+          title: "Betting Stopped",
+          description: "All betting has been disabled for users.",
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to stop betting. Please try again.",
+        });
+      }
     });
-  }
+  };
+
+  const handleEnableBetting = () => {
+    startTransition(async () => {
+      try {
+        await enableBetting();
+        toast({
+          title: "Betting Enabled",
+          description: "All betting has been enabled for users.",
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to enable betting. Please try again.",
+        });
+      }
+    });
+  };
 
   if (electionFinalized && electionWinner) {
      return (
@@ -101,17 +139,20 @@ export function AdminFinalizeElection({ candidates }: FinalizeElectionProps) {
       <CardContent className="space-y-6">
         <div className="p-4 rounded-lg border bg-muted flex items-center justify-between">
             <div className="flex items-center gap-3">
-                 {bettingStopped ? <Ban className="h-6 w-6 text-destructive"/> : <Play className="h-6 w-6 text-green-500" />}
+                 {!bettingEnabled ? <Ban className="h-6 w-6 text-destructive"/> : <Play className="h-6 w-6 text-green-500" />}
                 <div>
                     <h4 className="font-semibold">Betting Status</h4>
                     <p className="text-sm text-muted-foreground">
-                        {bettingStopped ? "Betting has been STOPPED." : "Betting is currently LIVE."}
+                        {!bettingEnabled ? "Betting has been STOPPED." : "Betting is currently LIVE."}
                     </p>
                 </div>
             </div>
-            <AlertDialog>
+            {bettingEnabled ? (
+              <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="outline" disabled={bettingStopped}>Stop All Betting</Button>
+                    <Button variant="outline" disabled={isPending}>
+                        {isPending ? "Stopping..." : "Stop All Betting"}
+                    </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -128,11 +169,35 @@ export function AdminFinalizeElection({ candidates }: FinalizeElectionProps) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            ) : (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="outline" disabled={isPending}>
+                        {isPending ? "Enabling..." : "Enable Betting"}
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Enable Betting?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will re-enable all betting for users. They will be able to place new bets again.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleEnableBetting}>
+                        Yes, Enable Betting
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            )}
         </div>
 
+        
         <div className="space-y-4">
             <Label htmlFor="winner-select">1. Select Winner to Finalize</Label>
-             <Select onValueChange={setSelectedWinner} disabled={electionFinalized || !bettingStopped}>
+             <Select onValueChange={setSelectedWinner} disabled={electionFinalized || bettingEnabled}>
                 <SelectTrigger id="winner-select" className="w-[280px]">
                     <SelectValue placeholder="Select a candidate" />
                 </SelectTrigger>
@@ -144,7 +209,7 @@ export function AdminFinalizeElection({ candidates }: FinalizeElectionProps) {
             </Select>
              <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" disabled={!selectedWinner || electionFinalized || !bettingStopped}>
+                <Button variant="destructive" disabled={!selectedWinner || electionFinalized || bettingEnabled}>
                     2. Finalize Election & Settle Bets
                 </Button>
               </AlertDialogTrigger>

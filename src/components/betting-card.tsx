@@ -16,29 +16,23 @@ import type { CandidateData } from "@/lib/data"
 import { handleBetPlacement } from "@/actions/bet"
 
 const betSchema = z.object({
-  amount: z.coerce.number().int().min(100, "Minimum bet is 100 MWK.").refine(
-    (val) => val % 100 === 0,
-    { message: "Bet must be in multiples of 100 MWK." }
-  ),
-})
+  amount: z.number().min(100, "Minimum bet is 100 MWK").max(1000000, "Maximum bet is 1,000,000 MWK"),
+});
 
 type BettingCardProps = {
   candidate: CandidateData;
-  disabled?: boolean
+  disabled?: boolean;
+  bettingEnabled?: boolean;
 }
 
-// Mock state, in a real app this would be managed globally or fetched.
-const bettingStopped = false;
-
-
-export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
+export function BettingCard({ candidate, disabled = false, bettingEnabled = true }: BettingCardProps) {
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition();
   
   const form = useForm<z.infer<typeof betSchema>>({
     resolver: zodResolver(betSchema),
     defaultValues: {
-      amount: 100,
+      amount: 100, // Back to 100 as initial amount
     },
   })
 
@@ -48,7 +42,7 @@ export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
         await handleBetPlacement(candidate.id, values.amount);
         toast({
           title: "Bet Placed!",
-          description: `Your ${values.amount.toLocaleString()} MWK bet on ${candidate.name} has been placed.`,
+          description: `Your ${values.amount.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 0 })} bet on ${candidate.name} has been placed.`,
         });
         form.reset();
       } catch (error: any) {
@@ -61,13 +55,13 @@ export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
     });
   }
   
-  const isCardDisabled = disabled || bettingStopped || candidate.status === 'Withdrawn';
+  const isCardDisabled = disabled || !bettingEnabled || candidate.status === 'Withdrawn';
   
   const getButtonText = () => {
     if (isPending) return 'Placing Bet...';
     if (candidate.status === 'Withdrawn') return 'Betting Closed';
     if (disabled) return 'Election Over';
-    if (bettingStopped) return 'Betting Stopped';
+    if (!bettingEnabled) return 'Betting Stopped';
     return 'Place Bet';
   }
 
@@ -80,14 +74,15 @@ export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
               <CardTitle className="text-center font-headline text-2xl">{candidate.name}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center space-y-4">
-              <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-primary shadow-lg">
+              <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-primary shadow-lg flex-shrink-0">
                 <Image
                   src={candidate.image}
                   alt={`Photo of ${candidate.name}`}
                   fill
                   sizes="160px"
-                  className="object-cover"
+                  className="object-cover object-center"
                   data-ai-hint={candidate.hint}
+                  priority
                 />
                  {candidate.status === 'Withdrawn' && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -102,7 +97,14 @@ export function BettingCard({ candidate, disabled = false }: BettingCardProps) {
                   <FormItem className="w-full">
                     <FormLabel className="text-center block">Bet Amount (MWK)</FormLabel>
                     <FormControl>
-                        <Input {...field} type="number" step="100" className="text-center text-lg font-bold w-full" />
+                        <Input 
+                          {...field}
+                          type="number" 
+                          step="1000" 
+                          className="text-center text-lg font-bold w-full"
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value}
+                        />
                       </FormControl>
                     <FormMessage className="text-center" />
                   </FormItem>

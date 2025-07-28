@@ -7,22 +7,43 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 
-export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: number) {
-  const session = await getSession();
-  if (!session?.user?.id) {
-    redirect("/");
-  }
+// These functions are deprecated - using WalletService instead
+// export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: number) {
+//   const session = await getSession();
+//   if (!session?.user?.id) {
+//     redirect("/");
+//   }
 
-  const fee = amount * 0.025; // 2.5% fee
-  await addTransaction({
-    type,
-    amount,
-    fee,
-    userId: session.user.id,
-  });
-  revalidatePath('/wallet');
-  revalidatePath('/admin/revenue');
-}
+//   const fee = amount * 0.025; // 2.5% fee
+//   await addTransaction({
+//     type,
+//     amount,
+//     fee,
+//     userId: session.user.id,
+//     status: 'pending',
+//   });
+//   revalidatePath('/wallet');
+//   revalidatePath('/admin/revenue');
+// }
+
+// export async function handlePayChanguPayment(type: 'Deposit' | 'Withdrawal', amount: number, txRef: string) {
+//   const session = await getSession();
+//   if (!session?.user?.id) {
+//     redirect("/");
+//   }
+
+//   const fee = amount * 0.025; // 2.5% fee
+//   await addTransaction({
+//     type,
+//     amount,
+//     fee,
+//     userId: session.user.id,
+//     txRef,
+//     status: 'completed',
+//   });
+//   revalidatePath('/wallet');
+//   revalidatePath('/admin/revenue');
+// }
 
 export async function getUserTransactions() {
     const session = await getSession();
@@ -68,7 +89,6 @@ export async function handleProfileUpdate(formData: FormData) {
         email: formData.get("email") as string,
     };
     await dbUpdateUser(session.user.id, updatedData);
-    revalidatePath('/profile');
     revalidatePath('/settings');
 }
 

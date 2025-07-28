@@ -23,11 +23,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowDown, ArrowUp, History } from "lucide-react"
-import { handleTransaction } from "@/actions/user"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Badge } from "./ui/badge"
 import type { Transaction, User } from "@/lib/data"
 import { Skeleton } from "./ui/skeleton"
+import { PayChanguPayment } from "./paychangu-payment"
+import { PayChanguCustomer } from "@/lib/paychangu"
 
 type WalletClientProps = {
     user: User | null;
@@ -35,6 +36,7 @@ type WalletClientProps = {
 }
 
 export function WalletClient({ user, initialTransactions }: WalletClientProps) {
+  const [isClient, setIsClient] = useState(false);
   const [balance, setBalance] = useState<number | null>(user?.balance ?? null);
   const [depositAmount, setDepositAmount] = useState("1000");
   const [withdrawAmount, setWithdrawAmount] = useState("1000");
@@ -44,12 +46,59 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const { toast } = useToast();
 
+  // Function to refresh user data
+  const refreshUserData = async () => {
+    try {
+      const response = await fetch('/api/user/wallet-data');
+      if (response.ok) {
+        const data = await response.json();
+        setBalance(data.balance);
+        setTransactions(data.transactions);
+      }
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
+  };
+
+  // Handle URL parameters for payment status
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get('payment');
+      const txRef = urlParams.get('tx_ref');
+
+      if (paymentStatus && txRef) {
+        if (paymentStatus === 'success') {
+          toast({
+            title: "Payment Successful! 🎉",
+            description: `Your deposit has been processed successfully. Transaction: ${txRef}`,
+          });
+          // Refresh user data to show updated balance
+          refreshUserData();
+        } else if (paymentStatus === 'failed') {
+          toast({
+            title: "Payment Failed ❌",
+            description: `Your payment was not successful. Transaction: ${txRef}`,
+            variant: "destructive"
+          });
+        }
+
+        // Clean up URL parameters
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('payment');
+        newUrl.searchParams.delete('tx_ref');
+        window.history.replaceState({}, '', newUrl.toString());
+      }
+    }
+  }, [toast]);
+
    useEffect(() => {
+    setIsClient(true);
     setBalance(user?.balance ?? null);
     setTransactions(initialTransactions);
   }, [user, initialTransactions]);
 
-  const onTransaction = (type: 'Deposit' | 'Withdrawal') => {
+  const onTransaction = async (type: 'Deposit' | 'Withdrawal') => {
     if (balance === null) return;
     
     const amount = type === 'Deposit' ? parseFloat(depositAmount) : parseFloat(withdrawAmount);
@@ -64,17 +113,75 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
         return;
     }
 
-    startTransition(async () => {
-      await handleTransaction(type, amount);
-      // The page will be revalidated by the server action, so we don't need a client-side fetch.
-      // The new props will flow down and update the state in the useEffect hook.
-      toast({
-        title: `${type} Successful`,
-        description: `Your transaction has been processed.`,
+    if (type === 'Deposit') {
+      // For deposits, use the existing PayChangu flow
+      setDepositOpen(false);
+      return;
+    }
+
+    // For withdrawals, use the new API
+    if (type === 'Withdrawal') {
+      startTransition(async () => {
+        try {
+          const response = await fetch('/api/wallet/withdraw', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ amount }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            toast({
+              title: "Withdrawal Failed",
+              description: result.error || "Failed to process withdrawal",
+              variant: "destructive"
+            });
+            return;
+          }
+
+                      // Initiate PayChangu withdrawal
+            if (result.paychangu_data) {
+              // You can implement PayChangu withdrawal here
+              // For now, just show success message
+              toast({
+                title: "Withdrawal Requested",
+                description: `Withdrawal of ${result.amount} MWK has been requested. Fee: ${result.fee} MWK`,
+              });
+              setWithdrawOpen(false);
+              refreshUserData(); // Refresh data after successful withdrawal request
+            }
+        } catch (error) {
+          console.error('Withdrawal error:', error);
+          toast({
+            title: "Withdrawal Error",
+            description: "Failed to process withdrawal request",
+            variant: "destructive"
+          });
+        }
       });
-      if (type === 'Deposit') setDepositOpen(false);
-      if (type === 'Withdrawal') setWithdrawOpen(false);
-    });
+    }
+  }
+
+  // Don't render until client-side to prevent hydration mismatches
+  if (!isClient) {
+    return (
+      <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline text-3xl">My Wallet</CardTitle>
+            <CardDescription>
+              Loading...
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-32 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -127,9 +234,34 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={() => onTransaction('Deposit')} type="submit" disabled={isPending}>
+                  <PayChanguPayment
+                    amount={parseFloat(depositAmount)}
+                    customer={{
+                      email: user?.email || '',
+                      first_name: user?.name?.split(' ')[0] || '',
+                      last_name: user?.name?.split(' ').slice(1).join(' ') || '',
+                    }}
+                    userId={user?.id || ''}
+                    transactionType="Deposit"
+                    onSuccess={() => {
+                      setDepositOpen(false);
+                      refreshUserData(); // Refresh data after successful deposit
+                      toast({
+                        title: "Payment Successful",
+                        description: "Your deposit has been processed successfully.",
+                      });
+                    }}
+                    onError={(error) => {
+                      toast({
+                        title: "Payment Error",
+                        description: error,
+                        variant: "destructive"
+                      });
+                    }}
+                    disabled={isPending || isNaN(parseFloat(depositAmount)) || parseFloat(depositAmount) <= 0}
+                  >
                     {isPending ? 'Processing...' : 'Proceed to Pay Changu'}
-                  </Button>
+                  </PayChanguPayment>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -185,6 +317,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
                 <TableRow>
                   <TableHead>Transaction ID</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead className="text-right">Fee</TableHead>
@@ -200,6 +333,18 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
                           ? <ArrowUp className="mr-1 h-3 w-3 text-green-500" /> 
                           : <ArrowDown className="mr-1 h-3 w-3 text-red-500" />}
                         {tx.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          tx.status === 'completed' ? 'default' : 
+                          tx.status === 'pending' ? 'secondary' : 
+                          'destructive'
+                        }
+                        className="capitalize"
+                      >
+                        {tx.status || 'pending'}
                       </Badge>
                     </TableCell>
                     <TableCell>{new Date(tx.date + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</TableCell>
