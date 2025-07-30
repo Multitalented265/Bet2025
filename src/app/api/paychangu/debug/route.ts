@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     const actualSignature = Object.values(signatureHeaders).find(sig => sig)
     
     // Test signature verification with different data formats
-    const testResults = {
+    const testResults: Record<string, any> = {
       environment: process.env.NODE_ENV || 'development',
       secretKeyExists: !!env.PAYCHANGU_SECRET_KEY,
       secretKeyLength: env.PAYCHANGU_SECRET_KEY?.length || 0,
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
           manualSignatureLength: manualSignature.length,
         }
       } catch (error) {
-        testResults.signatureError = error.message
+        testResults.signatureError = error instanceof Error ? error.message : 'Unknown error'
       }
     }
     
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
     console.error('❌ Debug endpoint error:', error)
     return NextResponse.json({ 
       error: 'Debug endpoint failed',
-      message: error.message 
+      message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 } 
