@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 // DELETE - Unban an IP address
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getAdminSession();
@@ -16,7 +16,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Find the banned IP
     const bannedIP = await prisma.bannedIP.findUnique({
@@ -55,7 +55,7 @@ export async function DELETE(
 // PATCH - Update ban details
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getAdminSession();
@@ -66,7 +66,7 @@ export async function PATCH(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { reason, expiresAt } = await request.json();
 
     // Update the ban

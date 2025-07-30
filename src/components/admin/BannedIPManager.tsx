@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   Shield, 
   Ban, 
-  Unban, 
+  XCircle, 
   AlertTriangle, 
   Clock, 
   User,
@@ -293,7 +293,7 @@ export default function BannedIPManager() {
                                 size="sm"
                                 onClick={() => setSelectedIP(ip)}
                               >
-                                <Unban className="h-4 w-4 mr-1" />
+                                <XCircle className="h-4 w-4 mr-1" />
                                 Unban
                               </Button>
                             </DialogTrigger>
@@ -312,7 +312,7 @@ export default function BannedIPManager() {
                                   variant="destructive"
                                   onClick={() => handleUnbanIP(ip.id)}
                                 >
-                                  <Unban className="h-4 w-4 mr-2" />
+                                  <XCircle className="h-4 w-4 mr-2" />
                                   Unban IP
                                 </Button>
                               </div>
