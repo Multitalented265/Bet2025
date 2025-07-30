@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { createPayChanguPaymentData, PayChanguCustomer } from '@/lib/paychangu'
 import { useToast } from '@/hooks/use-toast'
+import { PaymentMonitor } from './payment-monitor'
 
 // Extend Window interface without global declaration
 interface Window {
@@ -36,6 +37,8 @@ export function PayChanguPayment({
   const scriptLoaded = useRef(false)
   const [isClient, setIsClient] = useState(false)
   const [paychanguConfig, setPaychanguConfig] = useState<any>(null)
+  const [showMonitor, setShowMonitor] = useState(false)
+  const [currentTxRef, setCurrentTxRef] = useState<string>('')
 
   useEffect(() => {
     // Set client-side flag
@@ -221,11 +224,34 @@ export function PayChanguPayment({
       return
     }
 
+    // 🔍 LIVE MODE SPECIFIC CHECKS
+    console.log('🔍 ===== LIVE MODE PAYMENT DEBUG =====')
+    console.log('🌐 Environment:', process.env.NODE_ENV)
+    console.log('🔑 Public Key:', paychanguConfig.configuration.publicKey)
+    console.log('💰 Amount:', amount)
+    console.log('💱 Currency: MWK')
+    console.log('👤 Customer:', customer.email)
+    
+    // Check if using live mode
+    const isLiveMode = paychanguConfig.configuration.publicKey.startsWith('pub-live-')
+    console.log('🎯 Live Mode:', isLiveMode)
+    
+    if (isLiveMode) {
+      console.log('⚠️  LIVE MODE DETECTED - Additional checks required')
+      console.log('📱 Mobile money payments in live mode may take longer')
+      console.log('🔐 PIN prompts may be delayed due to network conditions')
+      console.log('⏰ Transaction processing can take 30-60 seconds')
+    }
+
     try {
+      // Generate transaction reference
+      const txRef = 'TX_' + Math.floor((Math.random() * 1000000000) + 1)
+      setCurrentTxRef(txRef)
+      
       // Create payment data with server-provided config
       const paymentData = {
         public_key: paychanguConfig.configuration.publicKey,
-        tx_ref: 'TX_' + Math.floor((Math.random() * 1000000000) + 1),
+        tx_ref: txRef,
         amount: amount,
         currency: "MWK",
         callback_url: paychanguConfig.configuration.callbackUrl,
@@ -241,6 +267,11 @@ export function PayChanguPayment({
           transactionType,
           amount,
         },
+        // 🔧 LIVE MODE OPTIMIZATIONS
+        country: "MW", // Malawi country code
+        payment_method: "mobile_money", // Specify payment method
+        // Add timeout for live mode
+        timeout: isLiveMode ? 120000 : 60000, // 2 minutes for live mode
       }
 
       console.log('🔍 Payment data:', paymentData)
@@ -263,6 +294,12 @@ export function PayChanguPayment({
           if (wrapper) {
             wrapper.style.display = 'block'
             console.log('✅ Made wrapper visible')
+          }
+          
+          // 🔧 LIVE MODE: Show payment monitor for live mode
+          if (isLiveMode) {
+            console.log('📱 Live mode detected - showing payment monitor')
+            setShowMonitor(true)
           }
           
           // Add error handling wrapper to capture API errors
@@ -319,6 +356,7 @@ export function PayChanguPayment({
             console.log('🔍 Calling PayChangu with callback')
             paychanguFunction(paymentData, (response: any) => {
               console.log('🔍 PayChangu callback response:', response)
+              
               if (response && response.error) {
                 console.error('❌ PayChangu callback error:', response.error)
                 apiError = { status: 400, details: response.error }
@@ -337,6 +375,19 @@ export function PayChanguPayment({
           }
           
           console.log('✅ PayChangu function called successfully')
+          
+          // 🔧 LIVE MODE: Show specific message for live mode
+          if (isLiveMode) {
+            toast({
+              title: "Payment Initiated",
+              description: "Please check your phone for SMS prompts. Mobile money payments may take 30-60 seconds to process.",
+            })
+          } else {
+            toast({
+              title: "Payment Initiated",
+              description: "PayChangu popup should open. If it doesn't, please check your browser's popup blocker.",
+            })
+          }
           
           // Restore original fetch
           setTimeout(() => {
@@ -379,25 +430,35 @@ export function PayChanguPayment({
                   })
                 }
               } else {
-                // Try alternative approach - direct redirect
-                console.log('🔄 Trying alternative approach - direct redirect')
-                const redirectUrl = `https://in.paychangu.com/pay?public_key=${paymentData.public_key}&tx_ref=${paymentData.tx_ref}&amount=${paymentData.amount}&currency=${paymentData.currency}&callback_url=${encodeURIComponent(paymentData.callback_url)}&return_url=${encodeURIComponent(paymentData.return_url)}&customer_email=${encodeURIComponent(paymentData.customer.email)}&customer_first_name=${encodeURIComponent(paymentData.customer.first_name)}&customer_last_name=${encodeURIComponent(paymentData.customer.last_name)}`
-                
-                console.log('🔗 Redirect URL:', redirectUrl)
-                window.open(redirectUrl, '_blank', 'width=600,height=600')
-                
-                toast({
-                  title: "Payment Redirect",
-                  description: "Redirecting to PayChangu payment page...",
-                })
+                // 🔧 LIVE MODE: Try alternative approach for live mode
+                if (isLiveMode) {
+                  console.log('🔄 Live mode: Trying alternative approach - direct redirect')
+                  const redirectUrl = `https://in.paychangu.com/pay?public_key=${paymentData.public_key}&tx_ref=${paymentData.tx_ref}&amount=${paymentData.amount}&currency=${paymentData.currency}&callback_url=${encodeURIComponent(paymentData.callback_url)}&return_url=${encodeURIComponent(paymentData.return_url)}&customer_email=${encodeURIComponent(paymentData.customer.email)}&customer_first_name=${encodeURIComponent(paymentData.customer.first_name)}&customer_last_name=${encodeURIComponent(paymentData.customer.last_name)}&country=MW&payment_method=mobile_money`
+                  
+                  console.log('🔗 Live Mode Redirect URL:', redirectUrl)
+                  window.open(redirectUrl, '_blank', 'width=600,height=600')
+                  
+                  toast({
+                    title: "Payment Redirect",
+                    description: "Redirecting to PayChangu payment page. Please check your phone for SMS prompts.",
+                  })
+                } else {
+                  // Try alternative approach - direct redirect
+                  console.log('🔄 Trying alternative approach - direct redirect')
+                  const redirectUrl = `https://in.paychangu.com/pay?public_key=${paymentData.public_key}&tx_ref=${paymentData.tx_ref}&amount=${paymentData.amount}&currency=${paymentData.currency}&callback_url=${encodeURIComponent(paymentData.callback_url)}&return_url=${encodeURIComponent(paymentData.return_url)}&customer_email=${encodeURIComponent(paymentData.customer.email)}&customer_first_name=${encodeURIComponent(paymentData.customer.first_name)}&customer_last_name=${encodeURIComponent(paymentData.customer.last_name)}`
+                  
+                  console.log('🔗 Redirect URL:', redirectUrl)
+                  window.open(redirectUrl, '_blank', 'width=600,height=600')
+                  
+                  toast({
+                    title: "Payment Redirect",
+                    description: "Redirecting to PayChangu payment page...",
+                  })
+                }
               }
             }
-          }, 3000)
+          }, isLiveMode ? 5000 : 3000) // Longer timeout for live mode
           
-          toast({
-            title: "Payment Initiated",
-            description: "PayChangu popup should open. If it doesn't, please check your browser's popup blocker.",
-          })
         } catch (error) {
           console.error('❌ PayChangu API Error Details:', error)
           console.error('❌ Error calling PayChangu function:', error)
@@ -438,6 +499,24 @@ export function PayChanguPayment({
       })
       onError?.('Payment initialization failed')
     }
+  }
+
+  const handlePaymentComplete = (status: 'success' | 'failed') => {
+    setShowMonitor(false)
+    if (status === 'success') {
+      onSuccess?.()
+    } else {
+      onError?.('Payment failed')
+    }
+  }
+
+  const handlePaymentTimeout = () => {
+    setShowMonitor(false)
+    toast({
+      title: "Payment Timeout",
+      description: "Payment is taking longer than expected. Please check your phone for SMS prompts or try again.",
+      variant: "destructive"
+    })
   }
 
   // Don't render anything until client-side
@@ -490,6 +569,17 @@ export function PayChanguPayment({
           display: 'none'
         }}
       ></div>
+      
+      {/* Payment Monitor for Live Mode */}
+      {showMonitor && currentTxRef && (
+        <PaymentMonitor
+          txRef={currentTxRef}
+          amount={amount}
+          onComplete={handlePaymentComplete}
+          onTimeout={handlePaymentTimeout}
+        />
+      )}
+      
       <Button
         onClick={handlePayment}
         disabled={disabled || !scriptLoaded.current}
