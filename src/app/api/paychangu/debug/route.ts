@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { WalletService } from '@/lib/wallet-service'
+import { verifyPayChanguSignature } from '@/lib/paychangu'
+import { env } from '@/lib/env'
+import crypto from 'crypto'
 
 export async function GET(request: NextRequest) {
   console.log('🔍 ===== DEBUG ENDPOINT =====')
@@ -67,73 +70,84 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🔍 ===== DEBUG TEST TRANSACTION =====')
+  console.log('🔍 ===== WEBHOOK DEBUG DIAGNOSTIC =====')
   
   try {
     const body = await request.json()
-    const { userId, amount, txRef } = body
     
-    if (!userId || !amount || !txRef) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: userId, amount, txRef' 
-      }, { status: 400 })
+    // Check all possible signature headers
+    const allHeaders = Object.fromEntries(request.headers.entries())
+    const signatureHeaders = {
+      'Signature': request.headers.get('Signature'),
+      'X-PayChangu-Signature': request.headers.get('X-PayChangu-Signature'),
+      'X-Signature': request.headers.get('X-Signature'),
+      'X-Webhook-Signature': request.headers.get('X-Webhook-Signature'),
+      'X-Hub-Signature': request.headers.get('X-Hub-Signature'),
+      'X-Paychangu-Signature': request.headers.get('X-Paychangu-Signature'),
     }
     
-    console.log('🧪 Testing transaction processing:', { userId, amount, txRef })
+    // Find the actual signature
+    const actualSignature = Object.values(signatureHeaders).find(sig => sig)
     
-    // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    })
-    
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 400 })
+    // Test signature verification with different data formats
+    const testResults = {
+      environment: process.env.NODE_ENV || 'development',
+      secretKeyExists: !!env.PAYCHANGU_SECRET_KEY,
+      secretKeyLength: env.PAYCHANGU_SECRET_KEY?.length || 0,
+      secretKeyPrefix: env.PAYCHANGU_SECRET_KEY?.substring(0, 4) || 'N/A',
+      allHeaders,
+      signatureHeaders,
+      actualSignature: actualSignature ? `${actualSignature.substring(0, 10)}...` : 'MISSING',
+      bodyKeys: Object.keys(body),
+      bodyStringified: JSON.stringify(body),
+      bodyStringifiedLength: JSON.stringify(body).length,
     }
     
-    console.log('✅ User found:', { id: user.id, name: user.name, email: user.email, balance: user.balance.toString() })
-    
-    // Check if transaction already exists
-    const existingTransaction = await WalletService.getTransactionByTxRef(txRef)
-    if (existingTransaction) {
-      return NextResponse.json({ 
-        message: 'Transaction already exists',
-        transaction: existingTransaction
-      })
+    // Test signature verification if we have a signature
+    if (actualSignature && env.PAYCHANGU_SECRET_KEY) {
+      try {
+        // Test 1: Standard JSON.stringify
+        const test1 = verifyPayChanguSignature(actualSignature, JSON.stringify(body), env.PAYCHANGU_SECRET_KEY)
+        
+        // Test 2: Compact JSON (no spaces)
+        const test2 = verifyPayChanguSignature(actualSignature, JSON.stringify(body, null, 0), env.PAYCHANGU_SECRET_KEY)
+        
+        // Test 3: Raw body as string
+        const test3 = verifyPayChanguSignature(actualSignature, body.toString(), env.PAYCHANGU_SECRET_KEY)
+        
+        // Test 4: Manual HMAC creation for comparison
+        const manualSignature = crypto
+          .createHmac('sha256', env.PAYCHANGU_SECRET_KEY)
+          .update(JSON.stringify(body))
+          .digest('hex')
+        
+        testResults.signatureTests = {
+          test1_standardJSON: test1,
+          test2_compactJSON: test2,
+          test3_rawBody: test3,
+          manualSignature: manualSignature,
+          signatureMatchesManual: actualSignature === manualSignature,
+          signatureLength: actualSignature.length,
+          manualSignatureLength: manualSignature.length,
+        }
+      } catch (error) {
+        testResults.signatureError = error.message
+      }
     }
     
-    // Process test transaction
-    const result = await WalletService.processDeposit(userId, amount, txRef, { test: true })
-    
-    if (!result.success) {
-      return NextResponse.json({ error: result.message }, { status: 400 })
-    }
-    
-    // Get updated user data
-    const updatedUser = await prisma.user.findUnique({
-      where: { id: userId }
-    })
-    
-    console.log('✅ Test transaction successful:', result)
-    console.log('💰 Updated balance:', updatedUser?.balance.toString())
+    console.log('🔍 Debug results:', testResults)
     
     return NextResponse.json({
-      message: 'Test transaction successful',
-      result,
-      userBefore: {
-        id: user.id,
-        balance: user.balance.toString()
-      },
-      userAfter: {
-        id: updatedUser?.id,
-        balance: updatedUser?.balance.toString()
-      }
+      message: 'Webhook debug diagnostic completed',
+      timestamp: new Date().toISOString(),
+      results: testResults
     })
     
   } catch (error) {
-    console.error('❌ Debug test error:', error)
+    console.error('❌ Debug endpoint error:', error)
     return NextResponse.json({ 
-      error: 'Test failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Debug endpoint failed',
+      message: error.message 
     }, { status: 500 })
   }
 } 

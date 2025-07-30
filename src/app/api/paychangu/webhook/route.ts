@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
   console.log('🔗 Host:', request.headers.get('host'))
   console.log('🔗 X-Forwarded-For:', request.headers.get('x-forwarded-for'))
   console.log('🔗 X-Forwarded-Host:', request.headers.get('x-forwarded-host'))
+  console.log('🔗 X-Real-IP:', request.headers.get('x-real-ip'))
+  console.log('🔗 CF-Connecting-IP:', request.headers.get('cf-connecting-ip'))
+  console.log('🔗 X-Forwarded-Proto:', request.headers.get('x-forwarded-proto'))
   
   // Log the raw request details
   console.log('🔍 Request Details:')
@@ -27,6 +30,15 @@ export async function POST(request: NextRequest) {
   console.log('  - Headers Count:', Array.from(request.headers.entries()).length)
   console.log('  - Has Content-Length:', !!request.headers.get('content-length'))
   console.log('  - Content-Length Value:', request.headers.get('content-length'))
+  console.log('  - Request NextUrl:', request.nextUrl?.toString())
+  
+  // Log environment variables for debugging
+  console.log('🔧 Environment Variables:')
+  console.log('  - NODE_ENV:', process.env.NODE_ENV)
+  console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL)
+  console.log('  - PAYCHANGU_WEBHOOK_URL:', process.env.PAYCHANGU_WEBHOOK_URL)
+  console.log('  - PAYCHANGU_SECRET_KEY:', process.env.PAYCHANGU_SECRET_KEY ? 'SET' : 'NOT SET')
+  console.log('  - RENDER_EXTERNAL_URL:', process.env.RENDER_EXTERNAL_URL)
   
   try {
     // Try to read the body first
@@ -54,6 +66,20 @@ export async function POST(request: NextRequest) {
     console.log('🔗 Request Headers:', Object.fromEntries(request.headers.entries()))
     
     const signature = request.headers.get('Signature')
+    // 🔍 Check for alternative signature header names that PayChangu might use
+    const alternativeSignatures = {
+      'Signature': signature,
+      'X-PayChangu-Signature': request.headers.get('X-PayChangu-Signature'),
+      'X-Signature': request.headers.get('X-Signature'),
+      'X-Webhook-Signature': request.headers.get('X-Webhook-Signature'),
+      'X-Hub-Signature': request.headers.get('X-Hub-Signature'),
+      'X-Paychangu-Signature': request.headers.get('X-Paychangu-Signature'),
+    }
+    
+    console.log('🔍 All possible signature headers:', alternativeSignatures)
+    
+    // Use the first available signature
+    const actualSignature = Object.values(alternativeSignatures).find(sig => sig) || signature
 
     console.log('🔍 PayChangu webhook received:', {
       tx_ref: body.tx_ref,
@@ -62,7 +88,7 @@ export async function POST(request: NextRequest) {
       amount: body.amount,
       currency: body.currency,
       event_type: body.event_type,
-      signature: signature ? 'present' : 'missing',
+      signature: actualSignature ? 'present' : 'missing',
       has_meta: !!body.meta,
       meta_userId: body.meta?.userId,
       meta_transactionType: body.meta?.transactionType,
@@ -71,11 +97,11 @@ export async function POST(request: NextRequest) {
 
     // ✅ Enhanced security: Always verify signature in production
     let signatureValid = false
-    if (signature) {
+    if (actualSignature) {
       try {
-        signatureValid = verifyPayChanguSignature(signature, JSON.stringify(body), env.PAYCHANGU_SECRET_KEY)
+        signatureValid = verifyPayChanguSignature(actualSignature, JSON.stringify(body), env.PAYCHANGU_SECRET_KEY)
         console.log('🔐 Webhook signature verification:', { 
-          signature: signature.substring(0, 10) + '...', 
+          signature: actualSignature.substring(0, 10) + '...', 
           isValid: signatureValid,
           secretKeyLength: env.PAYCHANGU_SECRET_KEY?.length || 0
         })

@@ -89,9 +89,9 @@ export async function GET(request: NextRequest) {
     
     console.log('📊 Database status:', { userCount, transactionCount })
     
-    return NextResponse.json({
+  return NextResponse.json({
       message: 'Test webhook endpoint is active',
-      timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString(),
       database: {
         users: userCount,
         transactions: transactionCount
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('❌ Test webhook status error:', error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Database connection failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
