@@ -92,6 +92,8 @@ export async function POST(request: NextRequest) {
       has_meta: !!body.meta,
       meta_userId: body.meta?.userId,
       meta_transactionType: body.meta?.transactionType,
+      customer_email: body.customer?.email,
+      customer_name: body.customer ? `${body.customer.first_name} ${body.customer.last_name}` : 'N/A',
       fullBody: JSON.stringify(body, null, 2)
     })
 

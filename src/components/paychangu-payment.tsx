@@ -230,6 +230,7 @@ export function PayChanguPayment({
         currency: "MWK",
         callback_url: paychanguConfig.configuration.callbackUrl,
         return_url: paychanguConfig.configuration.returnUrl,
+        webhook_url: paychanguConfig.configuration.webhookUrl,
         customer,
         customization: {
           title: `${transactionType} - Bet2025`,

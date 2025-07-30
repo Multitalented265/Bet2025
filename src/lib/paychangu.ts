@@ -14,6 +14,7 @@ export interface PayChanguPaymentData {
   currency: string;
   callback_url: string; // ✅ For successful payments - redirect user to wallet page
   return_url: string; // ✅ For failed/cancelled payments - redirect user to wallet page
+  webhook_url: string; // ✅ For server-to-server webhook notifications
   customer: PayChanguCustomer;
   customization: {
     title: string;
@@ -136,6 +137,7 @@ export function createPayChanguPaymentData(
     currency: "MWK",
     callback_url: callbackUrl, // ✅ For successful payments - redirect user to wallet page
     return_url: returnUrl, // ✅ For failed/cancelled payments - redirect user to wallet page
+    webhook_url: webhookUrl, // ✅ For server-to-server webhook notifications
     customer,
     customization: {
       title: `${transactionType} - Bet2025`,
@@ -155,8 +157,8 @@ export function createPayChanguPaymentData(
   console.log('🔍 PayChangu Payment Data URLs:')
   console.log('  callback_url (successful payment redirect):', paymentData.callback_url)
   console.log('  return_url (failed/cancelled payment redirect):', paymentData.return_url)
-  console.log('  Both URLs point to wallet page for user redirects')
-  console.log('  Webhook URL is separate for server-to-server communication')
+  console.log('  webhook_url (server-to-server notifications):', paymentData.webhook_url)
+  console.log('  All URLs are now included in payment request')
 
   return paymentData;
 }
