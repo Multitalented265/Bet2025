@@ -27,6 +27,8 @@ export interface PayChanguPaymentData {
   };
   payment_method?: string;
   country?: string;
+  webhook_secret?: string; // Webhook secret for verification
+  webhook_events?: string[]; // Specific webhook events to listen for
 }
 
 // Export URL getters for use in other parts of the application
@@ -45,7 +47,7 @@ export function getPayChanguWebhookUrl(): string {
 // ✅ Render-specific URL helpers
 export function getRenderBaseUrl(): string {
   // For Render deployment, use the environment variable or construct from request
-  return process.env.NEXTAUTH_URL || process.env.RENDER_EXTERNAL_URL || 'https://bet2025-web.onrender.com';
+  return process.env.NEXTAUTH_URL || process.env.RENDER_EXTERNAL_URL || 'https://bet2025-2.onrender.com';
 }
 
 export function getRenderWebhookUrl(): string {
@@ -148,9 +150,12 @@ export function createPayChanguPaymentData(
       transactionType,
       amount,
     },
-    // Add additional fields that might be required
-    // payment_method: "mobile_money",
-    // country: "MW"
+    // Add additional fields that might be required for webhook delivery
+    country: "MW", // Malawi country code
+    payment_method: "mobile_money", // Specify payment method
+    // Add webhook-specific parameters
+    webhook_secret: process.env.PAYCHANGU_SECRET_KEY, // Include webhook secret
+    webhook_events: ["payment.success", "payment.failed"], // Specify webhook events
   };
 
   // 🔍 DEBUG: Log the exact URLs being sent to PayChangu
