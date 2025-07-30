@@ -67,6 +67,14 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
       const paymentStatus = urlParams.get('payment');
       const txRef = urlParams.get('tx_ref');
 
+      // Add debug logging to identify where paymentDetails null is coming from
+      console.log('🔍 URL Parameters Check:', {
+        paymentStatus,
+        txRef,
+        hasPaymentStatus: !!paymentStatus,
+        hasTxRef: !!txRef
+      });
+
       if (paymentStatus && txRef) {
         if (paymentStatus === 'success') {
           toast({
@@ -88,6 +96,9 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
         newUrl.searchParams.delete('payment');
         newUrl.searchParams.delete('tx_ref');
         window.history.replaceState({}, '', newUrl.toString());
+      } else {
+        // Log when no payment parameters are found (this might be the source of paymentDetails null)
+        console.log('📋 No payment parameters found in URL');
       }
     }
   }, [toast]);

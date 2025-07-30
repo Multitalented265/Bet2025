@@ -1,53 +1,42 @@
 #!/bin/bash
 
-# Webhook Testing Script
-BASE_URL="https://bet2025-web.onrender.com"
+echo "🔍 Testing webhook delivery..."
 
-echo "🧪 ===== WEBHOOK ENDPOINT TESTING ======"
-echo "🌐 Base URL: $BASE_URL"
-echo "📅 Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-echo ""
-
-# Test ping endpoint
-echo "🔍 Testing ping endpoint..."
-curl -X GET "$BASE_URL/api/paychangu/ping" \
+# Test 1: Test the webhook test endpoint
+echo "📋 Test 1: Testing webhook test endpoint"
+curl -X POST https://bet2025-2.onrender.com/api/paychangu/webhook-test \
   -H "Content-Type: application/json" \
-  -H "User-Agent: Webhook-Test/1.0" \
-  -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
-  -s
+  -d '{
+    "status": "success",
+    "message": "Test webhook delivery",
+    "data": {
+      "payment_link": {
+        "reference_id": "CURL_TEST_'$(date +%s)'",
+        "email": "test@curl.com",
+        "amount": 1000,
+        "currency": "MWK"
+      }
+    }
+  }'
 
-echo ""
+echo -e "\n\n"
 
-# Test webhook-test endpoint
-echo "🔍 Testing webhook-test endpoint..."
-curl -X POST "$BASE_URL/api/paychangu/webhook-test" \
+# Test 2: Test the main webhook endpoint
+echo "📋 Test 2: Testing main webhook endpoint"
+curl -X POST https://bet2025-2.onrender.com/api/paychangu/webhook \
   -H "Content-Type: application/json" \
-  -H "User-Agent: Webhook-Test/1.0" \
-  -d '{"test": true, "message": "Test webhook data", "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"}' \
-  -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
-  -s
+  -H "x-test-mode: true" \
+  -d '{
+    "status": "success",
+    "message": "Test main webhook",
+    "data": {
+      "payment_link": {
+        "reference_id": "CURL_MAIN_'$(date +%s)'",
+        "email": "test@main.com",
+        "amount": 2000,
+        "currency": "MWK"
+      }
+    }
+  }'
 
-echo ""
-
-# Test main webhook endpoint
-echo "🔍 Testing main webhook endpoint..."
-curl -X POST "$BASE_URL/api/paychangu/webhook" \
-  -H "Content-Type: application/json" \
-  -H "User-Agent: Webhook-Test/1.0" \
-  -H "Signature: test-signature" \
-  -d '{"test": true, "message": "Test webhook data", "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"}' \
-  -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
-  -s
-
-echo ""
-
-# Test debug endpoint
-echo "🔍 Testing debug endpoint..."
-curl -X GET "$BASE_URL/api/paychangu/debug" \
-  -H "Content-Type: application/json" \
-  -H "User-Agent: Webhook-Test/1.0" \
-  -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
-  -s
-
-echo ""
-echo "🏁 ===== TESTING COMPLETE ======" 
+echo -e "\n\n🎉 Webhook tests completed!" 
