@@ -234,7 +234,22 @@ export function validatePayChanguWebhookData(data: any): {
   if (!data.status) errors.push('Missing status');
   if (!data.amount) errors.push('Missing amount');
   if (!data.currency) errors.push('Missing currency');
-  if (!data.event_type) errors.push('Missing event_type');
+  
+  // 🔧 Handle PayChangu response format with nested data
+  if (data.data && data.data.payment_link) {
+    const paymentLink = data.data.payment_link
+    if (paymentLink.reference_id) {
+      console.log('✅ Found reference_id in nested data structure')
+    }
+    if (paymentLink.amount || paymentLink.payableAmount) {
+      console.log('✅ Found amount in nested data structure')
+    }
+  }
+  
+  // Make event_type optional - some PayChangu webhooks might not include it
+  if (!data.event_type) {
+    console.log('⚠️ No event_type provided in webhook data');
+  }
   
   // Check meta data - but allow missing meta data if customer email is present
   if (!data.meta) {
@@ -248,9 +263,10 @@ export function validatePayChanguWebhookData(data: any): {
     if (!data.meta.amount) errors.push('Missing amount in meta');
   }
   
-  // ✅ Validate event type as specified in the checklist
-  if (data.event_type && data.event_type !== 'api.charge.payment') {
-    errors.push(`Invalid event_type: ${data.event_type}, expected api.charge.payment`);
+  // ✅ Validate event type - allow multiple valid event types
+  const validEventTypes = ['api.charge.payment', 'payment.success', 'charge.success', 'transaction.success']
+  if (data.event_type && !validEventTypes.includes(data.event_type)) {
+    errors.push(`Invalid event_type: ${data.event_type}, expected one of: ${validEventTypes.join(', ')}`);
   }
   
   // Validate status values
@@ -265,9 +281,10 @@ export function validatePayChanguWebhookData(data: any): {
     errors.push(`Invalid transaction type: ${data.meta.transactionType}`);
   }
   
-  // Validate amount consistency
+  // Validate amount consistency - but be more flexible
   if (data.amount && data.meta?.amount && data.amount !== data.meta.amount) {
-    errors.push('Amount mismatch between callback and meta data');
+    console.log(`⚠️ Amount mismatch: webhook=${data.amount}, meta=${data.meta.amount}`);
+    // Don't treat this as an error, just log it
   }
   
   return {

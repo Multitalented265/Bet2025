@@ -1,153 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { WalletService } from '@/lib/wallet-service'
-import { verifyPayChanguSignature } from '@/lib/paychangu'
 import { env } from '@/lib/env'
-import crypto from 'crypto'
 
 export async function GET(request: NextRequest) {
-  console.log('🔍 ===== DEBUG ENDPOINT =====')
+  console.log('🔍 ===== WEBHOOK DEBUG STATUS =====')
   
   try {
-    // Get database stats
-    const userCount = await prisma.user.count()
-    const transactionCount = await prisma.transaction.count()
+    // Check environment variables
+    const envStatus = {
+      PAYCHANGU_WEBHOOK_URL: env.PAYCHANGU_WEBHOOK_URL,
+      PAYCHANGU_CALLBACK_URL: env.PAYCHANGU_CALLBACK_URL,
+      PAYCHANGU_RETURN_URL: env.PAYCHANGU_RETURN_URL,
+      PAYCHANGU_PUBLIC_KEY: env.PAYCHANGU_PUBLIC_KEY ? 'SET' : 'MISSING',
+      PAYCHANGU_SECRET_KEY: env.PAYCHANGU_SECRET_KEY ? 'SET' : 'MISSING',
+      NEXTAUTH_URL: env.NEXTAUTH_URL,
+      NODE_ENV: process.env.NODE_ENV || 'development'
+    }
     
-    // Get recent transactions
-    const recentTransactions = await prisma.transaction.findMany({
-      take: 5,
-      orderBy: { date: 'desc' },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
-      }
-    })
+    // Check database status
+    const dbStatus = {
+      users: await prisma.user.count(),
+      transactions: await prisma.transaction.count(),
+      recentTransactions: await prisma.transaction.findMany({
+        take: 5,
+        orderBy: { date: 'desc' },
+        include: { user: { select: { email: true, name: true } } }
+      })
+    }
     
-    // Get user with email usherkamwendo@gmail.com
-    const testUser = await prisma.user.findUnique({
-      where: { email: 'usherkamwendo@gmail.com' }
-    })
+    // Check webhook accessibility
+    const webhookUrl = env.PAYCHANGU_WEBHOOK_URL
+    const webhookAccessible = webhookUrl && webhookUrl.includes('onrender.com')
     
-    console.log('📊 Debug data collected')
+    console.log('📊 Debug status collected')
     
     return NextResponse.json({
-      message: 'Debug endpoint active',
+      message: 'Webhook debug status',
       timestamp: new Date().toISOString(),
-      database: {
-        users: userCount,
-        transactions: transactionCount,
-        recentTransactions: recentTransactions.map(t => ({
-          id: t.id,
-          type: t.type,
-          amount: t.amount.toString(),
-          fee: t.fee.toString(),
-          status: t.status,
-          txRef: t.txRef,
-          date: t.date,
-          user: t.user
-        }))
+      environment: envStatus,
+      database: dbStatus,
+      webhook: {
+        url: webhookUrl,
+        accessible: webhookAccessible,
+        test_url: 'https://bet2025-2.onrender.com/api/paychangu/test-webhook'
       },
-      testUser: testUser ? {
-        id: testUser.id,
-        name: testUser.name,
-        email: testUser.email,
-        balance: testUser.balance.toString()
-      } : null,
-      environment: process.env.NODE_ENV || 'development'
+      instructions: [
+        '1. Check if PayChangu is sending webhooks to the correct URL',
+        '2. Verify the webhook signature is being sent correctly',
+        '3. Check if the event_type is "api.charge.payment"',
+        '4. Verify meta data contains userId and transactionType',
+        '5. Test with the test webhook endpoint'
+      ]
     })
     
   } catch (error) {
     console.error('❌ Debug endpoint error:', error)
-    return NextResponse.json({ 
-      error: 'Debug failed',
+    return NextResponse.json({
+      error: 'Debug endpoint failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🔍 ===== WEBHOOK DEBUG DIAGNOSTIC =====')
+  console.log('🔍 ===== WEBHOOK DEBUG TEST =====')
   
   try {
     const body = await request.json()
+    console.log('📦 Debug test body:', JSON.stringify(body, null, 2))
     
-    // Check all possible signature headers
-    const allHeaders = Object.fromEntries(request.headers.entries())
-    const signatureHeaders = {
-      'Signature': request.headers.get('Signature'),
-      'X-PayChangu-Signature': request.headers.get('X-PayChangu-Signature'),
-      'X-Signature': request.headers.get('X-Signature'),
-      'X-Webhook-Signature': request.headers.get('X-Webhook-Signature'),
-      'X-Hub-Signature': request.headers.get('X-Hub-Signature'),
-      'X-Paychangu-Signature': request.headers.get('X-Paychangu-Signature'),
+    // Simulate webhook processing steps
+    const debugSteps = {
+      step1: 'Body received and parsed',
+      step2: body.tx_ref ? 'tx_ref found' : 'tx_ref missing',
+      step3: body.status ? 'status found' : 'status missing',
+      step4: body.event_type ? 'event_type found' : 'event_type missing',
+      step5: body.meta ? 'meta found' : 'meta missing',
+      step6: body.meta?.userId ? 'userId found' : 'userId missing',
+      step7: body.meta?.transactionType ? 'transactionType found' : 'transactionType missing',
+      step8: body.status === 'success' ? 'status is success' : 'status is not success',
+      step9: body.event_type === 'api.charge.payment' ? 'correct event_type' : 'incorrect event_type'
     }
-    
-    // Find the actual signature
-    const actualSignature = Object.values(signatureHeaders).find(sig => sig)
-    
-    // Test signature verification with different data formats
-    const testResults: Record<string, any> = {
-      environment: process.env.NODE_ENV || 'development',
-      secretKeyExists: !!env.PAYCHANGU_SECRET_KEY,
-      secretKeyLength: env.PAYCHANGU_SECRET_KEY?.length || 0,
-      secretKeyPrefix: env.PAYCHANGU_SECRET_KEY?.substring(0, 4) || 'N/A',
-      allHeaders,
-      signatureHeaders,
-      actualSignature: actualSignature ? `${actualSignature.substring(0, 10)}...` : 'MISSING',
-      bodyKeys: Object.keys(body),
-      bodyStringified: JSON.stringify(body),
-      bodyStringifiedLength: JSON.stringify(body).length,
-    }
-    
-    // Test signature verification if we have a signature
-    if (actualSignature && env.PAYCHANGU_SECRET_KEY) {
-      try {
-        // Test 1: Standard JSON.stringify
-        const test1 = verifyPayChanguSignature(actualSignature, JSON.stringify(body), env.PAYCHANGU_SECRET_KEY)
-        
-        // Test 2: Compact JSON (no spaces)
-        const test2 = verifyPayChanguSignature(actualSignature, JSON.stringify(body, null, 0), env.PAYCHANGU_SECRET_KEY)
-        
-        // Test 3: Raw body as string
-        const test3 = verifyPayChanguSignature(actualSignature, body.toString(), env.PAYCHANGU_SECRET_KEY)
-        
-        // Test 4: Manual HMAC creation for comparison
-        const manualSignature = crypto
-          .createHmac('sha256', env.PAYCHANGU_SECRET_KEY)
-          .update(JSON.stringify(body))
-          .digest('hex')
-        
-        testResults.signatureTests = {
-          test1_standardJSON: test1,
-          test2_compactJSON: test2,
-          test3_rawBody: test3,
-          manualSignature: manualSignature,
-          signatureMatchesManual: actualSignature === manualSignature,
-          signatureLength: actualSignature.length,
-          manualSignatureLength: manualSignature.length,
-        }
-      } catch (error) {
-        testResults.signatureError = error instanceof Error ? error.message : 'Unknown error'
-      }
-    }
-    
-    console.log('🔍 Debug results:', testResults)
     
     return NextResponse.json({
-      message: 'Webhook debug diagnostic completed',
+      message: 'Debug test completed',
       timestamp: new Date().toISOString(),
-      results: testResults
+      received_data: body,
+      debug_steps: debugSteps,
+      recommendations: Object.entries(debugSteps)
+        .filter(([_, status]) => status.includes('missing') || status.includes('incorrect'))
+        .map(([step, status]) => `Fix ${step}: ${status}`)
     })
     
   } catch (error) {
-    console.error('❌ Debug endpoint error:', error)
-    return NextResponse.json({ 
-      error: 'Debug endpoint failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
+    console.error('❌ Debug test error:', error)
+    return NextResponse.json({
+      error: 'Debug test failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 } 

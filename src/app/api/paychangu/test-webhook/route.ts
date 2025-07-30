@@ -5,105 +5,89 @@ import { prisma } from '@/lib/db'
 export async function POST(request: NextRequest) {
   console.log('🧪 ===== TEST WEBHOOK DEBUG =====')
   console.log('📅 Timestamp:', new Date().toISOString())
+  console.log('🌐 Request URL:', request.url)
+  console.log('🔗 Request Headers:', Object.fromEntries(request.headers.entries()))
   
   try {
     const body = await request.json()
-    console.log('📦 Test webhook body:', body)
+    console.log('📦 Test webhook body:', JSON.stringify(body, null, 2))
     
-    // Extract test data
-    const { userId, amount, txRef, testType = 'Deposit' } = body
-    
-    if (!userId || !amount || !txRef) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: userId, amount, txRef' 
-      }, { status: 400 })
+    // Simulate a successful PayChangu webhook response
+    const testWebhookData = {
+      tx_ref: body.tx_ref || 'TEST_TX_' + Date.now(),
+      reference: body.reference || body.tx_ref || 'TEST_TX_' + Date.now(),
+      status: 'success',
+      amount: body.amount || 100,
+      currency: 'MWK',
+      event_type: 'api.charge.payment',
+      customer: {
+        email: body.customer?.email || 'test@example.com',
+        first_name: body.customer?.first_name || 'Test',
+        last_name: body.customer?.last_name || 'User'
+      },
+      meta: {
+        userId: body.meta?.userId || 'cmdkf898l0000txjgw5236qri',
+        transactionType: 'Deposit',
+        amount: body.amount || 100
+      }
     }
     
-    console.log('🧪 Test webhook processing:', { userId, amount, txRef, testType })
+    console.log('🧪 Processing test webhook with data:', testWebhookData)
     
     // Check if transaction already exists
-    const existingTransaction = await WalletService.getTransactionByTxRef(txRef)
+    const existingTransaction = await WalletService.getTransactionByTxRef(testWebhookData.tx_ref)
     if (existingTransaction) {
-      console.log('⚠️ Test transaction already exists:', existingTransaction)
+      console.log(`⚠️ Test webhook: Transaction ${testWebhookData.tx_ref} already exists`)
       return NextResponse.json({ 
         message: 'Transaction already processed',
-        tx_ref: txRef,
-        existing: existingTransaction
+        tx_ref: testWebhookData.tx_ref
       })
     }
     
-    // Process the test transaction
-    if (testType === 'Deposit') {
-      console.log('💰 Processing test deposit...')
-      
-      const result = await WalletService.processDeposit(
-        userId,
-        amount,
-        txRef,
-        { test: true, ...body }
-      )
-      
-      if (!result.success) {
-        console.error('❌ Test deposit failed:', result.message)
-        return NextResponse.json({ error: result.message }, { status: 400 })
-      }
-      
-      console.log('✅ Test deposit successful:', result)
-      return NextResponse.json({ 
-        message: 'Test deposit processed successfully',
-        result
-      })
-      
-    } else if (testType === 'Withdrawal') {
-      console.log('💸 Processing test withdrawal...')
-      
-      const result = await WalletService.completeWithdrawal(txRef, body)
-      
-      if (!result.success) {
-        console.error('❌ Test withdrawal failed:', result.message)
-        return NextResponse.json({ error: result.message }, { status: 400 })
-      }
-      
-      console.log('✅ Test withdrawal successful:', result)
-      return NextResponse.json({ 
-        message: 'Test withdrawal processed successfully',
-        result
-      })
+    // Process the test webhook
+    const result = await WalletService.processDeposit(
+      testWebhookData.meta.userId,
+      testWebhookData.amount,
+      testWebhookData.tx_ref,
+      testWebhookData
+    )
+    
+    if (!result.success) {
+      console.error('❌ Test webhook processing failed:', result.message)
+      return NextResponse.json({ error: result.message }, { status: 400 })
     }
     
-    return NextResponse.json({ error: 'Invalid test type' }, { status: 400 })
+    console.log('✅ Test webhook processed successfully:', result)
+    console.log('🧪 ===== TEST WEBHOOK DEBUG END =====')
+    
+    return NextResponse.json({ 
+      message: 'Test webhook processed successfully',
+      tx_ref: testWebhookData.tx_ref,
+      result: result
+    })
     
   } catch (error) {
     console.error('❌ Test webhook error:', error)
-    return NextResponse.json({ error: 'Test webhook failed' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Test webhook processing failed' },
+      { status: 500 }
+    )
   }
 }
 
 export async function GET(request: NextRequest) {
-  console.log('🧪 ===== TEST WEBHOOK STATUS =====')
+  console.log('🧪 ===== TEST WEBHOOK GET REQUEST =====')
   
-  try {
-    // Test database connection
-    const userCount = await prisma.user.count()
-    const transactionCount = await prisma.transaction.count()
-    
-    console.log('📊 Database status:', { userCount, transactionCount })
-    
+  // Return webhook status and configuration
   return NextResponse.json({
-      message: 'Test webhook endpoint is active',
+    message: 'Test webhook endpoint is active',
     timestamp: new Date().toISOString(),
-      database: {
-        users: userCount,
-        transactions: transactionCount
-      },
-      environment: process.env.NODE_ENV || 'development'
-    })
-    
-  } catch (error) {
-    console.error('❌ Test webhook status error:', error)
-    return NextResponse.json({
-      error: 'Database connection failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
-  }
+    webhook_url: 'https://bet2025-2.onrender.com/api/paychangu/webhook',
+    test_url: 'https://bet2025-2.onrender.com/api/paychangu/test-webhook',
+    instructions: [
+      'Send a POST request to this endpoint with payment data',
+      'Include tx_ref, amount, customer, and meta fields',
+      'This will simulate a PayChangu webhook and process the payment'
+    ]
+  })
 } 
