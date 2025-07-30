@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 import { authenticateAdmin } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -12,8 +13,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the authenticateAdmin function from auth.ts
-    const result = await authenticateAdmin(email, password);
+    // Extract IP address from request
+    const headersList = await headers();
+    const xForwardedFor = headersList.get('x-forwarded-for') || '';
+    const xRealIp = headersList.get('x-real-ip') || '';
+    const cfConnectingIp = headersList.get('cf-connecting-ip') || '';
+    
+    let ipAddress = cfConnectingIp || xRealIp || xForwardedFor.split(',')[0] || 'unknown';
+    ipAddress = ipAddress.trim();
+
+    // Use the authenticateAdmin function from auth.ts with IP address
+    const result = await authenticateAdmin(email, password, ipAddress);
 
     if (result.success && result.sessionToken) {
       // Create response with admin data

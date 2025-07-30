@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Users, Clock, MapPin, Monitor } from "lucide-react";
 import LoginTrackingDashboard from "@/components/admin/LoginTrackingDashboard";
+import BannedIPManager from "@/components/admin/BannedIPManager";
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic';
@@ -176,6 +177,8 @@ export default async function AdminLoginTrackingPage() {
           </div>
         </CardContent>
       </Card>
+
+      <BannedIPManager />
     </div>
   );
 } 

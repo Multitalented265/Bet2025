@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,11 +22,14 @@ export async function POST(request: NextRequest) {
       });
     }
     
+    // Hash the admin password before storing
+    const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10);
+    
     // Create default admin account
     const admin = await prisma.admin.create({
       data: {
         email: process.env.ADMIN_EMAIL!,
-        password: process.env.ADMIN_PASSWORD!, // Change this in production!
+        password: hashedPassword,
         name: 'Administrator',
         role: 'admin',
         isActive: true

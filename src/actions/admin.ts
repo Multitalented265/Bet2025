@@ -56,10 +56,10 @@ export async function handleAdminNotificationSettings(formData: FormData) {
   }
 
   // In a real app, you'd check if user is admin
-  const enable2fa = formData.get("enable2fa") === "on";
-  const notifyOnNewUser = formData.get("notifyOnNewUser") === "on";
-  const notifyOnLargeBet = formData.get("notifyOnLargeBet") === "on";
-  const notifyOnLargeDeposit = formData.get("notifyOnLargeDeposit") === "on";
+  const enable2fa = formData.get("enable-2fa") === "on";
+  const notifyOnNewUser = formData.get("newUser") === "on";
+  const notifyOnLargeBet = formData.get("largeBet") === "on";
+  const notifyOnLargeDeposit = formData.get("largeDeposit") === "on";
 
   await updateAdminSettings({
     enable2fa,
@@ -158,7 +158,7 @@ export async function handleAddCandidate(formData: FormData) {
   }
 
   const name = formData.get("name") as string;
-  const image = formData.get("image") as string;
+  const image = formData.get("imageUrl") as string;
   const hint = formData.get("hint") as string;
   const color = formData.get("color") as string;
 
@@ -187,7 +187,7 @@ export async function handleUpdateCandidate(id: number, formData: FormData) {
   }
 
   const name = formData.get("name") as string;
-  const image = formData.get("image") as string;
+  const image = formData.get("imageUrl") as string;
   const hint = formData.get("hint") as string;
   const color = formData.get("color") as string;
 

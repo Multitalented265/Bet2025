@@ -122,6 +122,7 @@ model Admin {
   isActive  Boolean  @default(true)
   loginLogs AdminLoginLog[]
   sessions  AdminSession[]
+  bannedIPs BannedIP[]
 }
 
 model AdminLoginLog {
@@ -163,4 +164,15 @@ model AdminSession {
   adminId      String
   expires      DateTime
   admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+}
+
+model BannedIP {
+  id          String   @id @default(cuid())
+  ipAddress   String   @unique
+  reason      String?
+  bannedBy    String
+  bannedAt    DateTime @default(now())
+  expiresAt   DateTime?
+  isActive    Boolean  @default(true)
+  admin       Admin    @relation(fields: [bannedBy], references: [id], onDelete: Cascade)
 }

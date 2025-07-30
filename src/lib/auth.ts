@@ -132,8 +132,30 @@ export const authOptions: NextAuthOptions = {
 export const getSession = () => getServerSession(authOptions);
 
 // Admin authentication functions
-export async function authenticateAdmin(email: string, password: string) {
+export async function authenticateAdmin(email: string, password: string, ipAddress?: string) {
   try {
+    // Check if IP is banned
+    if (ipAddress) {
+      const bannedIP = await prisma.bannedIP.findFirst({
+        where: {
+          ipAddress,
+          isActive: true,
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        }
+      });
+
+      if (bannedIP) {
+        console.log(`Blocked login attempt from banned IP: ${ipAddress}`);
+        return {
+          success: false,
+          message: 'Access denied: IP address is banned'
+        };
+      }
+    }
+
     // Find admin in database
     const admin = await prisma.admin.findUnique({
       where: { 
