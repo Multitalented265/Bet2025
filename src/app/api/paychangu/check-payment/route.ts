@@ -20,9 +20,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         status: transaction.status,
         amount: transaction.amount,
-        currency: transaction.currency,
-        createdAt: transaction.createdAt,
-        updatedAt: transaction.updatedAt
+        date: transaction.date
       })
     }
 
