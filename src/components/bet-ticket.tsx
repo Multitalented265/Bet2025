@@ -12,7 +12,7 @@ export type Bet = {
   candidateName: string;
   amount: number;
   placedDate: Date;
-  status: 'Active' | 'Completed';
+  status: string;
 };
 
 type BetTicketProps = {
@@ -21,7 +21,7 @@ type BetTicketProps = {
   totalPot: number;
 };
 
-const statusConfig = {
+const statusConfig: Record<string, { color: string; label: string }> = {
   Active: {
     color: "bg-yellow-500 text-white",
     label: "Active",
@@ -52,7 +52,10 @@ export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProp
 
   const placedDate = formatDate(bet.placedDate);
 
-  const { color, label } = statusConfig[bet.status];
+  const { color, label } = statusConfig[bet.status] || {
+    color: "bg-gray-500 text-white",
+    label: bet.status,
+  };
 
   const calculateWinnings = () => {
     if (totalBetsOnCandidate === 0) {
