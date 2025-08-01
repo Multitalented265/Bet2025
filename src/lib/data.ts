@@ -562,7 +562,15 @@ export async function updateSupportTicketStatus(id: string, status: 'Open' | 'Cl
 // --- Admin Settings ---
 export async function getAdminSettings() {
     const settings = await prisma.adminSettings.findFirst();
-    return settings || { bettingEnabled: true };
+    return settings || {
+        id: 1,
+        enable2fa: false,
+        notifyOnNewUser: true,
+        notifyOnNewUserLogin: true,
+        notifyOnLargeBet: true,
+        notifyOnLargeDeposit: true,
+        bettingEnabled: true
+    };
 }
 
 export async function updateAdminSettings(data: Partial<Omit<AdminSettings, 'id'>>) {
