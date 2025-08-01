@@ -65,38 +65,38 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
         minBets: "",
         maxBets: ""
     });
-    const [isEditDialogOpen, setEditDialogOpen] = useState(false);
-    const [isViewDialogOpen, setViewDialogOpen] = useState(false);
-    const [isSuspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setViewDialogOpen] = useState(false);
+  const [isSuspendDialogOpen, setSuspendDialogOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<UserForAdmin | null>(null);
     const [isPending, setIsPending] = useState(false);
-    const { toast } = useToast();
+  const { toast } = useToast();
 
     async function fetchUserTransactions() {
         // This would fetch transactions for the selected user
         // Implementation depends on your API structure
     }
 
-    const handleFilterChange = (key: keyof typeof filters, value: any) => {
+  const handleFilterChange = (key: keyof typeof filters, value: any) => {
         setFilters(prev => ({ ...prev, [key]: value }));
-    };
+  };
 
-    const clearFilters = () => {
-        setFilters({
+  const clearFilters = () => {
+    setFilters({
             status: "all",
             minBets: "",
             maxBets: ""
-        });
-    };
+    });
+  };
 
-    const filteredUsers = useMemo(() => {
+  const filteredUsers = useMemo(() => {
         return initialUsers.filter(user => {
-            const searchMatch = searchQuery === '' ||
+      const searchMatch = searchQuery === '' || 
                 user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 user.id.toLowerCase().includes(searchQuery.toLowerCase());
 
-            const statusMatch = filters.status === 'all' || user.status === filters.status;
+      const statusMatch = filters.status === 'all' || user.status === filters.status;
             
             const betAmountMatch = (!filters.minBets || user.totalBets >= parseFloat(filters.minBets)) &&
                                  (!filters.maxBets || user.totalBets <= parseFloat(filters.maxBets));
@@ -105,26 +105,26 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
         });
     }, [searchQuery, filters, initialUsers]);
 
-    const handleEditClick = (user: UserForAdmin) => {
-        setSelectedUser(user);
-        setEditDialogOpen(true);
-    };
+  const handleEditClick = (user: UserForAdmin) => {
+    setSelectedUser(user);
+    setEditDialogOpen(true);
+  };
 
-    const handleViewClick = (user: UserForAdmin) => {
-        setSelectedUser(user);
-        setViewDialogOpen(true);
-    };
+  const handleViewClick = (user: UserForAdmin) => {
+    setSelectedUser(user);
+    setViewDialogOpen(true);
+  };
 
-    const handleSuspendClick = (user: UserForAdmin) => {
-        setSelectedUser(user);
-        setSuspendDialogOpen(true);
-    };
+  const handleSuspendClick = (user: UserForAdmin) => {
+    setSelectedUser(user);
+    setSuspendDialogOpen(true);
+  };
 
-    const handleSaveEdit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+  const handleSaveEdit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
         setIsPending(true);
-        
-        const formData = new FormData(event.currentTarget);
+    
+    const formData = new FormData(event.currentTarget);
         const name = formData.get('name') as string;
         const email = formData.get('email') as string;
 
@@ -138,11 +138,11 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
             setEditDialogOpen(false);
             setIsPending(false);
         }, 1000);
-    };
-
-    const handleConfirmSuspend = () => {
-        if (!selectedUser) return;
-        
+  };
+  
+  const handleConfirmSuspend = () => {
+    if (!selectedUser) return;
+    
         setIsPending(true);
         
         // Here you would typically make an API call to suspend/reactivate the user
@@ -151,37 +151,37 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
                 title: selectedUser.status === 'Active' ? "User Suspended" : "User Reactivated",
                 description: `User has been ${selectedUser.status === 'Active' ? 'suspended' : 'reactivated'} successfully.`,
             });
-            setSuspendDialogOpen(false);
+        setSuspendDialogOpen(false);
             setIsPending(false);
         }, 1000);
-    };
+  };
 
-    return (
+  return (
         <div className="space-y-6">
-            <div>
+      <div>
                 <h1 className="text-3xl font-bold font-headline">User Management</h1>
                 <p className="text-muted-foreground">
                     Manage user accounts, view betting history, and monitor user activity.
                 </p>
-            </div>
+      </div>
 
-            <Card>
-                <CardHeader>
+      <Card>
+        <CardHeader>
                     <CardTitle>All Users</CardTitle>
                     <CardDescription>A comprehensive list of all registered users and their betting activity.</CardDescription>
-                </CardHeader>
-                <CardContent>
+        </CardHeader>
+        <CardContent>
                     <div className="mb-4 space-y-4">
                         <div className="relative">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                type="search"
                                 placeholder="Search by name, email, or user ID..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-8 w-full"
-                            />
-                        </div>
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 w-full"
+                />
+            </div>
                         
                         <div className="flex flex-wrap gap-4 items-center">
                             <div className="flex items-center gap-2">
@@ -200,22 +200,22 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
                             </select>
                             
                             <div className="flex items-center gap-2">
-                                <Input
-                                    type="number"
+                <Input 
+                    type="number" 
                                     placeholder="Min bets"
                                     value={filters.minBets}
                                     onChange={(e) => handleFilterChange('minBets', e.target.value)}
                                     className="w-24"
                                 />
                                 <span className="text-sm">to</span>
-                                <Input
-                                    type="number"
+                <Input 
+                    type="number" 
                                     placeholder="Max bets"
                                     value={filters.maxBets}
                                     onChange={(e) => handleFilterChange('maxBets', e.target.value)}
                                     className="w-24"
-                                />
-                            </div>
+                />
+            </div>
                             
                             <Button
                                 variant="outline"
@@ -225,155 +225,155 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
                             >
                                 <X className="h-3 w-3" />
                                 Clear
-                            </Button>
-                        </div>
+            </Button>
+          </div>
                     </div>
 
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
+          <Table>
+            <TableHeader>
+              <TableRow>
                                 <TableHead>User ID</TableHead>
                                 <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
+                <TableHead>Email</TableHead>
                                 <TableHead>Total Bets</TableHead>
-                                <TableHead>Status</TableHead>
+                <TableHead>Status</TableHead>
                                 <TableHead>Joined</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredUsers.map((user) => (
-                                <TableRow key={user.id}>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user) => (
+                <TableRow key={user.id}>
                                     <TableCell className="font-mono">{user.id}</TableCell>
                                     <TableCell>{user.name}</TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>{user.totalBets.toLocaleString()} MWK</TableCell>
-                                    <TableCell>
-                                        <Badge variant={user.status === 'Active' ? 'secondary' : 'destructive'}>
-                                            {user.status}
-                                        </Badge>
-                                    </TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.totalBets.toLocaleString()} MWK</TableCell>
+                  <TableCell>
+                    <Badge variant={user.status === 'Active' ? 'secondary' : 'destructive'}>
+                      {user.status}
+                    </Badge>
+                  </TableCell>
                                     <TableCell>{formatDate(user.joined)}</TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">Toggle menu</span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => handleEditClick(user)}>Edit</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleViewClick(user)}>View Details</DropdownMenuItem>
-                                                <DropdownMenuItem 
-                                                    onClick={() => handleSuspendClick(user)} 
-                                                    className={user.status === 'Active' ? 'text-destructive' : ''}
-                                                >
-                                                    {user.status === 'Active' ? 'Suspend' : 'Reactivate'}
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditClick(user)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewClick(user)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleSuspendClick(user)} 
+                          className={user.status === 'Active' ? 'text-destructive' : ''}
+                        >
+                          {user.status === 'Active' ? 'Suspend' : 'Reactivate'}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-            {/* Edit User Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit User: {selectedUser?.name}</DialogTitle>
-                        <DialogDescription>Make changes to the user's profile below.</DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleSaveEdit}>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">Name</Label>
-                                <Input id="name" name="name" defaultValue={selectedUser?.name ?? ""} className="col-span-3" />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="email" className="text-right">Email</Label>
-                                <Input id="email" name="email" type="email" defaultValue={selectedUser?.email ?? ""} className="col-span-3" />
-                            </div>
+      {/* Edit User Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User: {selectedUser?.name}</DialogTitle>
+            <DialogDescription>Make changes to the user's profile below.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveEdit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">Name</Label>
+                <Input id="name" name="name" defaultValue={selectedUser?.name ?? ""} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">Email</Label>
+                <Input id="email" name="email" type="email" defaultValue={selectedUser?.email ?? ""} className="col-span-3" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="secondary" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Changes"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* View User Dialog */}
+      {selectedUser && (
+        <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
+            <DialogContent className="sm:max-w-4xl">
+                <DialogHeader>
+                    <DialogTitle>{selectedUser.name}</DialogTitle>
+                    <DialogDescription>User ID: {selectedUser.id}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Email:</span>
+                            <span className="font-medium">{selectedUser.email}</span>
                         </div>
-                        <DialogFooter>
-                            <Button type="button" variant="secondary" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-                            <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Changes"}</Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-            
-            {/* View User Dialog */}
-            {selectedUser && (
-                <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
-                    <DialogContent className="sm:max-w-4xl">
-                        <DialogHeader>
-                            <DialogTitle>{selectedUser.name}</DialogTitle>
-                            <DialogDescription>User ID: {selectedUser.id}</DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-6 py-4">
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Email:</span>
-                                    <span className="font-medium">{selectedUser.email}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Joined:</span>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Joined:</span>
                                     <span className="font-medium">{formatDate(selectedUser.joined)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Status:</span>
-                                    <Badge variant={selectedUser.status === 'Active' ? 'secondary' : 'destructive'}>
-                                        {selectedUser.status}
-                                    </Badge>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Total Bets:</span>
-                                    <span className="font-medium">{selectedUser.totalBets.toLocaleString()} MWK</span>
-                                </div>
-                            </div>
-                            
-                            <Separator />
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">Betting History</h3>
-                                    {selectedUser.bets.length > 0 ? (
-                                        <div className="max-h-[300px] overflow-y-auto border rounded-lg">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>Candidate</TableHead>
-                                                        <TableHead>Amount</TableHead>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Status:</span>
+                            <Badge variant={selectedUser.status === 'Active' ? 'secondary' : 'destructive'}>
+                                {selectedUser.status}
+                            </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Total Bets:</span>
+                            <span className="font-medium">{selectedUser.totalBets.toLocaleString()} MWK</span>
+                        </div>
+                    </div>
+                    
+                    <Separator />
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Betting History</h3>
+                          {selectedUser.bets.length > 0 ? (
+                            <div className="max-h-[300px] overflow-y-auto border rounded-lg">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Candidate</TableHead>
+                                  <TableHead>Amount</TableHead>
                                                         <TableHead>Status</TableHead>
                                                         <TableHead>Date</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
                                                     {selectedUser.bets.map((bet) => (
-                                                        <TableRow key={bet.id}>
-                                                            <TableCell>{bet.candidateName}</TableCell>
-                                                            <TableCell>{bet.amount.toLocaleString()} MWK</TableCell>
+                                  <TableRow key={bet.id}>
+                                    <TableCell>{bet.candidateName}</TableCell>
+                                    <TableCell>{bet.amount.toLocaleString()} MWK</TableCell>
                                                             <TableCell>
                                                                 <Badge variant={bet.status === 'Won' ? 'default' : bet.status === 'Lost' ? 'destructive' : 'secondary'}>
                                                                     {bet.status}
                                                                 </Badge>
                                                             </TableCell>
                                                             <TableCell>{formatDate(bet.placedDate)}</TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-                                    ) : (
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                            </div>
+                          ) : (
                                         <p className="text-muted-foreground">No betting history available.</p>
-                                    )}
-                                </div>
+                          )}
+                        </div>
                                 
-                                <div>
+                         <div>
                                     <h3 className="text-lg font-semibold mb-2">Account Summary</h3>
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
@@ -388,10 +388,10 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
                                             <span className="text-muted-foreground">Account Status:</span>
                                             <Badge variant={selectedUser.status === 'Active' ? 'secondary' : 'destructive'}>
                                                 {selectedUser.status}
-                                            </Badge>
+                                        </Badge>
                                         </div>
                                     </div>
-                                </div>
+                            </div>
                             </div>
                         </div>
                     </DialogContent>
@@ -413,7 +413,7 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
                                 }
                             </DialogDescription>
                         </DialogHeader>
-                        <DialogFooter>
+                <DialogFooter>
                             <Button type="button" variant="secondary" onClick={() => setSuspendDialogOpen(false)}>
                                 Cancel
                             </Button>
@@ -425,10 +425,10 @@ export function AdminUsersClient({ initialUsers }: { initialUsers: UserForAdmin[
                             >
                                 {isPending ? "Processing..." : selectedUser.status === 'Active' ? 'Suspend User' : 'Reactivate User'}
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
-        </div>
-    );
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
 }

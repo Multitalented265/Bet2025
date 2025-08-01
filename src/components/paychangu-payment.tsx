@@ -278,11 +278,11 @@ export function PayChanguPayment({
           
         } catch (error) {
           const userFriendlyMessage = handleError(error);
-          toast({
-            title: "Payment Error",
+            toast({
+              title: "Payment Error",
             description: userFriendlyMessage,
-            variant: "destructive"
-          })
+              variant: "destructive"
+            })
         }
       } else {
         const userFriendlyMessage = handleError('Payment function is not available');

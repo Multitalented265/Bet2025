@@ -9,8 +9,8 @@ export function cn(...inputs: ClassValue[]) {
  * Maps technical error messages to user-friendly messages
  * This provides better UX by showing understandable error messages
  */
-export function getUserFriendlyError(error: unknown): string {
-  const errorMessage = error instanceof Error ? error.message : String(error);
+export function getUserFriendlyError(error: string | Error): string {
+  const errorMessage = typeof error === 'string' ? error : error.message;
   
   // Convert to lowercase for case-insensitive matching
   const lowerError = errorMessage.toLowerCase();
@@ -123,8 +123,8 @@ export function getUserFriendlyError(error: unknown): string {
  * Determines if an error is user-friendly (should be shown as-is)
  * vs technical (should be mapped to user-friendly message)
  */
-export function isUserFriendlyError(error: unknown): boolean {
-  const errorMessage = error instanceof Error ? error.message : String(error);
+export function isUserFriendlyError(error: string | Error): boolean {
+  const errorMessage = typeof error === 'string' ? error : error.message;
   const lowerError = errorMessage.toLowerCase();
   
   // These are already user-friendly and shouldn't be changed
@@ -149,8 +149,8 @@ export function isUserFriendlyError(error: unknown): boolean {
  * Main error handler that decides whether to show the original error
  * or map it to a user-friendly message
  */
-export function handleError(error: unknown): string {
-  const errorMessage = error instanceof Error ? error.message : String(error);
+export function handleError(error: string | Error): string {
+  const errorMessage = typeof error === 'string' ? error : error.message;
   
   // If it's already user-friendly, return as-is
   if (isUserFriendlyError(error)) {

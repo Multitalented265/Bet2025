@@ -11,6 +11,21 @@ export interface WalletTransaction {
   paychanguResponse?: unknown
 }
 
+export interface TransactionWithUser {
+  id: string
+  userId: string
+  type: string
+  amount: number
+  fee: number
+  date: Date
+  txRef: string | null
+  status: string
+  user?: {
+    name: string | null
+    email: string | null
+  }
+}
+
 export interface DepositResult {
   success: boolean
   message: string
@@ -396,17 +411,25 @@ export class WalletService {
   /**
    * Get transaction by transaction reference
    */
-  static async getTransactionByTxRef(txRef: string): Promise<unknown | null> {
-    return await prisma.transaction.findFirst({
+  static async getTransactionByTxRef(txRef: string): Promise<TransactionWithUser | null> {
+    const transaction = await prisma.transaction.findFirst({
       where: { txRef }
     })
+    
+    if (!transaction) return null
+    
+    return {
+      ...transaction,
+      amount: parseFloat(transaction.amount.toString()),
+      fee: parseFloat(transaction.fee.toString())
+    }
   }
 
   /**
    * Get user's transaction history
    */
-  static async getUserTransactions(userId: string, limit = 50): Promise<unknown[]> {
-    return await prisma.transaction.findMany({
+  static async getUserTransactions(userId: string, limit = 50): Promise<TransactionWithUser[]> {
+    const transactions = await prisma.transaction.findMany({
       where: { userId },
       orderBy: { date: 'desc' },
       take: limit,
@@ -419,13 +442,19 @@ export class WalletService {
         }
       }
     })
+    
+    return transactions.map(tx => ({
+      ...tx,
+      amount: parseFloat(tx.amount.toString()),
+      fee: parseFloat(tx.fee.toString())
+    }))
   }
 
   /**
    * Get all transactions (for admin)
    */
-  static async getAllTransactions(limit = 50): Promise<unknown[]> {
-    return await prisma.transaction.findMany({
+  static async getAllTransactions(limit = 50): Promise<TransactionWithUser[]> {
+    const transactions = await prisma.transaction.findMany({
       orderBy: { date: 'desc' },
       take: limit,
       include: {
@@ -437,6 +466,12 @@ export class WalletService {
         }
       }
     })
+    
+    return transactions.map(tx => ({
+      ...tx,
+      amount: parseFloat(tx.amount.toString()),
+      fee: parseFloat(tx.fee.toString())
+    }))
   }
 
   /**

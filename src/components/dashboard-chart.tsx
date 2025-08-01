@@ -35,7 +35,7 @@ const CustomYAxisTick = (props: any) => {
     return (
       <g transform={`translate(${x},${y})`}>
         <text x={-150} y={y} textAnchor="end" className="text-xs fill-foreground font-medium">
-          {candidate.name}
+              {candidate.name}
         </text>
         <circle cx={-120} cy={y - 15} r={15} fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1" />
         <text x={-120} y={y - 10} textAnchor="middle" className="text-xs fill-foreground font-bold">
@@ -136,61 +136,61 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
             ))}
           </div>
           
-          <ChartContainer config={chartConfig} className="h-[500px] w-full">
-            <BarChart 
-              data={sortedData} 
-              layout="vertical"
-              margin={{ 
+        <ChartContainer config={chartConfig} className="h-[500px] w-full">
+          <BarChart 
+            data={sortedData} 
+            layout="vertical"
+            margin={{ 
                 left: 160, 
-                right: isMobile ? 120 : 140, 
-                top: 20, 
-                bottom: 20 
-              }}
-              accessibilityLayer
-              barCategoryGap={isMobile ? "35%" : "20%"}
-              >
-              <XAxis type="number" hide />
-              <YAxis 
-                dataKey="name" 
-                type="category" 
-                tickLine={false} 
-                axisLine={false} 
+              right: isMobile ? 120 : 140, 
+              top: 20, 
+              bottom: 20 
+            }}
+            accessibilityLayer
+            barCategoryGap={isMobile ? "35%" : "20%"}
+            >
+            <XAxis type="number" hide />
+            <YAxis 
+              dataKey="name" 
+              type="category" 
+              tickLine={false} 
+              axisLine={false} 
                 hide
-                />
-              <Tooltip
-                  cursor={<CustomCursor />}
-                  content={<ChartTooltipContent
+              />
+            <Tooltip
+                cursor={<CustomCursor />}
+                content={<ChartTooltipContent
                     formatter={(value, name, props) => {
                       // Access the betCount directly from the chart data point
                       const betCount = props.payload?.betCount || 0;
-                      return (
-                        <div className="flex items-center">
-                            <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: chartConfig[name as string]?.color }} />
-                            <div className="flex flex-col">
-                                <span className="font-medium">{name}</span>
-                                <span className="text-muted-foreground">{Number(value).toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    return (
+                      <div className="flex items-center">
+                          <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: chartConfig[name as string]?.color }} />
+                          <div className="flex flex-col">
+                              <span className="font-medium">{name}</span>
+                              <span className="text-muted-foreground">{Number(value).toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 <span className="text-muted-foreground text-xs">{betCount} bets placed</span>
-                            </div>
-                        </div>
-                      );
-                    }}
-                    nameKey="name"
-                    hideLabel />}
-                  />
-              <Bar dataKey="totalBets" layout="vertical" radius={8} animationDuration={800}>
-                <LabelList
-                  dataKey="totalBets"
-                  position="right"
-                  offset={isMobile ? 20 : 25}
-                  className="fill-foreground font-semibold text-xs sm:text-sm"
-                  formatter={(value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                />
-                {sortedData.map((entry) => (
-                  <Cell key={`cell-${entry.id}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ChartContainer>
+                          </div>
+                      </div>
+                    );
+                  }}
+                  nameKey="name"
+                  hideLabel />}
+              />
+            <Bar dataKey="totalBets" layout="vertical" radius={8} animationDuration={800}>
+              <LabelList
+                dataKey="totalBets"
+                position="right"
+                offset={isMobile ? 20 : 25}
+                className="fill-foreground font-semibold text-xs sm:text-sm"
+                formatter={(value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              />
+              {sortedData.map((entry) => (
+                <Cell key={`cell-${entry.id}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ChartContainer>
         </div>
       </CardContent>
     </Card>

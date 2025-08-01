@@ -84,7 +84,7 @@ export default function AdminLoginPage() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      const userFriendlyMessage = handleError(error instanceof Error ? error : String(error));
+      const userFriendlyMessage = handleError(error);
       setError(userFriendlyMessage);
     } finally {
       setLoading(false);
@@ -116,7 +116,7 @@ export default function AdminLoginPage() {
       }
     } catch (error) {
       console.error('Forgot password error:', error);
-      const userFriendlyMessage = handleError(error instanceof Error ? error : String(error));
+      const userFriendlyMessage = handleError(error);
       setForgotPasswordMessage(userFriendlyMessage);
     } finally {
       setForgotPasswordLoading(false);
