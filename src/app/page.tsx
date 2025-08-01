@@ -176,7 +176,13 @@ export default function LoginPage() {
               {isPending ? "Logging in..." : "Login"}
             </Button>
             
-            <Button variant="outline" className="w-full" type="button" disabled={isPending}>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              type="button" 
+              disabled={isPending}
+              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            >
               <GoogleIcon className="mr-2 h-4 w-4" />
               Login with Google
             </Button>

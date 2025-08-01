@@ -1,6 +1,7 @@
 
 import type { NextAuthOptions, User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./db";
 import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth";
@@ -35,6 +36,10 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     providers: [
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        }),
         CredentialsProvider({
             name: "Credentials",
             credentials: {
@@ -119,6 +124,35 @@ export const authOptions: NextAuthOptions = {
         strategy: 'jwt'
     },
     callbacks: {
+        async signIn({ user, account, profile }) {
+            if (account?.provider === 'google') {
+                try {
+                    // Check if user already exists
+                    const existingUser = await prisma.user.findUnique({
+                        where: { email: user.email! }
+                    });
+
+                    if (!existingUser) {
+                        // Create new user for Google OAuth
+                        const newUser = await prisma.user.create({
+                            data: {
+                                email: user.email!,
+                                name: user.name || user.email!.split('@')[0],
+                                image: user.image,
+                                emailVerified: new Date(),
+                            }
+                        });
+                        console.log(`[signIn] Created new user via Google OAuth: ${newUser.email}`);
+                    } else {
+                        console.log(`[signIn] Existing user logged in via Google OAuth: ${existingUser.email}`);
+                    }
+                } catch (error) {
+                    console.error('[signIn] Error handling Google OAuth user:', error);
+                    return false;
+                }
+            }
+            return true;
+        },
         async session({ session, token }) {
             try {
                 console.log("--- [auth.ts - session callback] ---");

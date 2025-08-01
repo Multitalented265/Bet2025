@@ -4,7 +4,7 @@ A modern betting platform for election predictions, built with Next.js, TypeScri
 
 ## Features
 
-- 🔐 **Authentication**: NextAuth.js with credentials and Google OAuth
+- 🔐 **Authentication**: NextAuth.js with email/password and Google OAuth
 - 💰 **Betting System**: Place bets on election candidates
 - 👛 **Wallet Management**: Deposit, withdraw, and track transactions
 - 📊 **Admin Dashboard**: Manage users, bets, and platform settings
@@ -99,7 +99,42 @@ src/
 | `DATABASE_URL` | PostgreSQL connection string | Yes |
 | `NEXTAUTH_SECRET` | Secret for NextAuth.js | Yes |
 | `NEXTAUTH_URL` | Your application URL | Yes |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | No |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | No |
 | `GOOGLE_AI_API_KEY` | Google AI API key | No |
+
+## Google OAuth Setup
+
+To enable Google login functionality:
+
+1. **Go to Google Cloud Console**
+   - Visit [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select an existing one
+
+2. **Enable Google+ API**
+   - Go to "APIs & Services" > "Library"
+   - Search for "Google+ API" and enable it
+
+3. **Create OAuth 2.0 Credentials**
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth 2.0 Client IDs"
+   - Choose "Web application" as the application type
+   - Add authorized redirect URIs:
+     - `http://localhost:9002/api/auth/callback/google` (for development)
+     - `https://bet2025-2-saau.onrender.com/api/auth/callback/google` (for production)
+
+4. **Update Environment Variables**
+   - Copy the Client ID and Client Secret
+   - Update your `.env` file:
+     ```
+     GOOGLE_CLIENT_ID=your_client_id_here
+     GOOGLE_CLIENT_SECRET=your_client_secret_here
+     ```
+
+5. **Restart the Development Server**
+   ```bash
+   npm run dev
+   ```
 
 ## License
 
