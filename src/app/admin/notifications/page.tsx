@@ -5,7 +5,7 @@ import { AdminNotificationsClient } from "@/components/admin-notifications-clien
 export default async function AdminNotificationsPage() {
   const session = await getAdminSession();
   
-  if (!session?.admin?.id) {
+  if (!session?.user?.id) {
     return redirect("/admin-auth/login");
   }
 
