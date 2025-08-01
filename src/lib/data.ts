@@ -551,7 +551,8 @@ export async function getSupportTickets() {
      return tickets.map(ticket => ({
         ...ticket,
         user: ticket.user as { name: string; email: string }, // Cast the JSON user data to the expected type
-        date: ticket.date.toISOString() // Convert Date to string for the client component
+        date: ticket.date.toISOString(), // Convert Date to string for the client component
+        status: ticket.status as 'Open' | 'Closed' // Cast status to the expected union type
     }));
 }
 
