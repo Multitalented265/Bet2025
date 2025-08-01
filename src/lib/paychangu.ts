@@ -353,15 +353,19 @@ export interface PayChanguOperator {
 
 /**
  * Get available banks and mobile money operators from PayChangu
+ * Updated according to PayChangu documentation: https://developer.paychangu.com/reference/get-banks
  */
 export async function getPayChanguBanks(): Promise<PayChanguBank[]> {
   try {
     console.log('🔍 Fetching PayChangu banks...')
+    console.log('🔗 Endpoint: https://api.paychangu.com/direct-charge/payouts/supported-banks?currency=MWK')
+    
     const response = await fetch('https://api.paychangu.com/direct-charge/payouts/supported-banks?currency=MWK', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${process.env.PAYCHANGU_SECRET_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     });
 
@@ -376,6 +380,10 @@ export async function getPayChanguBanks(): Promise<PayChanguBank[]> {
         console.warn('   - Falling back to mobile money only');
         return [];
       }
+      if (response.status === 401) {
+        console.error('❌ Authentication failed - check your PAYCHANGU_SECRET_KEY');
+        return [];
+      }
       console.error(`❌ Failed to fetch banks: ${response.status} ${response.statusText}`)
       throw new Error(`Failed to fetch banks: ${response.statusText}`);
     }
@@ -383,16 +391,31 @@ export async function getPayChanguBanks(): Promise<PayChanguBank[]> {
     const data = await response.json();
     console.log('💰 PayChangu banks response:', JSON.stringify(data, null, 2));
     
-    // Handle different response structures
-    if (data.data) {
+    // Handle different response structures based on PayChangu documentation
+    if (data.data && Array.isArray(data.data)) {
       console.log(`✅ Found ${data.data.length} banks in data.data`)
-      return data.data;
+      return data.data.map((bank: any) => ({
+        uuid: bank.uuid || bank.ref_id,
+        name: bank.name,
+        type: 'bank' as const,
+        country: bank.country || 'MW'
+      }));
     } else if (Array.isArray(data)) {
       console.log(`✅ Found ${data.length} banks in direct array`)
-      return data;
-    } else if (data.banks) {
+      return data.map((bank: any) => ({
+        uuid: bank.uuid || bank.ref_id,
+        name: bank.name,
+        type: 'bank' as const,
+        country: bank.country || 'MW'
+      }));
+    } else if (data.banks && Array.isArray(data.banks)) {
       console.log(`✅ Found ${data.banks.length} banks in data.banks`)
-      return data.banks;
+      return data.banks.map((bank: any) => ({
+        uuid: bank.uuid || bank.ref_id,
+        name: bank.name,
+        type: 'bank' as const,
+        country: bank.country || 'MW'
+      }));
     }
     
     console.log('⚠️ No banks found in response')
@@ -406,21 +429,36 @@ export async function getPayChanguBanks(): Promise<PayChanguBank[]> {
 
 /**
  * Get mobile money operators from PayChangu
+ * Updated according to PayChangu documentation: https://developer.paychangu.com/reference/get-operator
  */
 export async function getPayChanguOperators(): Promise<PayChanguOperator[]> {
   try {
     console.log('🔍 Fetching PayChangu mobile money operators...')
-    const response = await fetch('https://api.paychangu.com/mobile-money', {
+    console.log('🔗 Endpoint: https://api.paychangu.com/mobile-money/')
+    
+    const response = await fetch('https://api.paychangu.com/mobile-money/', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${process.env.PAYCHANGU_SECRET_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     });
 
     console.log(`🔍 PayChangu operators response status: ${response.status} ${response.statusText}`)
     
     if (!response.ok) {
+      if (response.status === 403) {
+        console.warn('⚠️ PayChangu operators endpoint returned 403 Forbidden. This might mean:');
+        console.warn('   - Your account doesn\'t have mobile money permissions');
+        console.warn('   - Mobile money transfers are not enabled for your account');
+        console.warn('   - You need to contact PayChangu support to enable mobile money');
+        return [];
+      }
+      if (response.status === 401) {
+        console.error('❌ Authentication failed - check your PAYCHANGU_SECRET_KEY');
+        return [];
+      }
       console.error(`❌ Failed to fetch operators: ${response.status} ${response.statusText}`)
       throw new Error(`Failed to fetch operators: ${response.statusText}`);
     }
@@ -428,16 +466,31 @@ export async function getPayChanguOperators(): Promise<PayChanguOperator[]> {
     const data = await response.json();
     console.log('💰 PayChangu operators response:', JSON.stringify(data, null, 2));
     
-    // Handle different response structures
-    if (data.data) {
+    // Handle different response structures based on PayChangu documentation
+    if (data.data && Array.isArray(data.data)) {
       console.log(`✅ Found ${data.data.length} operators in data.data`)
-      return data.data;
+      return data.data.map((operator: any) => ({
+        ref_id: operator.ref_id || operator.uuid,
+        name: operator.name,
+        type: 'mobile_money' as const,
+        country: operator.country || 'MW'
+      }));
     } else if (Array.isArray(data)) {
       console.log(`✅ Found ${data.length} operators in direct array`)
-      return data;
-    } else if (data.operators) {
+      return data.map((operator: any) => ({
+        ref_id: operator.ref_id || operator.uuid,
+        name: operator.name,
+        type: 'mobile_money' as const,
+        country: operator.country || 'MW'
+      }));
+    } else if (data.operators && Array.isArray(data.operators)) {
       console.log(`✅ Found ${data.operators.length} operators in data.operators`)
-      return data.operators;
+      return data.operators.map((operator: any) => ({
+        ref_id: operator.ref_id || operator.uuid,
+        name: operator.name,
+        type: 'mobile_money' as const,
+        country: operator.country || 'MW'
+      }));
     }
     
     console.log('⚠️ No operators found in response')
@@ -450,6 +503,7 @@ export async function getPayChanguOperators(): Promise<PayChanguOperator[]> {
 
 /**
  * Create a PayChangu mobile money transfer (withdrawal)
+ * Updated according to PayChangu documentation: https://developer.paychangu.com/docs/mobile-money
  */
 export async function createPayChanguMobileMoneyTransfer(
   transferData: PayChanguTransferData
@@ -461,7 +515,8 @@ export async function createPayChanguMobileMoneyTransfer(
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.PAYCHANGU_SECRET_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         mobile_money_operator_ref_id: transferData.mobile_money_operator_ref_id,
@@ -482,12 +537,12 @@ export async function createPayChanguMobileMoneyTransfer(
       };
     }
 
-    // Handle the actual response structure
+    // Handle the response structure according to PayChangu documentation
     const transferInfo = data.data || data;
     return {
       success: true,
       message: 'Mobile money transfer initiated successfully',
-      transfer_id: transferInfo.ref_id || transferInfo.transfer_id,
+      transfer_id: transferInfo.ref_id || transferInfo.trans_id,
       ref_id: transferInfo.ref_id,
       status: transferInfo.status
     };
