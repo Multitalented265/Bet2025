@@ -97,9 +97,12 @@ export function SettingsClient({ user }: { user: User | null }) {
         });
     }
 
+    const [notifyOnBetStatusUpdates, setNotifyOnBetStatusUpdates] = useState(user?.notifyOnBetStatusUpdates ?? true);
+
     const handleNotificationsSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const formData = new FormData(event.currentTarget);
+        const formData = new FormData();
+        formData.append("bet-status-updates", notifyOnBetStatusUpdates ? "on" : "off");
         startTransition(async () => {
             await handleNotificationSettings(formData);
             toast({
@@ -274,7 +277,8 @@ export function SettingsClient({ user }: { user: User | null }) {
                         <Switch 
                             id="bet-status-updates"
                             name="bet-status-updates"
-                            defaultChecked={user?.notifyOnBetStatusUpdates} 
+                            checked={notifyOnBetStatusUpdates}
+                            onCheckedChange={setNotifyOnBetStatusUpdates}
                         />
                     </div>
                 </CardContent>

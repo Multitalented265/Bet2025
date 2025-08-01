@@ -25,9 +25,9 @@ export default async function AdminLayout({
   console.log("✅ Admin session found, rendering admin layout");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen w-full flex-col">
       <AdminHeader />
-      <main className="container mx-auto px-4 py-8">
+      <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
         {children}
       </main>
     </div>

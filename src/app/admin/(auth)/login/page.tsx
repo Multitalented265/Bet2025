@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Shield, Eye, EyeOff, Loader2, Mail } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -15,6 +15,10 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -81,6 +85,36 @@ export default function AdminLoginPage() {
       setError('An error occurred during login');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordLoading(true);
+    setForgotPasswordMessage('');
+
+    try {
+      const response = await fetch('/api/admin/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setForgotPasswordMessage(data.message);
+        setForgotPasswordEmail('');
+      } else {
+        setForgotPasswordMessage(data.message || 'Failed to send reset email');
+      }
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      setForgotPasswordMessage('An error occurred. Please try again.');
+    } finally {
+      setForgotPasswordLoading(false);
     }
   };
 
@@ -159,13 +193,60 @@ export default function AdminLoginPage() {
               </Button>
             </form>
             
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              <p>Default admin credentials:</p>
-              <p className="font-mono text-xs mt-1">
-                Email: {process.env.NEXT_PUBLIC_ADMIN_EMAIL}<br />
-                Password: {process.env.NEXT_PUBLIC_ADMIN_PASSWORD}
-              </p>
+            <div className="mt-6 text-center">
+              <Button
+                type="button"
+                variant="link"
+                className="text-sm text-muted-foreground hover:text-primary"
+                onClick={() => setShowForgotPassword(!showForgotPassword)}
+              >
+                Forgot your password?
+              </Button>
             </div>
+
+            {showForgotPassword && (
+              <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email Address</Label>
+                    <Input
+                      id="forgot-email"
+                      type="email"
+                      placeholder="Enter your admin email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      required
+                      disabled={forgotPasswordLoading}
+                    />
+                  </div>
+                  
+                  {forgotPasswordMessage && (
+                    <Alert variant={forgotPasswordMessage.includes('error') ? "destructive" : "default"}>
+                      <AlertDescription>{forgotPasswordMessage}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={forgotPasswordLoading}
+                    size="sm"
+                  >
+                    {forgotPasswordLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Send Reset Email
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

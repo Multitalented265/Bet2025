@@ -5,45 +5,10 @@ import { revalidatePath } from "next/cache";
 import { addTransaction, createSupportTicket, updateUser as dbUpdateUser, getTransactions as dbGetTransactions, getUserById } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import bcrypt from "bcryptjs";
 
 
-// These functions are deprecated - using WalletService instead
-// export async function handleTransaction(type: 'Deposit' | 'Withdrawal', amount: number) {
-//   const session = await getSession();
-//   if (!session?.user?.id) {
-//     redirect("/");
-//   }
 
-//   const fee = amount * 0.025; // 2.5% fee
-//   await addTransaction({
-//     type,
-//     amount,
-//     fee,
-//     userId: session.user.id,
-//     status: 'pending',
-//   });
-//   revalidatePath('/wallet');
-//   revalidatePath('/admin/revenue');
-// }
-
-// export async function handlePayChanguPayment(type: 'Deposit' | 'Withdrawal', amount: number, txRef: string) {
-//   const session = await getSession();
-//   if (!session?.user?.id) {
-//     redirect("/");
-//   }
-
-//   const fee = amount * 0.025; // 2.5% fee
-//   await addTransaction({
-//     type,
-//     amount,
-//     fee,
-//     userId: session.user.id,
-//     txRef,
-//     status: 'completed',
-//   });
-//   revalidatePath('/wallet');
-//   revalidatePath('/admin/revenue');
-// }
 
 export async function getUserTransactions() {
     const session = await getSession();
@@ -64,13 +29,17 @@ export async function handleCreateSupportTicket(formData: FormData) {
         throw new Error("User not found.");
     }
 
+    const email = formData.get("email") as string;
+    const subject = formData.get("subject") as string;
+    const message = formData.get("message") as string;
+
     const newTicket = {
         user: {
             name: user.name,
-            email: user.email,
+            email: email, // Use the email from the form
         },
-        subject: formData.get("subject") as string,
-        message: formData.get("message") as string,
+        subject: subject,
+        message: message,
     };
     if (!newTicket.user.name || !newTicket.user.email || !newTicket.subject || !newTicket.message) {
         throw new Error("Missing required ticket fields.");
@@ -94,13 +63,31 @@ export async function handleProfileUpdate(formData: FormData) {
 
 export async function handlePasswordChange(values: any) {
     const session = await getSession();
-     if (!session?.user?.id) {
+    if (!session?.user?.id) {
         redirect("/");
     }
-    // In a real app, you would validate the current password and update it.
-    console.log("Password change requested for user:", session.user.id, values);
-    // This requires a more complex implementation involving checking current password and hashing the new one.
-    // For now, it remains a console log.
+
+    // Get user to verify current password
+    const user = await getUserById(session.user.id);
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    // Verify current password
+    if (!user.password) {
+        throw new Error("No password set for this account");
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(values.currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+        throw new Error("Current password is incorrect");
+    }
+
+    // Hash new password and update
+    const hashedNewPassword = await bcrypt.hash(values.newPassword, 10);
+    await dbUpdateUser(session.user.id, { password: hashedNewPassword });
+
+    revalidatePath('/settings');
 }
 
 export async function handleNotificationSettings(formData: FormData) {

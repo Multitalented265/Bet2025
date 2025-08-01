@@ -16,13 +16,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push",
-    "setup:paychangu": "node setup-paychangu.js",
-    "test:webhook": "curl -X GET https://busy-sloth-relative.ngrok-free.app/api/paychangu/webhook",
-    "test:ngrok": "node test-ngrok.js",
-    "debug:paychangu": "node debug-paychangu.js",
-    "test:webhooks": "node test-webhook.js",
-    "ngrok": "ngrok http 80"
+    "prisma:push": "prisma db push"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",

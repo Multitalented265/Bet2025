@@ -5,11 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Activity, 
   Users, 
@@ -26,7 +28,8 @@ import {
   Smartphone,
   Globe2,
   Calendar,
-  Timer
+  Timer,
+  Ban
 } from 'lucide-react';
 
 interface LoginLog {
@@ -76,6 +79,13 @@ export default function LoginTrackingDashboard() {
   const [selectedAdmin, setSelectedAdmin] = useState('all');
   const [selectedLog, setSelectedLog] = useState<LoginLog | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isBanDialogOpen, setIsBanDialogOpen] = useState(false);
+  const [banForm, setBanForm] = useState({
+    ipAddress: '',
+    reason: '',
+    expiresAt: ''
+  });
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchLoginData();
@@ -123,15 +133,38 @@ export default function LoginTrackingDashboard() {
     return matchesFilter && matchesSearch && matchesAdmin;
   });
 
-  const formatDuration = (seconds?: number) => {
-    if (!seconds) return 'N/A';
+  const formatDuration = (seconds?: number, logoutTime?: string) => {
+    if (!logoutTime) {
+      // Calculate duration for active sessions
+      if (seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        
+        if (hours > 0) {
+          return `${hours}h ${minutes}m ${secs}s (Active)`;
+        } else if (minutes > 0) {
+          return `${minutes}m ${secs}s (Active)`;
+        } else {
+          return `${secs}s (Active)`;
+        }
+      }
+      return 'Active Session';
+    }
+    
+    if (!seconds || seconds === 0) return 'N/A';
+    
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     
-    if (hours > 0) return `${hours}h ${minutes}m ${secs}s`;
-    if (minutes > 0) return `${minutes}m ${secs}s`;
-    return `${secs}s`;
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
   };
 
   const formatDateTime = (dateString: string) => {
@@ -181,6 +214,46 @@ export default function LoginTrackingDashboard() {
   const handleViewDetails = (log: LoginLog) => {
     setSelectedLog(log);
     setIsDetailModalOpen(true);
+  };
+
+  const handleBanIP = async () => {
+    try {
+      const response = await fetch('/api/admin/banned-ips', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(banForm),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "IP address banned successfully"
+        });
+        setIsBanDialogOpen(false);
+        setBanForm({ ipAddress: '', reason: '', expiresAt: '' });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: data.message || "Failed to ban IP address"
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to ban IP address"
+      });
+    }
+  };
+
+  const openBanDialog = (ipAddress: string) => {
+    setBanForm({ ...banForm, ipAddress });
+    setIsBanDialogOpen(true);
   };
 
   const exportData = () => {
@@ -370,16 +443,28 @@ export default function LoginTrackingDashboard() {
                       {getStatusBadge(log)}
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{formatDuration(log.sessionDuration)}</div>
+                      <div className="text-sm">{formatDuration(log.sessionDuration, log.logoutTime)}</div>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleViewDetails(log)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewDetails(log)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {log.ipAddress && !log.ipAddress.includes('127.0.0.1') && !log.ipAddress.includes('localhost') && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => openBanDialog(log.ipAddress!)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Ban className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -571,6 +656,56 @@ export default function LoginTrackingDashboard() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Ban IP Dialog */}
+      <Dialog open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ban className="h-5 w-5 text-red-600" />
+              Ban IP Address
+            </DialogTitle>
+            <DialogDescription>
+              Enter the IP address you want to ban and provide a reason. This will prevent access from this IP address.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">IP Address</label>
+              <Input
+                placeholder="192.168.1.1"
+                value={banForm.ipAddress}
+                onChange={(e) => setBanForm({ ...banForm, ipAddress: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Reason (Optional)</label>
+              <Textarea
+                placeholder="Reason for banning this IP address"
+                value={banForm.reason}
+                onChange={(e) => setBanForm({ ...banForm, reason: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Expires At (Optional)</label>
+              <Input
+                type="datetime-local"
+                value={banForm.expiresAt}
+                onChange={(e) => setBanForm({ ...banForm, expiresAt: e.target.value })}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsBanDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleBanIP} className="bg-red-600 hover:bg-red-700">
+                <Ban className="h-4 w-4 mr-2" />
+                Ban IP
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

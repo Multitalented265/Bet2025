@@ -154,7 +154,7 @@ export function AdminRevenueClient({ initialTransactions, users }: RevenueClient
                       {tx.type}
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(tx.date + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</TableCell>
+                  <TableCell>{new Date(tx.date).toLocaleDateString()} at {new Date(tx.date).toLocaleTimeString()}</TableCell>
                   <TableCell className="text-right">{tx.amount.toLocaleString()} MWK</TableCell>
                   <TableCell className="text-right text-green-600 font-medium">{tx.fee.toLocaleString()} MWK</TableCell>
                 </TableRow>

@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
-import { handleAdminPasswordChange, handleAdminNotificationSettings, fetchAdminSettings } from "@/actions/admin"
+import { handleAdminPasswordChange, handleAdminEmailChange, handleAdminNotificationSettings, fetchAdminSettings } from "@/actions/admin"
 import type { AdminSettings } from "@/lib/data"
 
 const passwordFormSchema = z.object({
@@ -33,12 +33,18 @@ const passwordFormSchema = z.object({
   path: ["confirmPassword"],
 })
 
+const emailFormSchema = z.object({
+  currentPassword: z.string().min(1, { message: "Current password is required." }),
+  newEmail: z.string().email({ message: "Please enter a valid email address." }),
+})
+
 export default function AdminSettingsPage() {
     const { toast } = useToast()
     const [isPending, startTransition] = useTransition();
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [showEmailCurrentPassword, setShowEmailCurrentPassword] = useState(false)
     const [settings, setSettings] = useState<AdminSettings | null>(null);
 
     useEffect(() => {
@@ -67,6 +73,14 @@ export default function AdminSettingsPage() {
         },
     })
 
+    const emailForm = useForm<z.infer<typeof emailFormSchema>>({
+        resolver: zodResolver(emailFormSchema),
+        defaultValues: {
+            currentPassword: "",
+            newEmail: "",
+        },
+    })
+
     function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
         startTransition(async () => {
             try {
@@ -87,9 +101,34 @@ export default function AdminSettingsPage() {
         });
     }
 
+    function onEmailSubmit(values: z.infer<typeof emailFormSchema>) {
+        startTransition(async () => {
+            try {
+                await handleAdminEmailChange(values);
+                toast({
+                    title: "Email Updated",
+                    description: "Your email address has been changed successfully.",
+                });
+                emailForm.reset();
+            } catch (error) {
+                console.error('Error updating email:', error);
+                toast({
+                    title: "Error",
+                    description: error instanceof Error ? error.message : "Failed to update email",
+                    variant: "destructive"
+                });
+            }
+        });
+    }
+
     const handleSaveSettings = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const formData = new FormData(event.currentTarget);
+        const formData = new FormData();
+        formData.append("enable-2fa", settings?.enable2fa ? "on" : "off");
+        formData.append("newUser", settings?.notifyOnNewUser ? "on" : "off");
+        formData.append("newUserLogin", settings?.notifyOnNewUserLogin ? "on" : "off");
+        formData.append("largeBet", settings?.notifyOnLargeBet ? "on" : "off");
+        formData.append("largeDeposit", settings?.notifyOnLargeDeposit ? "on" : "off");
         startTransition(async () => {
             try {
                 await handleAdminNotificationSettings(formData);
@@ -204,6 +243,61 @@ export default function AdminSettingsPage() {
             </Form>
           </CardContent>
       </Card>
+
+      <Card>
+          <CardHeader>
+            <CardTitle>Change Email</CardTitle>
+            <CardDescription>
+                Update your admin email address.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...emailForm}>
+                <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+                     <FormField
+                        control={emailForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Current Password</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input type={showEmailCurrentPassword ? "text" : "password"} {...field} />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                                  onClick={() => setShowEmailCurrentPassword(!showEmailCurrentPassword)}
+                                >
+                                  {showEmailCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={emailForm.control}
+                        name="newEmail"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>New Email</FormLabel>
+                            <FormControl>
+                                <Input type="email" placeholder="admin@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <div className="flex justify-end">
+                      <Button type="submit" disabled={isPending}>{isPending ? "Changing..." : "Change Email"}</Button>
+                    </div>
+                </form>
+            </Form>
+          </CardContent>
+      </Card>
         <form onSubmit={handleSaveSettings}>
           <fieldset disabled={isPending || !settings}>
             <Card>
@@ -247,6 +341,20 @@ export default function AdminSettingsPage() {
                           name="newUser" 
                           checked={settings?.notifyOnNewUser}
                           onCheckedChange={(checked) => setSettings(s => s ? {...s, notifyOnNewUser: checked} : null)}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="new-user-login-notification" className="text-base">New User Login</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Receive an email when a new user logs in for the first time.
+                            </p>
+                        </div>
+                        <Switch 
+                          id="new-user-login-notification" 
+                          name="newUserLogin" 
+                          checked={settings?.notifyOnNewUserLogin}
+                          onCheckedChange={(checked) => setSettings(s => s ? {...s, notifyOnNewUserLogin: checked} : null)}
                         />
                     </div>
                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">

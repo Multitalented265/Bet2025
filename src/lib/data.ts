@@ -68,6 +68,7 @@ export type AdminSettings = {
   id: number;
   enable2fa: boolean;
   notifyOnNewUser: boolean;
+  notifyOnNewUserLogin: boolean;
   notifyOnLargeBet: boolean;
   notifyOnLargeDeposit: boolean;
   bettingEnabled: boolean;
@@ -195,6 +196,7 @@ const getCachedAdminSettings = unstable_cache(
             id: 1,
             enable2fa: false,
             notifyOnNewUser: true,
+            notifyOnNewUserLogin: false,
             notifyOnLargeBet: false,
             notifyOnLargeDeposit: true,
             bettingEnabled: true
@@ -214,6 +216,7 @@ const getCachedAdminSettings = unstable_cache(
         id: 1,
         enable2fa: false,
         notifyOnNewUser: true,
+        notifyOnNewUserLogin: false,
         notifyOnLargeBet: false,
         notifyOnLargeDeposit: true,
         bettingEnabled: true
@@ -357,6 +360,18 @@ export async function addUser(userData: Omit<User, 'id' | 'joined' | 'status' | 
             // Use default balance from schema (0.00) instead of hardcoded 50000
         },
     });
+
+    // Send notification for new user registration
+    try {
+        const { notifyNewUser } = await import('./notifications');
+        await notifyNewUser({
+            name: newUser.name || 'Unknown',
+            email: newUser.email || 'No email'
+        });
+    } catch (notificationError) {
+        console.error('Error sending new user notification:', notificationError);
+    }
+
     return { ...newUser, balance: newUser.balance.toNumber() };
 }
 
@@ -445,6 +460,21 @@ export async function placeBet(newBet: { userId: string, candidateName: string, 
         // Invalidate user cache to ensure fresh balance data
         await invalidateUserCache(newBet.userId);
         
+        // Send notification for large bets (over 1,000,000 MWK)
+        if (newBet.amount >= 1000000) {
+            try {
+                const { notifyLargeBet } = await import('./notifications');
+                await notifyLargeBet({
+                    userId: newBet.userId,
+                    userName: user.name || 'Unknown',
+                    amount: newBet.amount,
+                    candidateName: newBet.candidateName
+                });
+            } catch (notificationError) {
+                console.error('Error sending large bet notification:', notificationError);
+            }
+        }
+        
         return bet;
     });
 }
@@ -492,6 +522,21 @@ export async function addTransaction(transaction: Omit<Transaction, 'id' | 'date
         // Invalidate user cache to ensure fresh balance data
         await invalidateUserCache(transaction.userId);
 
+        // Send notification for large deposits (over 500,000 MWK)
+        if (transaction.amount >= 500000 && transaction.status === 'completed') {
+            try {
+                const { notifyLargeDeposit } = await import('./notifications');
+                await notifyLargeDeposit({
+                    userId: transaction.userId,
+                    userName: user.name || 'Unknown',
+                    amount: transaction.amount,
+                    type: transaction.type
+                });
+            } catch (notificationError) {
+                console.error('Error sending large deposit notification:', notificationError);
+            }
+        }
+
         return { ...newTransaction, amount: newTransaction.amount.toNumber(), fee: newTransaction.fee.toNumber() };
     });
 }
@@ -505,7 +550,7 @@ export async function getSupportTickets() {
     });
      return tickets.map(ticket => ({
         ...ticket,
-        user: JSON.parse(ticket.user as string) // Assuming user is stored as a JSON string
+        user: ticket.user // Prisma already parses JSON fields as objects
     }));
 }
 
@@ -618,6 +663,24 @@ export async function finalizeElection(winningCandidateName: string) {
 
                 console.log(`User ${bet.userId} won ${winnings} MWK from bet ${bet.id}`);
                 
+                // Send notification to user about winning bet
+                try {
+                    const { sendUserNotification } = await import('./notifications');
+                    await sendUserNotification(bet.userId, {
+                        subject: '🎉 Congratulations! Your Bet Won!',
+                        message: `Great news! Your bet of ${betAmount} MWK on ${bet.candidateName} has won! You've earned ${winnings.toFixed(2)} MWK in winnings.`,
+                        type: 'betWon',
+                        metadata: {
+                            betId: bet.id,
+                            betAmount,
+                            winnings,
+                            candidateName: bet.candidateName
+                        }
+                    });
+                } catch (notificationError) {
+                    console.error('Error sending win notification:', notificationError);
+                }
+                
                 // Invalidate user cache to ensure fresh balance data
                 await invalidateUserCache(bet.userId);
             } else {
@@ -628,6 +691,23 @@ export async function finalizeElection(winningCandidateName: string) {
                 });
 
                 console.log(`User ${bet.userId} lost bet ${bet.id} (${betAmount} MWK)`);
+                
+                // Send notification to user about losing bet
+                try {
+                    const { sendUserNotification } = await import('./notifications');
+                    await sendUserNotification(bet.userId, {
+                        subject: 'Bet Result: Not This Time',
+                        message: `Your bet of ${betAmount} MWK on ${bet.candidateName} did not win this time. Better luck next time!`,
+                        type: 'betLost',
+                        metadata: {
+                            betId: bet.id,
+                            betAmount,
+                            candidateName: bet.candidateName
+                        }
+                    });
+                } catch (notificationError) {
+                    console.error('Error sending loss notification:', notificationError);
+                }
             }
         }
 

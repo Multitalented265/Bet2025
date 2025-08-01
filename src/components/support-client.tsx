@@ -104,6 +104,16 @@ export function SupportClient({ user }: SupportClientProps) {
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input 
+                                    id="email" 
+                                    name="email" 
+                                    type="email" 
+                                    defaultValue={user.email || ''} 
+                                    required 
+                                />
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="subject">Subject</Label>
                                 <Input id="subject" name="subject" required />
                             </div>

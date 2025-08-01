@@ -78,6 +78,27 @@ export const authOptions: NextAuthOptions = {
                         }
                         
                         console.log(`[authorize] Password valid. Returning user object for session creation:`, { id: user.id, name: user.name, email: user.email });
+                        
+                        // Check if this is the user's first login by checking if they have any sessions
+                        const existingSessions = await prisma.session.findMany({
+                            where: { userId: user.id }
+                        });
+                        
+                        // If this is the first login (no previous sessions), send notification
+                        if (existingSessions.length === 0) {
+                            try {
+                                const { notifyNewUserLogin } = await import('./notifications');
+                                await notifyNewUserLogin({
+                                    name: user.name || 'Unknown',
+                                    email: user.email || 'Unknown',
+                                    loginTime: new Date()
+                                });
+                                console.log(`[authorize] First login notification sent for user: ${user.email}`);
+                            } catch (notificationError) {
+                                console.error('[authorize] Error sending first login notification:', notificationError);
+                            }
+                        }
+                        
                         return {
                             id: user.id,
                             name: user.name,
@@ -188,6 +209,18 @@ export async function authenticateAdmin(email: string, password: string, ipAddre
         }
       });
       
+      // Send notification for successful login
+      try {
+        const { notifyLoginAttempt } = await import('./notifications');
+        await notifyLoginAttempt({
+          adminEmail: admin.email,
+          ipAddress: ipAddress || 'Unknown',
+          isSuccessful: true
+        });
+      } catch (notificationError) {
+        console.error('Error sending login notification:', notificationError);
+      }
+      
       return {
         success: true,
         sessionToken,
@@ -199,6 +232,19 @@ export async function authenticateAdmin(email: string, password: string, ipAddre
         }
       };
     } else {
+      // Send notification for failed login
+      try {
+        const { notifyLoginAttempt } = await import('./notifications');
+        await notifyLoginAttempt({
+          adminEmail: email,
+          ipAddress: ipAddress || 'Unknown',
+          isSuccessful: false,
+          failureReason: 'Invalid password'
+        });
+      } catch (notificationError) {
+        console.error('Error sending login notification:', notificationError);
+      }
+      
       return {
         success: false,
         message: 'Invalid admin credentials'
@@ -271,9 +317,42 @@ export async function logoutAdmin() {
   try {
     const sessionToken = await getSessionToken();
     if (sessionToken) {
-      await prisma.adminSession.deleteMany({
-        where: { sessionToken }
+      // Get the session to find the admin
+      const session = await prisma.adminSession.findUnique({
+        where: { sessionToken },
+        include: { admin: true }
       });
+
+      if (session) {
+        // Find the most recent login log for this admin that doesn't have a logout time
+        const latestLoginLog = await prisma.adminLoginLog.findFirst({
+          where: {
+            adminId: session.adminId,
+            logoutTime: null,
+            isSuccessful: true
+          },
+          orderBy: { loginTime: 'desc' }
+        });
+
+        if (latestLoginLog) {
+          const now = new Date();
+          const sessionDuration = Math.floor((now.getTime() - latestLoginLog.loginTime.getTime()) / 1000);
+
+          // Update the login log with logout time and duration
+          await prisma.adminLoginLog.update({
+            where: { id: latestLoginLog.id },
+            data: {
+              logoutTime: now,
+              sessionDuration: sessionDuration
+            }
+          });
+        }
+
+        // Delete the session
+        await prisma.adminSession.deleteMany({
+          where: { sessionToken }
+        });
+      }
     }
     return { success: true };
   } catch (error) {

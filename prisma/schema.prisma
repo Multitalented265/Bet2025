@@ -106,23 +106,26 @@ model AdminSettings {
   id                   Int     @id @default(1)
   enable2fa            Boolean @default(false)
   notifyOnNewUser      Boolean @default(true)
+  notifyOnNewUserLogin Boolean @default(false)
   notifyOnLargeBet     Boolean @default(false)
   notifyOnLargeDeposit Boolean @default(true)
   bettingEnabled       Boolean @default(true)
 }
 
 model Admin {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      String   @default("admin")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
-  loginLogs AdminLoginLog[]
-  sessions  AdminSession[]
-  bannedIPs BannedIP[]
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  name              String
+  role              String   @default("admin")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  isActive          Boolean  @default(true)
+  resetToken        String?
+  resetTokenExpires DateTime?
+  loginLogs         AdminLoginLog[]
+  sessions          AdminSession[]
+  bannedIPs         BannedIP[]
 }
 
 model AdminLoginLog {
@@ -175,4 +178,14 @@ model BannedIP {
   expiresAt   DateTime?
   isActive    Boolean  @default(true)
   admin       Admin    @relation(fields: [bannedBy], references: [id], onDelete: Cascade)
+}
+
+model AdminNotification {
+  id        String   @id @default(cuid())
+  subject   String
+  message   String
+  type      String
+  metadata  Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
