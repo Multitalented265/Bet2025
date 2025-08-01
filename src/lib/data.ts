@@ -550,7 +550,7 @@ export async function getSupportTickets() {
     });
      return tickets.map(ticket => ({
         ...ticket,
-        user: ticket.user // Prisma already parses JSON fields as objects
+        user: ticket.user as { name: string; email: string } // Cast the JSON user data to the expected type
     }));
 }
 
