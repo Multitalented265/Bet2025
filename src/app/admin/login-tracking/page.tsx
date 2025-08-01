@@ -90,9 +90,9 @@ export default async function AdminLoginTrackingPage() {
             <Users className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.recentLogins}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.successfulLogins}</div>
             <p className="text-xs text-muted-foreground">
-              Recent logins (24h)
+              Successful logins
             </p>
           </CardContent>
         </Card>
@@ -102,9 +102,9 @@ export default async function AdminLoginTrackingPage() {
             <Clock className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.totalLogins - stats.recentLogins}</div>
+            <div className="text-2xl font-bold text-red-600">{stats.failedLogins}</div>
             <p className="text-xs text-muted-foreground">
-              Previous logins
+              Failed login attempts
             </p>
           </CardContent>
         </Card>
