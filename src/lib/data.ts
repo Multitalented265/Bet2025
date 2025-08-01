@@ -422,7 +422,7 @@ export async function placeBet(newBet: { userId: string, candidateName: string, 
         // Check user balance
         const user = await tx.user.findUnique({ where: { id: newBet.userId } });
         if (!user || user.balance.toNumber() < newBet.amount) {
-            throw new Error("Insufficient balance to place this bet.");
+            throw new Error("Insufficient funds in your wallet. Please add money to your wallet before placing a bet.");
         }
 
         // Deduct bet amount from user balance

@@ -198,6 +198,18 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
 
       startTransition(async () => {
         try {
+          // Check if user is authenticated before proceeding with withdrawal
+          const sessionResponse = await fetch('/api/test-session');
+          if (!sessionResponse.ok) {
+            const userFriendlyMessage = handleError('Please log in again to continue with withdrawal');
+            toast({
+              title: "Authentication Error",
+              description: userFriendlyMessage,
+              variant: "destructive"
+            });
+            return;
+          }
+
           const response = await fetch('/api/wallet/withdraw', {
             method: 'POST',
             headers: {
