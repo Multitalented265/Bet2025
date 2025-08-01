@@ -1,6 +1,7 @@
 import { getAdminSession } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { WalletService } from "@/lib/wallet-service"
+import type { TransactionWithUser } from "@/lib/wallet-service"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -22,7 +23,7 @@ export default async function AdminWalletPage() {
   const feeStats = await WalletService.getTotalFees()
 
   // Get recent transactions for admin view
-  const recentTransactions = await WalletService.getAllTransactions(20)
+  const recentTransactions: TransactionWithUser[] = await WalletService.getAllTransactions(20)
 
   return (
     <div className="flex flex-col gap-6">
