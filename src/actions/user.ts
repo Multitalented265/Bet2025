@@ -34,10 +34,7 @@ export async function handleCreateSupportTicket(formData: FormData) {
     const message = formData.get("message") as string;
 
     const newTicket = {
-        user: {
-            name: user.name,
-            email: email, // Use the email from the form
-        },
+        user: user,
         subject: subject,
         message: message,
     };
