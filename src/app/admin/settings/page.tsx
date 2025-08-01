@@ -55,7 +55,7 @@ export default function AdminSettingsPage() {
           setSettings(adminSettings);
         } catch (error) {
           console.error('Error fetching admin settings:', error);
-          const userFriendlyMessage = handleError(error);
+          const userFriendlyMessage = handleError(error as Error);
           toast({
             variant: "destructive",
             title: "Error",
@@ -94,7 +94,7 @@ export default function AdminSettingsPage() {
                 passwordForm.reset();
             } catch (error) {
                 console.error('Error updating password:', error);
-                const userFriendlyMessage = handleError(error);
+                const userFriendlyMessage = handleError(error as Error);
                 toast({
                     title: "Error",
                     description: userFriendlyMessage,
@@ -115,7 +115,7 @@ export default function AdminSettingsPage() {
                 emailForm.reset();
             } catch (error) {
                 console.error('Error updating email:', error);
-                const userFriendlyMessage = handleError(error);
+                const userFriendlyMessage = handleError(error as Error);
                 toast({
                     title: "Error",
                     description: userFriendlyMessage,
@@ -142,7 +142,7 @@ export default function AdminSettingsPage() {
                 });
             } catch (error) {
                 console.error('Error saving settings:', error);
-                const userFriendlyMessage = handleError(error);
+                const userFriendlyMessage = handleError(error as Error);
                 toast({
                     title: "Error",
                     description: userFriendlyMessage,
