@@ -5,6 +5,7 @@ import { useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
+import { signIn } from "next-auth/react"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -21,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Logo from "@/components/logo"
+import { GoogleIcon } from "@/components/icons/google-icon"
 import { handleSignup } from "@/actions/auth"
 import { useToast } from "@/hooks/use-toast"
 import { handleError } from "@/lib/utils"
@@ -195,6 +197,17 @@ export default function SignupPage() {
             
             <Button type="submit" className="w-full font-bold mt-4" disabled={isPending}>
               {isPending ? "Creating Account..." : "Create Account"}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              type="button" 
+              disabled={isPending}
+              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            >
+              <GoogleIcon className="mr-2 h-4 w-4" />
+              Sign up with Google
             </Button>
           </form>
           

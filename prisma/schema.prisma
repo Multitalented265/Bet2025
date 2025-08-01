@@ -52,6 +52,8 @@ model User {
   joined                   DateTime      @default(now())
   notifyOnBetStatusUpdates Boolean       @default(true)
   image                    String?
+  resetToken               String?
+  resetTokenExpiry         DateTime?
   accounts                 Account[]
   bets                     Bet[]
   sessions                 Session[]
