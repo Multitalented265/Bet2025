@@ -145,10 +145,10 @@ export async function finalizeElectionAction(winningCandidateName: string) {
         const result = await finalizeElection(winningCandidateName);
         
         console.log(`Election finalized successfully:`, {
-            winner: result.winner,
-            totalPrizePool: result.totalPrizePool,
-            winningBetsCount: result.winningBetsCount,
-            totalBetsProcessed: result.totalBetsProcessed
+            winner: result.winningCandidate,
+            totalPrizePool: result.totalPot,
+            winningBetsCount: result.payouts.length,
+            totalBetsProcessed: result.totalWinningBets
         });
 
         return result;
