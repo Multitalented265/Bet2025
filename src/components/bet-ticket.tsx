@@ -11,8 +11,8 @@ export type Bet = {
   userId: string;
   candidateName: string;
   amount: number;
-  placedDate: string;
-  status: 'Pending' | 'Won' | 'Lost';
+  placedDate: Date;
+  status: 'Active' | 'Completed';
 };
 
 type BetTicketProps = {
@@ -22,26 +22,20 @@ type BetTicketProps = {
 };
 
 const statusConfig = {
-  Pending: {
+  Active: {
     color: "bg-yellow-500 text-white",
-    label: "Pending",
+    label: "Active",
   },
-  Won: {
+  Completed: {
     color: "bg-green-500 text-white",
-    label: "Won",
-  },
-  Lost: {
-    color: "bg-destructive text-destructive-foreground",
-    label: "Lost",
+    label: "Completed",
   },
 };
 
 export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProps) {
-  // Format date from ISO string
-  const formatDate = (dateString: string) => {
+  // Format date from Date object
+  const formatDate = (date: Date) => {
     try {
-      const date = new Date(dateString);
-      
       if (isNaN(date.getTime())) {
         return 'Invalid Date';
       }
@@ -84,15 +78,15 @@ export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProp
             <span className="text-muted-foreground">Bet Amount</span>
             <span className="font-bold text-2xl text-primary">{bet.amount.toLocaleString()} MWK</span>
         </div>
-         {bet.status === 'Pending' && (
+         {bet.status === 'Active' && (
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Potential Win</span>
             <span className="font-bold text-2xl text-accent">{finalWinnings.toLocaleString(undefined, { maximumFractionDigits: 0 })} MWK</span>
           </div>
         )}
-         {bet.status === 'Won' && (
+         {bet.status === 'Completed' && (
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Winnings Paid Out</span>
+            <span className="text-muted-foreground">Bet Completed</span>
             <span className="font-bold text-2xl text-green-500">{finalWinnings.toLocaleString(undefined, { maximumFractionDigits: 0 })} MWK</span>
           </div>
         )}
