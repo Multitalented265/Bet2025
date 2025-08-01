@@ -3,14 +3,14 @@ import { AdminFinalizeElection } from "@/components/admin-finalize-election";
 import { DashboardChart } from "@/components/dashboard-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Vote, CircleDollarSign } from "lucide-react";
-import { getBets, getCandidates, getUsers, getAdminSettings, getBetStatistics } from "@/lib/data";
+import { getBets, getCandidatesWithBetCounts, getUsers, getAdminSettings, getBetStatistics } from "@/lib/data";
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
   const [candidates, users, bets, adminSettings, betStats] = await Promise.all([
-    getCandidates(),
+    getCandidatesWithBetCounts(),
     getUsers(),
     getBets(),
     getAdminSettings(),
@@ -49,7 +49,7 @@ export default async function AdminDashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{betStats.totalBets}</div>
             <p className="text-xs text-muted-foreground">
-              {betStats.pendingBets} pending, {betStats.wonBets} won, {betStats.lostBets} lost
+              Total bets placed
             </p>
           </CardContent>
         </Card>
@@ -59,7 +59,7 @@ export default async function AdminDashboardPage() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{betStats.totalPrizePool.toLocaleString()} MWK</div>
+            <div className="text-2xl font-bold">{totalPot.toLocaleString()} MWK</div>
             <p className="text-xs text-muted-foreground">
               Prize pool
             </p>
