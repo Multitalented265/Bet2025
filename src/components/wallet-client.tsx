@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowDown, ArrowUp, History } from "lucide-react"
+import { ArrowDown, ArrowUp, History, X } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Badge } from "./ui/badge"
 import { handleError } from "@/lib/utils"
@@ -97,10 +97,12 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
     try {
       const response = await fetch('/api/paychangu/banks');
       if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setBanks(data.banks || []);
-          setOperators(data.operators || []);
+        const result = await response.json();
+        if (result.success) {
+          setBanks(result.data.banks || []);
+          setOperators(result.data.operators || []);
+          console.log('🏦 Banks loaded:', result.data.banks?.length || 0);
+          console.log('📱 Operators loaded:', result.data.operators?.length || 0);
         }
       }
     } catch (error) {
@@ -298,65 +300,81 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-            <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="w-full font-bold py-6 md:py-8 text-base md:text-lg">
-                  <ArrowUp className="mr-2 h-5 w-5 md:h-6 md:w-6" /> Deposit
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-md md:max-w-lg lg:max-w-xl">
-                <DialogHeader>
-                  <DialogTitle>Deposit Funds</DialogTitle>
-                  <DialogDescription>
-                    Enter the amount you wish to deposit. A 2.5% deposit fee will be applied. You will be redirected to Pay Changu to complete the payment.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="deposit-amount">
-                      Amount
-                    </Label>
-                    <Input
-                      id="deposit-amount"
-                      type="number"
-                      value={depositAmount}
-                      onChange={(e) => setDepositAmount(e.target.value)}
-                      placeholder="Enter amount (MWK)"
-                    />
+            {depositOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black/20" onClick={() => setDepositOpen(false)} />
+                <div className="relative bg-background border rounded-lg shadow-lg w-[95vw] max-w-md md:max-w-lg lg:max-w-xl p-6">
+                  <button
+                    onClick={() => setDepositOpen(false)}
+                    className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                  </button>
+                  
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold leading-none tracking-tight">Deposit Funds</h2>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Enter the amount you wish to deposit. A 2.5% deposit fee will be applied. You will be redirected to Pay Changu to complete the payment.
+                    </p>
+                  </div>
+                  
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="deposit-amount">
+                        Amount
+                      </Label>
+                      <Input
+                        id="deposit-amount"
+                        type="number"
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        placeholder="Enter amount (MWK)"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+                    <PayChanguPayment
+                      amount={parseFloat(depositAmount)}
+                      customer={{
+                        email: user?.email || '',
+                        first_name: user?.name?.split(' ')[0] || '',
+                        last_name: user?.name?.split(' ').slice(1).join(' ') || '',
+                      }}
+                      userId={user?.id || ''}
+                      transactionType="Deposit"
+                      onSuccess={() => {
+                        setDepositOpen(false);
+                        refreshUserData(); // Refresh data after successful deposit
+                        toast({
+                          title: "Payment Successful",
+                          description: "Your deposit has been processed successfully.",
+                        });
+                      }}
+                      onError={(error) => {
+                        toast({
+                          title: "Payment Error",
+                          description: error,
+                          variant: "destructive"
+                        });
+                      }}
+                      disabled={isPending || !depositAmount || isNaN(parseFloat(depositAmount)) || parseFloat(depositAmount) <= 0}
+                    >
+                      {isPending ? 'Processing...' : 'Proceed to Pay Changu'}
+                    </PayChanguPayment>
                   </div>
                 </div>
-                <DialogFooter>
-                  <PayChanguPayment
-                    amount={parseFloat(depositAmount)}
-                    customer={{
-                      email: user?.email || '',
-                      first_name: user?.name?.split(' ')[0] || '',
-                      last_name: user?.name?.split(' ').slice(1).join(' ') || '',
-                    }}
-                    userId={user?.id || ''}
-                    transactionType="Deposit"
-                    onSuccess={() => {
-                      setDepositOpen(false);
-                      refreshUserData(); // Refresh data after successful deposit
-                      toast({
-                        title: "Payment Successful",
-                        description: "Your deposit has been processed successfully.",
-                      });
-                    }}
-                    onError={(error) => {
-                      toast({
-                        title: "Payment Error",
-                        description: error,
-                        variant: "destructive"
-                      });
-                    }}
-                                         disabled={isPending || !depositAmount || isNaN(parseFloat(depositAmount)) || parseFloat(depositAmount) <= 0}
-                  >
-                    {isPending ? 'Processing...' : 'Proceed to Pay Changu'}
-                  </PayChanguPayment>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+              </div>
+            )}
+            
+            <Button 
+              size="lg" 
+              className="w-full font-bold py-6 md:py-8 text-base md:text-lg"
+              onClick={() => setDepositOpen(true)}
+            >
+              <ArrowUp className="mr-2 h-5 w-5 md:h-6 md:w-6" /> Deposit
+            </Button>
 
             <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
               <DialogTrigger asChild>
