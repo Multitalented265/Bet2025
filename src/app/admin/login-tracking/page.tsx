@@ -22,8 +22,8 @@ interface AdminLoginLog {
   country: string | null;
   region: string | null;
   timezone: string | null;
-  latitude: number | undefined;
-  longitude: number | undefined;
+  latitude: any | null;
+  longitude: any | null;
   loginTime: Date;
   logoutTime: Date | null;
   sessionDuration: number | null;
