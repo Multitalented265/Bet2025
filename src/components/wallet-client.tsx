@@ -302,8 +302,8 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             {depositOpen && (
               <>
-                <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setDepositOpen(false)} />
-                <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className="fixed inset-0 bg-black/20 z-[9998]" onClick={() => setDepositOpen(false)} />
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
                   <div className="bg-background border rounded-lg shadow-lg w-[95vw] max-w-md md:max-w-lg lg:max-w-xl p-6 pointer-events-auto">
                     <button
                       onClick={() => setDepositOpen(false)}
