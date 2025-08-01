@@ -9,7 +9,6 @@ import Logo from './logo';
 import { Separator } from './ui/separator';
 import { useHasMounted } from '@/hooks/use-has-mounted';
 
-
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Home' },
   { href: '/bets', icon: ReceiptText, label: 'My Bets' },
@@ -22,7 +21,12 @@ const accountItems = [
     { href: '#', icon: ShieldCheck, label: 'Privacy Policy' },
 ]
 
-export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
+interface TopNavProps {
+  isMobile?: boolean;
+  onLinkClick?: () => void;
+}
+
+export function TopNav({ isMobile = false, onLinkClick }: TopNavProps) {
   const pathname = usePathname();
   const hasMounted = useHasMounted();
 
@@ -30,10 +34,21 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
     return null; 
   }
 
+  const handleLinkClick = () => {
+    if (onLinkClick) {
+      onLinkClick();
+    }
+  };
+
   if (isMobile) {
     return (
       <nav className="grid gap-2 text-lg font-medium">
-        <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold mb-4" prefetch>
+        <Link 
+          href="/dashboard" 
+          className="flex items-center gap-2 text-lg font-semibold mb-4" 
+          prefetch
+          onClick={handleLinkClick}
+        >
             <Logo />
         </Link>
         {navItems.map((item) => (
@@ -41,6 +56,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
               key={item.href}
               href={item.href}
               prefetch
+              onClick={handleLinkClick}
               className={cn(
                 'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground',
                 pathname === item.href && 'bg-primary text-primary-foreground hover:text-primary-foreground'
@@ -58,6 +74,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
                  key={`${item.href}-${item.label}`}
                  href={item.href}
                  prefetch
+                 onClick={handleLinkClick}
                  className={cn(
                    'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground',
                    pathname === item.href && 'bg-primary text-primary-foreground hover:text-primary-foreground'
@@ -70,6 +87,7 @@ export function TopNav({ isMobile = false }: { isMobile?: boolean }) {
              <Link
                 href="/"
                 prefetch
+                onClick={handleLinkClick}
                 className='flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground'
               >
                 <LogOut className="h-5 w-5" />

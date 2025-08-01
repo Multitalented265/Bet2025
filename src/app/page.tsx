@@ -6,6 +6,9 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
 import { signIn } from "next-auth/react"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,10 +20,18 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import Logo from "@/components/logo"
 import { GoogleIcon } from "@/components/icons/google-icon"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Terminal } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { handleError } from "@/lib/utils"
+
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+})
+
+type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   console.log("--- [Login Page] ---");
@@ -29,35 +40,60 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
+  const { toast } = useToast()
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
 
+  const onSubmit = async (data: LoginFormData) => {
     startTransition(async () => {
-        console.log(`[Login Page] Attempting to sign in for email: ${email}`);
+      try {
+        console.log(`[Login Page] Attempting to sign in for email: ${data.email}`);
         const result = await signIn("credentials", {
-            redirect: false, // Set redirect to false to handle results manually
-            email,
-            password,
+          redirect: false,
+          email: data.email,
+          password: data.password,
         });
 
         console.log("[Login Page] signIn result:", result);
 
         if (result?.error) {
-            console.error("[Login Page] SignIn failed. Error:", result.error);
-            // Re-render the page with an error query parameter to show the alert
-            router.push('/?error=CredentialsSignin');
-            router.refresh();
+          console.error("[Login Page] SignIn failed. Error:", result.error);
+          const userFriendlyMessage = handleError("Invalid email or password. Please check your credentials and try again.");
+          toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: userFriendlyMessage,
+          });
         } else if (result?.ok) {
-            // On success, redirect to the dashboard
-             console.log("[Login Page] SignIn successful. Redirecting to /dashboard");
-            router.push("/dashboard");
+          console.log("[Login Page] SignIn successful. Redirecting to /dashboard");
+          toast({
+            title: "Login Successful",
+            description: "Welcome back! Redirecting to your dashboard.",
+          });
+          router.push("/dashboard");
         } else {
-             console.warn("[Login Page] signIn result was not 'ok' and not an 'error'. Result:", result);
+          console.warn("[Login Page] signIn result was not 'ok' and not an 'error'. Result:", result);
+          const userFriendlyMessage = handleError("An unexpected error occurred. Please try again.");
+          toast({
+            variant: "destructive",
+            title: "Login Error",
+            description: userFriendlyMessage,
+          });
         }
+      } catch (error) {
+        const userFriendlyMessage = handleError(error);
+        toast({
+          variant: "destructive",
+          title: "Login Error",
+          description: userFriendlyMessage,
+        });
+      }
     });
   }
 
@@ -70,63 +106,82 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-headline text-center">Welcome Back</CardTitle>
           <CardDescription className="text-center">
-            Enter your email below to login to your account
+            Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
         <CardContent>
-           {error && (
+          {error && (
             <Alert variant="destructive" className="mb-4">
-              <Terminal className="h-4 w-4" />
-              <AlertTitle>Login Failed</AlertTitle>
               <AlertDescription>
-                Invalid email or password. Please try again.
+                Invalid email or password. Please check your credentials and try again.
               </AlertDescription>
             </Alert>
           )}
-          <form onSubmit={handleSubmit} className="grid gap-4">
+          
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email Address *</Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
-                placeholder="m@example.com"
-                required
+                {...form.register("email")}
+                placeholder="Enter your email address"
                 disabled={isPending}
               />
+              {form.formState.errors.email && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertDescription>{form.formState.errors.email.message}</AlertDescription>
+                </Alert>
+              )}
             </div>
+            
             <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password *</Label>
                 <Link
                   href="#"
-                  className="ml-auto inline-block text-sm underline text-primary"
+                  className="text-sm underline text-primary hover:text-primary/80"
                 >
                   Forgot your password?
                 </Link>
               </div>
               <div className="relative">
-                <Input id="password" name="password" type={showPassword ? "text" : "password"} required disabled={isPending} />
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  {...form.register("password")}
+                  placeholder="Enter your password"
+                  disabled={isPending} 
+                />
                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isPending}
                 >
-                    {showPassword ? <EyeOff /> : <Eye />}
-                    <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+                  {showPassword ? <EyeOff /> : <Eye />}
+                  <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
                 </Button>
               </div>
+              {form.formState.errors.password && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertDescription>{form.formState.errors.password.message}</AlertDescription>
+                </Alert>
+              )}
             </div>
+            
             <Button type="submit" className="w-full font-bold mt-4" disabled={isPending}>
               {isPending ? "Logging in..." : "Login"}
             </Button>
+            
             <Button variant="outline" className="w-full" type="button" disabled={isPending}>
               <GoogleIcon className="mr-2 h-4 w-4" />
               Login with Google
             </Button>
           </form>
+          
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="underline text-primary">

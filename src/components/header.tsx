@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { CircleUser, Menu, Settings, LifeBuoy } from "lucide-react"
 
@@ -19,6 +20,12 @@ import { TopNav } from "./top-nav"
 import { Wallet, LogOut, ShieldCheck } from "lucide-react"
 
 export function Header() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header className="sticky top-0 flex h-16 items-center border-b bg-card px-4 md:px-6 z-30">
       {/* Desktop Header */}
@@ -64,7 +71,7 @@ export function Header() {
       <div className="grid grid-cols-3 items-center w-full md:hidden">
         {/* Mobile Navigation */}
         <div className="justify-self-start">
-          <Sheet>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
@@ -77,7 +84,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="left">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <TopNav isMobile={true} />
+              <TopNav isMobile={true} onLinkClick={handleMobileMenuClose} />
             </SheetContent>
           </Sheet>
         </div>

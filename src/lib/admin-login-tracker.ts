@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db';
 import { headers } from 'next/headers';
-
-const prisma = new PrismaClient();
 
 export interface AdminLoginData {
   adminId: string;

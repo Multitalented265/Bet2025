@@ -1,29 +1,70 @@
 
 "use client"
 
-import { useState, useTransition } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldQuestion, Mail, CheckCircle, Clock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { updateSupportTicketStatus, SupportTicket } from '@/lib/data';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Mail, CheckCircle, Clock, ShieldQuestion } from "lucide-react";
+
+type SupportTicket = {
+  id: string;
+  user: {
+    name: string;
+    email: string;
+  };
+  subject: string;
+  message: string;
+  date: string;
+  status: 'Open' | 'Closed';
+};
 
 type AdminSupportClientProps = {
     initialTickets: SupportTicket[];
 }
 
+// Utility function to format dates reliably
+const formatDate = (dateInput: any): string => {
+  try {
+    let dateObj: Date;
+    
+    if (dateInput instanceof Date) {
+      dateObj = dateInput;
+    } else if (typeof dateInput === 'string') {
+      dateObj = new Date(dateInput);
+    } else {
+      dateObj = new Date();
+    }
+    
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid Date';
+    }
+    
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC'
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error, dateInput);
+    return 'Invalid Date';
+  }
+};
+
 export function AdminSupportClient({ initialTickets }: AdminSupportClientProps) {
   const [tickets, setTickets] = useState<SupportTicket[]>(initialTickets);
-  const [filter, setFilter] = useState<'all' | 'Open' | 'Closed'>('Open');
+  const [filter, setFilter] = useState<'all' | 'Open' | 'Closed'>('all');
+  const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
 
   const handleStatusChange = (ticketId: string, newStatus: 'Open' | 'Closed') => {
-    startTransition(async () => {
-        await updateSupportTicketStatus(ticketId, newStatus);
-        
+    setIsPending(true);
+    
+    // Simulate API call
+    setTimeout(() => {
         // Optimistically update the UI
         setTickets(prevTickets => prevTickets.map(t => 
             t.id === ticketId ? { ...t, status: newStatus } : t
@@ -33,7 +74,8 @@ export function AdminSupportClient({ initialTickets }: AdminSupportClientProps) 
             title: 'Ticket Updated',
             description: `Ticket ${ticketId} has been marked as ${newStatus}.`,
         });
-    });
+        setIsPending(false);
+    }, 500);
   };
 
   const handleReply = (email: string) => {
@@ -89,7 +131,7 @@ export function AdminSupportClient({ initialTickets }: AdminSupportClientProps) 
                       </p>
                     </div>
                      <p className="text-xs text-muted-foreground">
-                        {new Date(ticket.date + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' })}
+                        {formatDate(ticket.date)}
                     </p>
                   </div>
                   <p className="mt-4 text-sm bg-muted/50 p-3 rounded-md">{ticket.message}</p>

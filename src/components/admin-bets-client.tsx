@@ -11,6 +11,35 @@ import type { Bet } from "@/components/bet-ticket";
 
 type BetWithUser = Bet & { userName: string };
 
+// Utility function to format dates reliably
+const formatDate = (dateInput: any): string => {
+  try {
+    let dateObj: Date;
+    
+    if (dateInput instanceof Date) {
+      dateObj = dateInput;
+    } else if (typeof dateInput === 'string') {
+      dateObj = new Date(dateInput);
+    } else {
+      dateObj = new Date();
+    }
+    
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid Date';
+    }
+    
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC'
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error, dateInput);
+    return 'Invalid Date';
+  }
+};
+
 export function AdminBetsClient({ initialBets }: { initialBets: BetWithUser[] }) {
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -68,7 +97,7 @@ export function AdminBetsClient({ initialBets }: { initialBets: BetWithUser[] })
                                     <TableCell className="font-mono">{bet.id}</TableCell>
                                     <TableCell>{bet.userName}</TableCell>
                                     <TableCell>{bet.candidateName}</TableCell>
-                                    <TableCell>{new Date(bet.placedDate + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC' })}</TableCell>
+                                    <TableCell>{formatDate(bet.placedDate)}</TableCell>
                                     <TableCell>
                                         <Badge variant={bet.status === 'Won' ? 'default' : bet.status === 'Lost' ? 'destructive' : 'secondary'}>
                                             {bet.status}

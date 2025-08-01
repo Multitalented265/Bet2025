@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { SafeImage } from "@/components/ui/safe-image"
 import { useToast } from "@/hooks/use-toast"
+import { handleError } from "@/lib/utils"
 import type { CandidateData } from "@/lib/data"
 import { handleBetPlacement } from "@/actions/bet"
 
@@ -46,10 +47,11 @@ export function BettingCard({ candidate, disabled = false, bettingEnabled = true
         });
         form.reset();
       } catch (error) {
+        const userFriendlyMessage = handleError(error);
         toast({
           variant: "destructive",
           title: "Betting Failed",
-          description: error instanceof Error ? error.message : "There was an error placing your bet. Please try again.",
+          description: userFriendlyMessage,
         });
       }
     });

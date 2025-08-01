@@ -19,11 +19,19 @@ export async function handleSignup(formData: FormData): Promise<FormResult> {
   const password = formData.get("password") as string
   const confirmPassword = formData.get("confirmPassword") as string
 
-  if (!fullName || !email || !password || !confirmPassword) {
-    return { success: false, error: "Please fill out all fields." }
+  // Trim whitespace from all inputs
+  const trimmedFullName = fullName?.trim()
+  const trimmedEmail = email?.trim().toLowerCase()
+
+  if (!trimmedFullName || !trimmedEmail || !password || !confirmPassword) {
+    return { success: false, error: "Please fill out all required fields." }
   }
 
-  if (!emailRegex.test(email)) {
+  if (trimmedFullName.length < 2) {
+    return { success: false, error: "Full name must be at least 2 characters long." }
+  }
+
+  if (!emailRegex.test(trimmedEmail)) {
     return { success: false, error: "Please enter a valid email address."}
   }
 
@@ -32,21 +40,20 @@ export async function handleSignup(formData: FormData): Promise<FormResult> {
   }
 
   if (password !== confirmPassword) {
-    return { success: false, error: "Passwords do not match." }
+    return { success: false, error: "Passwords do not match. Please make sure both passwords are identical." }
   }
 
   try {
-    const existingUser = await getUserByEmail(email)
+    const existingUser = await getUserByEmail(trimmedEmail)
     if (existingUser) {
-        return { success: false, error: "A user with this email already exists." }
+        return { success: false, error: "An account with this email address already exists. Please try logging in instead." }
     }
 
-    await addUser({ name: fullName, email: email, password: password })
-    // No longer need to revalidate path here, as the user will be redirected.
+    await addUser({ name: trimmedFullName, email: trimmedEmail, password: password })
     
     return { success: true }
   } catch (error) {
     console.error("Signup error:", error);
-    return { success: false, error: "An unexpected error occurred." }
+    return { success: false, error: "An unexpected error occurred while creating your account. Please try again." }
   }
 }

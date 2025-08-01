@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { PayChanguCustomer } from '@/lib/paychangu'
 import { useToast } from '@/hooks/use-toast'
+import { handleError } from '@/lib/utils'
 
 interface Window {
   PaychanguCheckout?: (config: any) => void;
@@ -51,7 +52,8 @@ export function PayChanguPayment({
         setPaychanguConfig(config)
       })
       .catch(error => {
-        onError?.('Failed to load payment configuration')
+        const userFriendlyMessage = handleError('Failed to load payment configuration');
+        onError?.(userFriendlyMessage)
       })
     
     if (!scriptLoaded.current && typeof window !== 'undefined') {
@@ -66,7 +68,8 @@ export function PayChanguPayment({
           }, 1000)
         }
         script.onerror = (error) => {
-          onError?.('Failed to load payment system')
+          const userFriendlyMessage = handleError('Failed to load payment system');
+          onError?.(userFriendlyMessage)
         }
         document.head.appendChild(script)
       }
@@ -77,7 +80,8 @@ export function PayChanguPayment({
         jqueryScript.async = false
         
         const timeout = setTimeout(() => {
-          onError?.('Failed to load payment system')
+          const userFriendlyMessage = handleError('Failed to load payment system');
+          onError?.(userFriendlyMessage)
         }, 10000)
         
         jqueryScript.onload = () => {
@@ -86,14 +90,16 @@ export function PayChanguPayment({
             if (typeof (window as any).$ !== 'undefined') {
               loadPayChanguScript()
             } else {
-              onError?.('Failed to load payment system')
+              const userFriendlyMessage = handleError('Failed to load payment system');
+              onError?.(userFriendlyMessage)
             }
           }, 500)
         }
         
         jqueryScript.onerror = (error) => {
           clearTimeout(timeout)
-          onError?.('Failed to load payment system')
+          const userFriendlyMessage = handleError('Failed to load payment system');
+          onError?.(userFriendlyMessage)
         }
         
         document.head.appendChild(jqueryScript)
@@ -105,9 +111,10 @@ export function PayChanguPayment({
 
   const handlePayment = () => {
     if (!paychanguConfig) {
+      const userFriendlyMessage = handleError('Payment configuration is not loaded');
       toast({
         title: "Configuration Error",
-        description: "Payment configuration is not loaded. Please try again.",
+        description: userFriendlyMessage,
         variant: "destructive"
       })
       return
@@ -124,9 +131,10 @@ export function PayChanguPayment({
         proceedWithPayment()
       })
       .catch(error => {
+        const userFriendlyMessage = handleError('Please log in again to continue with payment');
         toast({
           title: "Authentication Error",
-          description: "Please log in again to continue with payment.",
+          description: userFriendlyMessage,
           variant: "destructive"
         })
         return
@@ -135,45 +143,50 @@ export function PayChanguPayment({
 
   const proceedWithPayment = () => {
     if (!scriptLoaded.current) {
+      const userFriendlyMessage = handleError('Payment system is still loading');
       toast({
         title: "Payment System Loading",
-        description: "Please wait a moment and try again.",
+        description: userFriendlyMessage,
         variant: "destructive"
       })
       return
     }
 
     if (typeof (window as any).PaychanguCheckout !== 'function') {
+      const userFriendlyMessage = handleError('Payment system is not available');
       toast({
         title: "Payment Error",
-        description: "Payment system is not available. Please try again later.",
+        description: userFriendlyMessage,
         variant: "destructive"
       })
       return
     }
 
     if (typeof (window as any).$ === 'undefined') {
+      const userFriendlyMessage = handleError('Payment system is not ready');
       toast({
         title: "Payment Error",
-        description: "Payment system is not ready. Please refresh the page and try again.",
+        description: userFriendlyMessage,
         variant: "destructive"
       })
       return
     }
 
     if (!paychanguConfig || !paychanguConfig.configuration) {
+      const userFriendlyMessage = handleError('Payment configuration is not loaded');
       toast({
         title: "Configuration Error",
-        description: "Payment configuration is not loaded. Please refresh the page and try again.",
+        description: userFriendlyMessage,
         variant: "destructive"
       })
       return
     }
 
     if (!paychanguConfig.configuration.publicKey) {
+      const userFriendlyMessage = handleError('Payment public key is not configured');
       toast({
         title: "Configuration Error",
-        description: "Payment public key is not configured. Please contact support.",
+        description: userFriendlyMessage,
         variant: "destructive"
       })
       return
@@ -248,159 +261,61 @@ export function PayChanguPayment({
           } else {
             try {
               paychanguFunction(paymentData)
-            } catch (callError) {
-              apiError = { status: 500, details: callError instanceof Error ? callError.message : String(callError) }
+            } catch (error) {
+              const userFriendlyMessage = handleError(error);
+              toast({
+                title: "Payment Error",
+                description: userFriendlyMessage,
+                variant: "destructive"
+              })
             }
           }
           
-          if (isLiveMode) {
-            toast({
-              title: "Payment Initiated",
-              description: "Please check your phone for SMS prompts. Mobile money payments may take 30-60 seconds to process.",
-            })
-          } else {
-            toast({
-              title: "Payment Initiated",
-              description: "PayChangu popup should open. If it doesn't, please check your browser's popup blocker.",
-            })
-          }
-          
+          // Restore original fetch after a delay
           setTimeout(() => {
             window.fetch = originalFetch
-          }, 1000)
-          
-          setTimeout(() => {
-            const wrapper = document.getElementById('wrapper')
-            const iframe = wrapper?.querySelector('iframe')
-            
-            if (!iframe && apiError) {
-              if (apiError.status === 403) {
-                toast({
-                  title: "Authentication Error",
-                  description: "Please log in again to continue with payment.",
-                  variant: "destructive"
-                })
-              } else {
-                toast({
-                  title: "Payment Error",
-                  description: `API Error: ${apiError.status} - ${apiError.details}`,
-                  variant: "destructive"
-                })
-              }
-            } else {
-              if (isLiveMode) {
-                const redirectUrl = `https://in.paychangu.com/pay?public_key=${paymentData.public_key}&tx_ref=${paymentData.tx_ref}&amount=${paymentData.amount}&currency=${paymentData.currency}&callback_url=${encodeURIComponent(paymentData.callback_url)}&return_url=${encodeURIComponent(paymentData.return_url)}&customer_email=${encodeURIComponent(paymentData.customer.email)}&customer_first_name=${encodeURIComponent(paymentData.customer.first_name)}&customer_last_name=${encodeURIComponent(paymentData.customer.last_name)}&country=MW&payment_method=mobile_money`
-                
-                window.open(redirectUrl, '_blank', 'width=600,height=600')
-                
-                toast({
-                  title: "Payment Redirect",
-                  description: "Redirecting to PayChangu payment page. Please check your phone for SMS prompts.",
-                })
-              } else {
-                const redirectUrl = `https://in.paychangu.com/pay?public_key=${paymentData.public_key}&tx_ref=${paymentData.tx_ref}&amount=${paymentData.amount}&currency=${paymentData.currency}&callback_url=${encodeURIComponent(paymentData.callback_url)}&return_url=${encodeURIComponent(paymentData.return_url)}&customer_email=${encodeURIComponent(paymentData.customer.email)}&customer_first_name=${encodeURIComponent(paymentData.customer.first_name)}&customer_last_name=${encodeURIComponent(paymentData.customer.last_name)}`
-                
-                window.open(redirectUrl, '_blank', 'width=600,height=600')
-                
-                toast({
-                  title: "Payment Redirect",
-                  description: "Redirecting to PayChangu payment page...",
-                })
-              }
-            }
-          }, isLiveMode ? 5000 : 3000)
+          }, 5000)
           
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error)
-          if (errorMessage.includes('currency') || errorMessage.includes('MWK')) {
-            toast({
-              title: "Currency Not Supported",
-              description: "MWK currency may not be supported. Please contact support.",
-              variant: "destructive"
-            })
-          } else if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
-            toast({
-              title: "Authentication Error",
-              description: "Please log in again to continue with payment.",
-              variant: "destructive"
-            })
-          } else {
-            toast({
-              title: "Payment Error",
-              description: "Failed to initialize payment. Please check your configuration.",
-              variant: "destructive"
-            })
-          }
-          throw error
+          const userFriendlyMessage = handleError(error);
+          toast({
+            title: "Payment Error",
+            description: userFriendlyMessage,
+            variant: "destructive"
+          })
         }
       } else {
-        throw new Error('PayChangu function not available')
+        const userFriendlyMessage = handleError('Payment function is not available');
+        toast({
+          title: "Payment Error",
+          description: userFriendlyMessage,
+          variant: "destructive"
+        })
       }
     } catch (error) {
+      const userFriendlyMessage = handleError(error);
       toast({
         title: "Payment Error",
-        description: "Failed to initialize payment. Please try again.",
+        description: userFriendlyMessage,
         variant: "destructive"
       })
-      onError?.('Payment initialization failed')
     }
   }
 
   if (!isClient) {
-    return (
-      <Button disabled className="w-full">
-        Loading...
-      </Button>
-    )
+    return <div>Loading payment system...</div>
   }
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          #wrapper {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            z-index: 9999 !important;
-          }
-          
-          #wrapper iframe {
-            position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            width: 90vw !important;
-            height: 90vh !important;
-            border: none !important;
-            z-index: 10000 !important;
-            border-radius: 8px !important;
-          }
-        `
-      }} />
-      
-      <div 
-        id="wrapper" 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: 9999,
-          display: 'none'
-        }}
-      ></div>
-      
+    <div>
       <Button
         onClick={handlePayment}
-        disabled={disabled || !scriptLoaded.current}
+        disabled={disabled || !paychanguConfig}
         className="w-full"
       >
-        {children || `Proceed to Pay Changu`}
+        {children || `Proceed with ${transactionType}`}
       </Button>
-    </>
+      <div id="wrapper" style={{ display: 'none' }}></div>
+    </div>
   )
 } 

@@ -1,53 +1,41 @@
 
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { 
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { CircleUser, Menu, Settings, LifeBuoy, Shield } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Shield, LogOut, Settings, Menu, CircleUser } from "lucide-react";
-import { AdminTopNav } from "./admin-top-nav";
+} from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { AdminTopNav } from "./admin-top-nav"
 
 export function AdminHeader() {
   const router = useRouter();
-  const { toast } = useToast();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      const response = await fetch("/api/admin/logout", {
-        method: "POST",
-      });
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false);
+  };
 
-      if (response.ok) {
-        toast({
-          title: "Logged out",
-          description: "You have been successfully logged out.",
-        });
-        router.push("/admin/login");
-        router.refresh();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Logout failed",
-          description: "Please try again.",
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "An error occurred during logout.",
+  const handleLogout = () => {
+    // Clear admin session and redirect to login
+    fetch('/api/admin/logout', { method: 'POST' })
+      .then(() => {
+        router.push('/admin-auth/login');
+      })
+      .catch((error) => {
+        console.error('Logout error:', error);
+        router.push('/admin-auth/login');
       });
-    }
   };
 
   return (
@@ -57,7 +45,7 @@ export function AdminHeader() {
         <div className="flex items-center gap-6">
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
             <Shield className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Admin Panel</span>
+            <span className="text-lg font-bold">Admin</span>
           </Link>
           <AdminTopNav />
         </div>
@@ -67,7 +55,7 @@ export function AdminHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle admin menu</span>
+                <span className="sr-only">Toggle user menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -76,9 +64,12 @@ export function AdminHeader() {
               <DropdownMenuItem asChild>
                 <Link href="/admin/settings"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/admin/support"><LifeBuoy className="mr-2 h-4 w-4"/>Support</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4"/>Logout
+                <Shield className="mr-2 h-4 w-4"/>Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -89,7 +80,7 @@ export function AdminHeader() {
       <div className="grid grid-cols-3 items-center w-full md:hidden">
         {/* Mobile Navigation */}
         <div className="justify-self-start">
-          <Sheet>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
@@ -102,7 +93,7 @@ export function AdminHeader() {
             </SheetTrigger>
             <SheetContent side="left">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <AdminTopNav isMobile={true} />
+              <AdminTopNav isMobile={true} onLinkClick={handleMobileMenuClose} />
             </SheetContent>
           </Sheet>
         </div>
@@ -121,7 +112,7 @@ export function AdminHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle admin menu</span>
+                <span className="sr-only">Toggle user menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -130,14 +121,17 @@ export function AdminHeader() {
               <DropdownMenuItem asChild>
                 <Link href="/admin/settings"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/admin/support"><LifeBuoy className="mr-2 h-4 w-4"/>Support</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4"/>Logout
+                <Shield className="mr-2 h-4 w-4"/>Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
     </header>
-  );
+  )
 }

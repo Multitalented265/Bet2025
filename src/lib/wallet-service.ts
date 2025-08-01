@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from './db'
 import { addTransaction, getUserById, invalidateUserCache } from './data'
-
-const prisma = new PrismaClient()
 
 export interface WalletTransaction {
   userId: string

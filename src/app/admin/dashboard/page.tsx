@@ -1,7 +1,6 @@
 
 import { AdminFinalizeElection } from "@/components/admin-finalize-election";
 import { DashboardChart } from "@/components/dashboard-chart";
-import NotificationPanel from "@/components/admin/NotificationPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Vote, CircleDollarSign } from "lucide-react";
 import { getBets, getCandidates, getUsers, getAdminSettings, getBetStatistics } from "@/lib/data";
@@ -21,7 +20,6 @@ export default async function AdminDashboardPage() {
   const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
   const userCount = users.length;
   const totalBetsCount = bets.length;
-
 
   return (
     <div className="flex flex-col gap-6">
@@ -81,13 +79,8 @@ export default async function AdminDashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div>
-          <DashboardChart candidates={candidates} totalPot={totalPot} />
-        </div>
-        <div>
-          <NotificationPanel />
-        </div>
+      <div>
+        <DashboardChart candidates={candidates} totalPot={totalPot} />
       </div>
 
       <AdminFinalizeElection candidates={candidates} bettingEnabled={adminSettings.bettingEnabled} />

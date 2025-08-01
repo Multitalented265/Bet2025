@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 
@@ -31,6 +31,14 @@ export function SafeImage({
 }: SafeImageProps) {
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
+
+  useEffect(() => {
+    // Detect iOS
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+    const isIOSDevice = /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+    setIsIOS(isIOSDevice);
+  }, []);
 
   const handleError = () => {
     console.error('Image failed to load:', src);
@@ -72,6 +80,18 @@ export function SafeImage({
           )}
           onError={handleError}
           onLoad={handleLoad}
+          // iOS-specific optimizations
+          loading="lazy"
+          decoding="async"
+          // Add iOS-specific attributes
+          {...(isIOS && { 
+            style: { 
+              objectFit: 'cover',
+              objectPosition: 'center',
+              WebkitUserSelect: 'none',
+              WebkitTouchCallout: 'none'
+            }
+          })}
         />
       </div>
     );
@@ -95,6 +115,25 @@ export function SafeImage({
         priority={priority}
         onError={handleError}
         onLoad={handleLoad}
+        // iOS-specific optimizations
+        loading={priority ? "eager" : "lazy"}
+        decoding="async"
+        // Add iOS-specific styles to prevent layout shifts and improve performance
+        style={{
+          objectFit: 'cover',
+          objectPosition: 'center',
+          ...(isIOS && {
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none',
+            WebkitTransform: 'translateZ(0)', // Force hardware acceleration
+            transform: 'translateZ(0)'
+          })
+        }}
+        // Add iOS-specific props
+        {...(isIOS && {
+          unoptimized: false, // Keep Next.js optimization for iOS
+          quality: 85 // Slightly lower quality for better performance on iOS
+        })}
       />
     </div>
   )

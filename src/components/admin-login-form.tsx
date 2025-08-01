@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/utils";
 import { Shield, Eye, EyeOff, Mail, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -58,17 +59,19 @@ export function AdminLoginForm() {
           router.push("/admin/dashboard");
           router.refresh();
         } else {
+          const userFriendlyMessage = handleError(result.message || "Invalid credentials");
           toast({
             variant: "destructive",
             title: "Login Failed",
-            description: result.message || "Invalid credentials.",
+            description: userFriendlyMessage,
           });
         }
       } catch (error) {
+        const userFriendlyMessage = handleError(error);
         toast({
           variant: "destructive",
           title: "Login Error",
-          description: "An error occurred during login. Please try again.",
+          description: userFriendlyMessage,
         });
       }
     });
@@ -98,20 +101,22 @@ export function AdminLoginForm() {
           description: data.message,
         });
       } else {
-        setForgotPasswordMessage(data.message || 'Failed to send reset email');
+        const userFriendlyMessage = handleError(data.message || 'Failed to send reset email');
+        setForgotPasswordMessage(userFriendlyMessage);
         toast({
           variant: "destructive",
           title: "Error",
-          description: data.message || 'Failed to send reset email',
+          description: userFriendlyMessage,
         });
       }
     } catch (error) {
       console.error('Forgot password error:', error);
-      setForgotPasswordMessage('An error occurred. Please try again.');
+      const userFriendlyMessage = handleError(error);
+      setForgotPasswordMessage(userFriendlyMessage);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An error occurred. Please try again.",
+        description: userFriendlyMessage,
       });
     } finally {
       setForgotPasswordLoading(false);

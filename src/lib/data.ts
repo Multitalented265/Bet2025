@@ -34,6 +34,10 @@ export type CandidateData = {
   status: string;
 };
 
+export type CandidateWithBetCount = CandidateData & {
+  betCount: number;
+};
+
 export type Bet = {
   id: string;
   userId: string;
@@ -57,7 +61,7 @@ export type Transaction = {
 
 export type SupportTicket = {
   id: string;
-  user: any;
+  user: User;
   subject: string;
   message: string;
   date: Date;
@@ -74,6 +78,53 @@ export type AdminSettings = {
   bettingEnabled: boolean;
 };
 
+// Prisma types for database operations
+type PrismaCandidate = {
+  id: number;
+  name: string;
+  image: string;
+  hint: string;
+  color: string;
+  totalBets: any; // Prisma Decimal
+  status: string;
+  bets?: PrismaBet[];
+};
+
+type PrismaBet = {
+  id: string;
+  userId: string;
+  candidateId: number;
+  candidateName: string;
+  amount: any; // Prisma Decimal
+  placedDate: Date;
+  status: string;
+};
+
+type PrismaUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  emailVerified: Date | null;
+  image: string | null;
+  password: string | null;
+  balance: any; // Prisma Decimal
+  joined: Date;
+  status: string;
+  notifyOnBetStatusUpdates: boolean;
+  bets?: PrismaBet[];
+};
+
+type PrismaTransaction = {
+  id: string;
+  userId: string;
+  type: string;
+  amount: any; // Prisma Decimal
+  fee: any; // Prisma Decimal
+  date: Date;
+  txRef: string | null;
+  status: string;
+};
+
 // Cached data fetching functions
 const getCachedCandidates = unstable_cache(
   async () => {
@@ -83,7 +134,7 @@ const getCachedCandidates = unstable_cache(
           totalBets: 'desc'
         }
       });
-      return candidates.map((c: any) => ({...c, totalBets: c.totalBets.toNumber()}));
+      return candidates.map((c: PrismaCandidate) => ({...c, totalBets: c.totalBets.toNumber()}));
     } catch (error) {
       console.error('Error fetching candidates:', error);
       // Return empty array during build if database is not available
@@ -102,9 +153,9 @@ const getCachedUsers = unstable_cache(
           joined: 'desc'
         }
       });
-      return users.map((user: any) => ({
+      return users.map((user: PrismaUser) => ({
         ...user,
-        balance: user.balance.toNumber(),
+        balance: user.balance.toNumber()
       }));
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -113,7 +164,7 @@ const getCachedUsers = unstable_cache(
     }
   },
   ['users'],
-  { revalidate: 60 } // Cache for 1 minute
+  { revalidate: 30 } // Cache for 30 seconds
 );
 
 const getCachedBets = unstable_cache(
@@ -124,14 +175,9 @@ const getCachedBets = unstable_cache(
           placedDate: 'desc'
         }
       });
-      return bets.map((bet: any) => ({
-        id: bet.id,
-        userId: bet.userId,
-        candidateId: bet.candidateId,
-        candidateName: bet.candidateName,
-        amount: bet.amount.toNumber(),
-        placedDate: bet.placedDate,
-        status: bet.status,
+      return bets.map((bet: PrismaBet) => ({
+        ...bet,
+        amount: bet.amount.toNumber()
       }));
     } catch (error) {
       console.error('Error fetching bets:', error);
@@ -151,10 +197,10 @@ const getCachedTransactions = unstable_cache(
           date: 'desc'
         }
       });
-      return transactions.map((tx: any) => ({
+      return transactions.map((tx: PrismaTransaction) => ({
         ...tx,
         amount: tx.amount.toNumber(),
-        fee: tx.fee.toNumber(),
+        fee: tx.fee.toNumber()
       }));
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -164,67 +210,6 @@ const getCachedTransactions = unstable_cache(
   },
   ['transactions'],
   { revalidate: 30 } // Cache for 30 seconds
-);
-
-const getCachedUserById = unstable_cache(
-  async (id: string) => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id },
-      });
-      if (!user) return null;
-      return { ...user, balance: user.balance.toNumber() };
-    } catch (error) {
-      console.error('Error fetching user by id:', error);
-      return null;
-    }
-  },
-  ['user-by-id'],
-  { revalidate: 60 } // Cache for 1 minute
-);
-
-const getCachedAdminSettings = unstable_cache(
-  async () => {
-    try {
-      let settings = await prisma.adminSettings.findUnique({
-        where: { id: 1 }
-      });
-      
-      if (!settings) {
-        settings = await prisma.adminSettings.create({
-          data: {
-            id: 1,
-            enable2fa: false,
-            notifyOnNewUser: true,
-            notifyOnNewUserLogin: false,
-            notifyOnLargeBet: false,
-            notifyOnLargeDeposit: true,
-            bettingEnabled: true
-          }
-        });
-      } else if (settings.bettingEnabled === undefined) {
-        settings = await prisma.adminSettings.update({
-          where: { id: 1 },
-          data: { bettingEnabled: true }
-        });
-      }
-      return settings;
-    } catch (error) {
-      console.error('Error in getAdminSettings:', error);
-      // Return default settings during build if database is not available
-      return {
-        id: 1,
-        enable2fa: false,
-        notifyOnNewUser: true,
-        notifyOnNewUserLogin: false,
-        notifyOnLargeBet: false,
-        notifyOnLargeDeposit: true,
-        bettingEnabled: true
-      };
-    }
-  },
-  ['admin-settings'],
-  { revalidate: 60 } // Cache for 1 minute
 );
 
 const getCachedCandidatesWithBetCounts = unstable_cache(
@@ -240,13 +225,13 @@ const getCachedCandidatesWithBetCounts = unstable_cache(
         }
       });
       
-      const result = candidates.map((c: any) => ({
+      const result = candidates.map((c: PrismaCandidate & { bets: PrismaBet[] }) => ({
         ...c, 
         totalBets: c.totalBets.toNumber(),
         betCount: c.bets.length // Number of people who bet on this candidate
       }));
       
-      console.log('📊 Bet counts:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
+      console.log('📊 Bet counts:', result.map((c: CandidateWithBetCount) => `${c.name}: ${c.betCount} bets`));
       return result;
     } catch (error) {
       console.error('Error fetching candidates with bet counts:', error);
@@ -366,31 +351,29 @@ export async function addUser(userData: Omit<User, 'id' | 'joined' | 'status' | 
         const { notifyNewUser } = await import('./notifications');
         await notifyNewUser({
             name: newUser.name || 'Unknown',
-            email: newUser.email || 'No email'
+            email: newUser.email || 'Unknown'
         });
     } catch (notificationError) {
         console.error('Error sending new user notification:', notificationError);
     }
 
+    revalidatePath("/admin/users");
     return { ...newUser, balance: newUser.balance.toNumber() };
 }
 
 export async function updateUser(id: string, updatedData: Partial<Omit<User, 'id' | 'password'>> & { password?: string }) {
+    const updateData: any = { ...updatedData };
     
-    const dataToUpdate: Partial<User> = { ...updatedData };
-
     if (updatedData.password) {
-        dataToUpdate.password = await bcrypt.hash(updatedData.password, 10);
+        updateData.password = await bcrypt.hash(updatedData.password, 10);
     }
     
     const updatedUser = await prisma.user.update({
         where: { id },
-        data: dataToUpdate
+        data: updateData
     });
-
+    
     revalidatePath("/admin/users");
-    revalidatePath("/(dashboard)/settings");
-
     return { ...updatedUser, balance: updatedUser.balance.toNumber() };
 }
 
@@ -400,82 +383,95 @@ export async function getBets() {
 }
 
 export async function placeBet(newBet: { userId: string, candidateName: string, amount: number }) {
-    // Using a transaction to ensure both Bet creation and Candidate update happen together
-    return await prisma.$transaction(async (tx) => {
-        // Validate minimum bet amount
+    return await prisma.$transaction(async (tx: any) => {
+        // Check if betting is enabled
+        const adminSettings = await tx.adminSettings.findFirst();
+        if (!adminSettings?.bettingEnabled) {
+            throw new Error("Betting has been disabled by the administrator.");
+        }
+
+        // Validate bet amount
         if (newBet.amount < 100) {
-            throw new Error("Minimum bet amount is 100 MWK.");
+            throw new Error("Minimum bet amount is 100 MWK");
         }
-
-        // Validate maximum bet amount
         if (newBet.amount > 1000000) {
-            throw new Error("Maximum bet amount is 1,000,000 MWK.");
+            throw new Error("Maximum bet amount is 1,000,000 MWK");
         }
 
-        const candidate = await tx.candidate.findFirst({
-             where: { name: newBet.candidateName },
-             select: { id: true, status: true }
+        // Get user and check balance
+        const user = await tx.user.findUnique({
+            where: { id: newBet.userId }
         });
-        if (!candidate) throw new Error("Candidate not found for betting.");
-        if (candidate.status === 'Withdrawn') throw new Error("This candidate has withdrawn. You cannot place a bet.");
 
-        // Check user balance
-        const user = await tx.user.findUnique({ where: { id: newBet.userId } });
-        if (!user || user.balance.toNumber() < newBet.amount) {
-            throw new Error("Insufficient balance to place this bet.");
+        if (!user) {
+            throw new Error("User not found");
         }
 
-        // Deduct bet amount from user balance
-        await tx.user.update({
-            where: { id: newBet.userId },
-            data: {
-                balance: {
-                    decrement: newBet.amount
-                }
+        const currentBalance = user.balance.toNumber();
+        if (currentBalance < newBet.amount) {
+            throw new Error("Insufficient balance");
+        }
+
+        // Get candidate and check if they're active
+        const candidate = await tx.candidate.findFirst({
+            where: { 
+                name: newBet.candidateName,
+                status: 'Active'
             }
         });
 
+        if (!candidate) {
+            throw new Error("Candidate not found or has withdrawn from the election");
+        }
 
+        // Check if candidate has withdrawn
+        if (candidate.status === 'Withdrawn') {
+            throw new Error("This candidate has withdrawn from the election. You cannot place a bet on them.");
+        }
+
+        // Deduct amount from user balance
+        await tx.user.update({
+            where: { id: newBet.userId },
+            data: { balance: { decrement: newBet.amount } }
+        });
+
+        // Add bet amount to candidate's total
+        await tx.candidate.update({
+            where: { id: candidate.id },
+            data: { totalBets: { increment: newBet.amount } }
+        });
+
+        // Create the bet
         const bet = await tx.bet.create({
             data: {
                 userId: newBet.userId,
+                candidateId: candidate.id,
                 candidateName: newBet.candidateName,
                 amount: newBet.amount,
-                candidateId: candidate.id
+                status: 'Active'
             }
         });
 
-        await tx.candidate.update({
-            where: { name: newBet.candidateName },
-            data: {
-                totalBets: {
-                    increment: newBet.amount
-                }
-            }
-        });
-        
-        revalidatePath("/dashboard");
-        revalidatePath("/admin/dashboard");
-        
-        // Invalidate user cache to ensure fresh balance data
-        await invalidateUserCache(newBet.userId);
-        
-        // Send notification for large bets (over 1,000,000 MWK)
-        if (newBet.amount >= 1000000) {
+        // Send notification for large bet
+        if (newBet.amount >= 10000) { // 10,000 MWK threshold
             try {
                 const { notifyLargeBet } = await import('./notifications');
                 await notifyLargeBet({
-                    userId: newBet.userId,
+                    userId: user.id,
                     userName: user.name || 'Unknown',
-                    amount: newBet.amount,
-                    candidateName: newBet.candidateName
+                    candidateName: newBet.candidateName,
+                    amount: newBet.amount
                 });
             } catch (notificationError) {
                 console.error('Error sending large bet notification:', notificationError);
             }
         }
+
+        revalidatePath("/dashboard");
+        revalidatePath("/admin/bets");
+        revalidatePath("/admin/users");
         
-        return bet;
+        return { ...bet, amount: bet.amount.toNumber() };
     });
 }
 
@@ -485,392 +481,321 @@ export async function getTransactions() {
 }
 
 export async function addTransaction(transaction: Omit<Transaction, 'id' | 'date'> & { txRef?: string; status?: string }) {
-    // In a transaction, update user balance and create transaction record
-    return await prisma.$transaction(async (tx: any) => {
-        const user = await tx.user.findUnique({ where: { id: transaction.userId }});
-        if (!user) throw new Error("User not found");
-
-        // Only update balance for completed transactions
-        if (transaction.status === 'completed') {
-            const newBalance = transaction.type === 'Deposit'
-                ? user.balance.toNumber() + transaction.amount
-                : user.balance.toNumber() - transaction.amount;
-
-            if (newBalance < 0) {
-                throw new Error("Insufficient funds for withdrawal.");
-            }
-
-            await tx.user.update({
-                where: { id: transaction.userId },
-                data: { balance: newBalance }
-            });
+    const newTransaction = await prisma.transaction.create({
+        data: {
+            userId: transaction.userId,
+            type: transaction.type,
+            amount: transaction.amount,
+            fee: transaction.fee,
+            txRef: transaction.txRef || null,
+            status: transaction.status || 'pending',
+            date: new Date()
         }
+    });
 
-        const newTransaction = await tx.transaction.create({
-            data: {
-                ...transaction,
-                amount: transaction.amount,
-                fee: transaction.fee,
-                txRef: transaction.txRef || null,
-                status: transaction.status || 'pending',
-            }
-        });
-
-        revalidatePath('/wallet');
-        revalidatePath('/admin/revenue');
-        
-        // Invalidate user cache to ensure fresh balance data
-        await invalidateUserCache(transaction.userId);
-
-        // Send notification for large deposits (over 500,000 MWK)
-        if (transaction.amount >= 500000 && transaction.status === 'completed') {
-            try {
+    // Send notification for large deposit
+    if (transaction.type === 'Deposit' && transaction.amount >= 50000) { // 50,000 MWK threshold
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id: transaction.userId }
+            });
+            
+            if (user) {
                 const { notifyLargeDeposit } = await import('./notifications');
                 await notifyLargeDeposit({
-                    userId: transaction.userId,
+                    userId: user.id,
                     userName: user.name || 'Unknown',
                     amount: transaction.amount,
                     type: transaction.type
                 });
-            } catch (notificationError) {
-                console.error('Error sending large deposit notification:', notificationError);
             }
+        } catch (notificationError) {
+            console.error('Error sending large deposit notification:', notificationError);
         }
+    }
 
-        return { ...newTransaction, amount: newTransaction.amount.toNumber(), fee: newTransaction.fee.toNumber() };
-    });
+    revalidatePath("/admin/transactions");
+    return { ...newTransaction, amount: newTransaction.amount.toNumber(), fee: newTransaction.fee.toNumber() };
 }
 
 // --- Support Tickets ---
 export async function getSupportTickets() {
-    const tickets = await prisma.supportTicket.findMany({
+    try {
+      const tickets = await prisma.supportTicket.findMany({
         orderBy: {
-            date: 'desc'
+          date: 'desc'
         }
-    });
-     return tickets.map(ticket => ({
+      });
+      return tickets.map((ticket: any) => ({
         ...ticket,
-        user: ticket.user // Prisma already parses JSON fields as objects
-    }));
+        user: JSON.parse(ticket.user as string)
+      }));
+    } catch (error) {
+      console.error('Error fetching support tickets:', error);
+      return [];
+    }
 }
 
 export async function createSupportTicket(ticket: Omit<SupportTicket, 'id' | 'date' | 'status'>) {
     const newTicket = await prisma.supportTicket.create({
         data: {
-            ...ticket,
-            status: 'Open',
-        },
+            user: JSON.stringify(ticket.user),
+            subject: ticket.subject,
+            message: ticket.message,
+            date: new Date(),
+            status: 'Open'
+        }
     });
-    revalidatePath('/support');
+    revalidatePath("/admin/support");
     return newTicket;
 }
 
 export async function updateSupportTicketStatus(id: string, status: 'Open' | 'Closed') {
     const updatedTicket = await prisma.supportTicket.update({
         where: { id },
-        data: { status },
+        data: { status }
     });
-    revalidatePath('/support');
+    revalidatePath("/admin/support");
     return updatedTicket;
 }
 
 // --- Admin Settings ---
 export async function getAdminSettings() {
-    return getCachedAdminSettings();
+    const settings = await prisma.adminSettings.findFirst();
+    return settings || { bettingEnabled: true };
 }
 
 export async function updateAdminSettings(data: Partial<Omit<AdminSettings, 'id'>>) {
-    const updated = await prisma.adminSettings.update({
+    const settings = await prisma.adminSettings.upsert({
         where: { id: 1 },
-        data,
+        update: data,
+        create: { id: 1, ...data }
     });
-    revalidatePath('/admin/settings');
-    return updated;
+    revalidatePath("/admin/settings");
+    return settings;
 }
 
 export async function updateBettingStatus(enabled: boolean) {
-    const updated = await prisma.adminSettings.update({
-        where: { id: 1 },
-        data: { bettingEnabled: enabled },
-    });
-    revalidatePath('/admin/settings');
-    return updated;
+    return await updateAdminSettings({ bettingEnabled: enabled });
 }
 
+// --- Election Finalization ---
 export async function finalizeElection(winningCandidateName: string) {
-    return await prisma.$transaction(async (tx) => {
-        // Get all candidates and bets
+    return await prisma.$transaction(async (tx: any) => {
+        // Get all candidates and their total bets
         const candidates = await tx.candidate.findMany();
         const allBets = await tx.bet.findMany({
-            where: { status: 'Pending' }
+            where: { status: 'Active' }
         });
 
-        // Calculate total prize pool
-        const totalPrizePool = candidates.reduce((acc, candidate) => 
-            acc + parseFloat(candidate.totalBets.toString()), 0
-        );
+        // Calculate total pot
+        const totalPot = candidates.reduce((acc: number, candidate: PrismaCandidate) => {
+            return acc + candidate.totalBets.toNumber();
+        }, 0);
 
-        // Get winning candidate
-        const winningCandidate = candidates.find(c => c.name === winningCandidateName);
+        // Get all bets for the winning candidate
+        const winningCandidate = candidates.find((c: PrismaCandidate) => c.name === winningCandidateName);
         if (!winningCandidate) {
-            throw new Error('Winning candidate not found');
+            throw new Error("Winning candidate not found");
         }
 
-        // Get all bets on winning candidate
-        const winningBets = allBets.filter(bet => bet.candidateName === winningCandidateName);
-        const totalBetsOnWinner = winningBets.reduce((acc, bet) => 
-            acc + parseFloat(bet.amount.toString()), 0
-        );
+        const winningBets = allBets.filter((bet: PrismaBet) => bet.candidateName === winningCandidateName);
+        const totalWinningBets = winningBets.reduce((acc: number, bet: PrismaBet) => acc + bet.amount.toNumber(), 0);
 
-        // Process each bet
-        for (const bet of allBets) {
-            const betAmount = parseFloat(bet.amount.toString());
-            const isWinningBet = bet.candidateName === winningCandidateName;
-            
-            if (isWinningBet) {
-                // Calculate winnings for winning bets
-                const userShare = betAmount / totalBetsOnWinner;
-                const winnings = userShare * totalPrizePool;
+        // Calculate payouts for each winning bet
+        const payouts: { userId: string; amount: number }[] = [];
+        
+        winningBets.forEach((bet: PrismaBet) => {
+            const betAmount = bet.amount.toNumber();
+            const payoutRatio = betAmount / totalWinningBets;
+            const payout = totalPot * payoutRatio;
+            payouts.push({
+                userId: bet.userId,
+                amount: payout
+            });
+        });
+
+        // Update user balances with winnings
+        for (const payout of payouts) {
+            await tx.user.update({
+                where: { id: payout.userId },
+                data: { balance: { increment: payout.amount } }
+            });
+        }
+
+        // Mark all bets as completed
+        await tx.bet.updateMany({
+            where: { status: 'Active' },
+            data: { status: 'Completed' }
+        });
+
+        // Disable betting
+        await tx.adminSettings.upsert({
+            where: { id: 1 },
+            update: { bettingEnabled: false },
+            create: { id: 1, bettingEnabled: false }
+        });
+
+        // Send notifications to winners
+        for (const payout of payouts) {
+            try {
+                const user = await tx.user.findUnique({
+                    where: { id: payout.userId }
+                });
                 
-                // Update bet status to Won
-                await tx.bet.update({
-                    where: { id: bet.id },
-                    data: { status: 'Won' }
-                });
-
-                // Credit user balance with winnings
-                await tx.user.update({
-                    where: { id: bet.userId },
-                    data: {
-                        balance: {
-                            increment: winnings
-                        }
-                    }
-                });
-
-                // Create transaction record for winnings
-                await tx.transaction.create({
-                    data: {
-                        userId: bet.userId,
-                        type: 'Winnings',
-                        amount: winnings,
-                        fee: 0,
-                        txRef: `WIN_${bet.id}`,
-                        status: 'completed',
-                        date: new Date()
-                    }
-                });
-
-                console.log(`User ${bet.userId} won ${winnings} MWK from bet ${bet.id}`);
-                
-                // Send notification to user about winning bet
-                try {
+                if (user) {
+                    // Send user notification for bet status update
                     const { sendUserNotification } = await import('./notifications');
-                    await sendUserNotification(bet.userId, {
-                        subject: '🎉 Congratulations! Your Bet Won!',
-                        message: `Great news! Your bet of ${betAmount} MWK on ${bet.candidateName} has won! You've earned ${winnings.toFixed(2)} MWK in winnings.`,
+                    await sendUserNotification(user.id, {
+                        subject: 'Bet Status Update',
+                        message: `Your bet on ${winningCandidateName} has been settled. You won ${payout.amount.toLocaleString()} MWK!`,
                         type: 'betWon',
                         metadata: {
-                            betId: bet.id,
-                            betAmount,
-                            winnings,
-                            candidateName: bet.candidateName
+                            candidateName: winningCandidateName,
+                            betAmount: winningBets.find((b: PrismaBet) => b.userId === payout.userId)?.amount.toNumber() || 0,
+                            payoutAmount: payout.amount,
+                            status: 'Won'
                         }
                     });
-                } catch (notificationError) {
-                    console.error('Error sending win notification:', notificationError);
                 }
-                
-                // Invalidate user cache to ensure fresh balance data
-                await invalidateUserCache(bet.userId);
-            } else {
-                // Update bet status to Lost (no balance change - money already deducted)
-                await tx.bet.update({
-                    where: { id: bet.id },
-                    data: { status: 'Lost' }
-                });
-
-                console.log(`User ${bet.userId} lost bet ${bet.id} (${betAmount} MWK)`);
-                
-                // Send notification to user about losing bet
-                try {
-                    const { sendUserNotification } = await import('./notifications');
-                    await sendUserNotification(bet.userId, {
-                        subject: 'Bet Result: Not This Time',
-                        message: `Your bet of ${betAmount} MWK on ${bet.candidateName} did not win this time. Better luck next time!`,
-                        type: 'betLost',
-                        metadata: {
-                            betId: bet.id,
-                            betAmount,
-                            candidateName: bet.candidateName
-                        }
-                    });
-                } catch (notificationError) {
-                    console.error('Error sending loss notification:', notificationError);
-                }
+            } catch (notificationError) {
+                console.error('Error sending bet status notification:', notificationError);
             }
         }
 
-        // Disable betting
-        await tx.adminSettings.update({
-            where: { id: 1 },
-            data: { bettingEnabled: false }
-        });
-
-        console.log(`Election finalized. Winner: ${winningCandidateName}`);
-        console.log(`Total prize pool: ${totalPrizePool} MWK`);
-        console.log(`Total bets on winner: ${totalBetsOnWinner} MWK`);
-        console.log(`Winning bets processed: ${winningBets.length}`);
-
         revalidatePath("/dashboard");
-        revalidatePath("/bets");
-        revalidatePath("/admin/dashboard");
         revalidatePath("/admin/bets");
+        revalidatePath("/admin/users");
 
         return {
-            success: true,
-            winner: winningCandidateName,
-            totalPrizePool,
-            totalBetsOnWinner,
-            winningBetsCount: winningBets.length,
-            totalBetsProcessed: allBets.length
+            totalPot,
+            totalWinningBets,
+            winningCandidate: winningCandidateName,
+            payouts
         };
     });
 }
 
+// --- Potential Winnings Calculation ---
 export async function calculatePotentialWinnings(betAmount: number, candidateName: string): Promise<number> {
     const candidates = await getCandidates();
-    const totalPrizePool = candidates.reduce((acc, candidate) => acc + candidate.totalBets, 0);
-    
     const candidate = candidates.find(c => c.name === candidateName);
-    if (!candidate) return 0;
     
-    const totalBetsOnCandidate = candidate.totalBets;
-    if (totalBetsOnCandidate === 0) return 0;
+    if (!candidate) {
+        return 0;
+    }
+
+    const totalPot = candidates.reduce((acc, c) => acc + c.totalBets, 0);
+    const candidateTotal = candidate.totalBets;
     
-    const userShare = betAmount / totalBetsOnCandidate;
-    return userShare * totalPrizePool;
+    if (candidateTotal === 0) {
+        return totalPot; // If no one else has bet on this candidate, you get the entire pot
+    }
+
+    const betRatio = betAmount / (candidateTotal + betAmount);
+    return totalPot * betRatio;
 }
 
+// --- Bet Statistics ---
 export async function getBetStatistics() {
     try {
-      const [bets, candidates] = await Promise.all([
-          prisma.bet.findMany({
-              include: {
-                  user: {
-                      select: { name: true, email: true }
-                  }
-              }
-          }),
-          getCandidates()
-      ]);
+        const [totalBets, totalAmount, userCount, candidateCount] = await Promise.all([
+            prisma.bet.count(),
+            prisma.bet.aggregate({
+                _sum: { amount: true }
+            }),
+            prisma.user.count(),
+            prisma.candidate.count()
+        ]);
 
-      const totalPrizePool = candidates.reduce((acc, candidate) => acc + candidate.totalBets, 0);
-      
-      const stats = {
-          totalBets: bets.length,
-          pendingBets: bets.filter(b => b.status === 'Pending').length,
-          wonBets: bets.filter(b => b.status === 'Won').length,
-          lostBets: bets.filter(b => b.status === 'Lost').length,
-          totalPrizePool,
-          totalAmountBet: bets.reduce((acc, bet) => acc + parseFloat(bet.amount.toString()), 0),
-          averageBetAmount: bets.length > 0 ? 
-              bets.reduce((acc, bet) => acc + parseFloat(bet.amount.toString()), 0) / bets.length : 0
-      };
+        const averageBetAmount = totalBets > 0 && totalAmount._sum.amount ? totalAmount._sum.amount.toNumber() / totalBets : 0;
 
-      return stats;
+        return {
+            totalBets,
+            totalAmount: totalAmount._sum.amount?.toNumber() || 0,
+            averageBetAmount,
+            userCount,
+            candidateCount
+        };
     } catch (error) {
-      console.error('Error fetching bet statistics:', error);
-      // Return default stats during build if database is not available
-      return {
-        totalBets: 0,
-        pendingBets: 0,
-        wonBets: 0,
-        lostBets: 0,
-        totalPrizePool: 0,
-        totalAmountBet: 0,
-        averageBetAmount: 0
-      };
+        console.error('Error fetching bet statistics:', error);
+        return {
+            totalBets: 0,
+            totalAmount: 0,
+            averageBetAmount: 0,
+            userCount: 0,
+            candidateCount: 0
+        };
     }
 }
 
 // --- Admin Login Tracking ---
 export async function getAdminLoginLogs(limit: number = 50) {
-  try {
-    const logs = await prisma.adminLoginLog.findMany({
-      orderBy: {
-        loginTime: 'desc'
-      },
-      take: limit,
-      include: {
-        admin: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
-    
-    return logs.map(log => ({
-      ...log,
-      latitude: log.latitude?.toNumber(),
-      longitude: log.longitude?.toNumber()
-    }));
-  } catch (error) {
-    console.error('Error fetching admin login logs:', error);
-    // Return empty array during build if database is not available
-    return [];
-  }
+    try {
+        const logs = await prisma.adminLoginLog.findMany({
+            orderBy: { loginTime: 'desc' },
+            take: limit
+        });
+        return logs;
+    } catch (error) {
+        console.error('Error fetching admin login logs:', error);
+        return [];
+    }
 }
 
 export async function getAdminLoginStats() {
-  try {
-    const [
-      totalLogins,
-      successfulLogins,
-      failedLogins,
-      uniqueAdmins,
-      uniqueIPs,
-      avgSessionDuration
-    ] = await Promise.all([
-      prisma.adminLoginLog.count(),
-      prisma.adminLoginLog.count({ where: { isSuccessful: true } }),
-      prisma.adminLoginLog.count({ where: { isSuccessful: false } }),
-      prisma.adminLoginLog.groupBy({ by: ['adminId'], _count: true }),
-      prisma.adminLoginLog.groupBy({ by: ['ipAddress'], _count: true }),
-      prisma.adminLoginLog.aggregate({
-        _avg: { sessionDuration: true },
-        where: { sessionDuration: { not: null } }
-      })
-    ]);
-    
-    return {
-      totalLogins,
-      successfulLogins,
-      failedLogins,
-      uniqueAdmins: uniqueAdmins.length,
-      uniqueIPs: uniqueIPs.length,
-      averageSessionDuration: avgSessionDuration._avg.sessionDuration || 0
-    };
-  } catch (error) {
-    console.error('Error fetching admin login stats:', error);
-    // Return default stats during build if database is not available
-    return {
-      totalLogins: 0,
-      successfulLogins: 0,
-      failedLogins: 0,
-      uniqueAdmins: 0,
-      uniqueIPs: 0,
-      averageSessionDuration: 0
-    };
-  }
+    try {
+        const [totalLogins, uniqueIPs, recentLogins] = await Promise.all([
+            prisma.adminLoginLog.count(),
+            prisma.adminLoginLog.groupBy({
+                by: ['ipAddress'],
+                _count: { ipAddress: true }
+            }),
+            prisma.adminLoginLog.count({
+                where: {
+                    loginTime: {
+                        gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+                    }
+                }
+            })
+        ]);
+
+        return {
+            totalLogins,
+            uniqueIPs: uniqueIPs.length,
+            recentLogins
+        };
+    } catch (error) {
+        console.error('Error fetching admin login stats:', error);
+        return {
+            totalLogins: 0,
+            uniqueIPs: 0,
+            recentLogins: 0
+        };
+    }
 }
 
-// Add cache invalidation function
+// --- Cache Management ---
 export async function invalidateUserCache(userId: string) {
-  // Force revalidation by calling revalidatePath
-  revalidatePath('/wallet');
-  revalidatePath('/dashboard');
-  revalidatePath('/admin/users');
+    // This would invalidate user-specific caches if needed
+    revalidatePath(`/admin/users`);
+    revalidatePath(`/dashboard`);
 }
+
+// Cached user by ID function
+const getCachedUserById = unstable_cache(
+    async (id: string) => {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id }
+            });
+            if (!user) return null;
+            return { ...user, balance: user.balance.toNumber() };
+        } catch (error) {
+            console.error('Error fetching user by ID:', error);
+            return null;
+        }
+    },
+    ['user-by-id'],
+    { revalidate: 30 }
+);

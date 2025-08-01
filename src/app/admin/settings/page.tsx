@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
+import { handleError } from "@/lib/utils"
 import { handleAdminPasswordChange, handleAdminEmailChange, handleAdminNotificationSettings, fetchAdminSettings } from "@/actions/admin"
 import type { AdminSettings } from "@/lib/data"
 
@@ -54,10 +55,11 @@ export default function AdminSettingsPage() {
           setSettings(adminSettings);
         } catch (error) {
           console.error('Error fetching admin settings:', error);
+          const userFriendlyMessage = handleError(error);
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Failed to load admin settings.",
+            description: userFriendlyMessage,
           });
         }
       }
@@ -92,9 +94,10 @@ export default function AdminSettingsPage() {
                 passwordForm.reset();
             } catch (error) {
                 console.error('Error updating password:', error);
+                const userFriendlyMessage = handleError(error);
                 toast({
                     title: "Error",
-                    description: error instanceof Error ? error.message : "Failed to update password",
+                    description: userFriendlyMessage,
                     variant: "destructive"
                 });
             }
@@ -107,14 +110,15 @@ export default function AdminSettingsPage() {
                 await handleAdminEmailChange(values);
                 toast({
                     title: "Email Updated",
-                    description: "Your email address has been changed successfully.",
+                    description: "Your email has been changed successfully.",
                 });
                 emailForm.reset();
             } catch (error) {
                 console.error('Error updating email:', error);
+                const userFriendlyMessage = handleError(error);
                 toast({
                     title: "Error",
-                    description: error instanceof Error ? error.message : "Failed to update email",
+                    description: userFriendlyMessage,
                     variant: "destructive"
                 });
             }
@@ -138,9 +142,10 @@ export default function AdminSettingsPage() {
                 });
             } catch (error) {
                 console.error('Error saving settings:', error);
+                const userFriendlyMessage = handleError(error);
                 toast({
                     title: "Error",
-                    description: error instanceof Error ? error.message : "Failed to save settings",
+                    description: userFriendlyMessage,
                     variant: "destructive"
                 });
             }

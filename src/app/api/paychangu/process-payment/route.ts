@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { WalletService } from '@/lib/wallet-service'
 import { prisma } from '@/lib/db'
+import { validateEnv } from '@/lib/env'
 
 export async function POST(request: NextRequest) {
+  // Validate environment variables
+  try {
+    validateEnv()
+  } catch (error) {
+    console.error('❌ Environment validation failed:', error)
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+  }
+
   console.log('💰 ===== PAYMENT PROCESSING ENDPOINT =====')
   console.log('📅 Timestamp:', new Date().toISOString())
   
