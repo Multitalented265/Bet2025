@@ -262,7 +262,7 @@ export function PayChanguPayment({
             try {
               paychanguFunction(paymentData)
             } catch (error) {
-              const userFriendlyMessage = handleError(error);
+              const userFriendlyMessage = handleError(error as Error);
               toast({
                 title: "Payment Error",
                 description: userFriendlyMessage,
@@ -277,7 +277,7 @@ export function PayChanguPayment({
           }, 5000)
           
         } catch (error) {
-          const userFriendlyMessage = handleError(error);
+          const userFriendlyMessage = handleError(error as Error);
             toast({
               title: "Payment Error",
             description: userFriendlyMessage,
@@ -293,7 +293,7 @@ export function PayChanguPayment({
         })
       }
     } catch (error) {
-      const userFriendlyMessage = handleError(error);
+      const userFriendlyMessage = handleError(error as Error);
       toast({
         title: "Payment Error",
         description: userFriendlyMessage,

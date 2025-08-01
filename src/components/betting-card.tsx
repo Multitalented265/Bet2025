@@ -47,7 +47,7 @@ export function BettingCard({ candidate, disabled = false, bettingEnabled = true
         });
         form.reset();
       } catch (error) {
-        const userFriendlyMessage = handleError(error);
+        const userFriendlyMessage = handleError(error as Error);
         toast({
           variant: "destructive",
           title: "Betting Failed",

@@ -80,7 +80,7 @@ export default function SignupPage() {
           })
         }
       } catch (error) {
-        const userFriendlyMessage = handleError(error);
+        const userFriendlyMessage = handleError(error as Error);
         toast({
           variant: "destructive",
           title: "Signup Error",

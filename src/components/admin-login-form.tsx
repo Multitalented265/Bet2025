@@ -67,7 +67,7 @@ export function AdminLoginForm() {
           });
         }
       } catch (error) {
-        const userFriendlyMessage = handleError(error);
+        const userFriendlyMessage = handleError(error as Error);
         toast({
           variant: "destructive",
           title: "Login Error",
@@ -111,7 +111,7 @@ export function AdminLoginForm() {
       }
     } catch (error) {
       console.error('Forgot password error:', error);
-      const userFriendlyMessage = handleError(error);
+      const userFriendlyMessage = handleError(error as Error);
       setForgotPasswordMessage(userFriendlyMessage);
       toast({
         variant: "destructive",

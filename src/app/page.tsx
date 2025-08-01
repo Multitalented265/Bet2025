@@ -87,7 +87,7 @@ export default function LoginPage() {
           });
         }
       } catch (error) {
-        const userFriendlyMessage = handleError(error);
+        const userFriendlyMessage = handleError(error as Error);
         toast({
           variant: "destructive",
           title: "Login Error",
