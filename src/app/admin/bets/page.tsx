@@ -13,7 +13,7 @@ export default async function AdminBetsPage() {
         const user = users.find(u => u.id === bet.userId);
         return {
             ...bet,
-            userName: user ? user.name : 'Unknown User',
+            userName: user?.name || 'Unknown User',
         }
     })
 
