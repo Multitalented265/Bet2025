@@ -35,10 +35,6 @@ interface AdminLoginLog {
   language: string | null;
   sessionId: string | null;
   deviceFingerprint: string | null;
-  admin: {
-    name: string;
-    email: string;
-  };
 }
 
 export default async function AdminLoginTrackingPage() {
@@ -94,9 +90,9 @@ export default async function AdminLoginTrackingPage() {
             <Users className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.successfulLogins}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.recentLogins}</div>
             <p className="text-xs text-muted-foreground">
-              Successful logins
+              Recent logins (24h)
             </p>
           </CardContent>
         </Card>
@@ -106,9 +102,9 @@ export default async function AdminLoginTrackingPage() {
             <Clock className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.failedLogins}</div>
+            <div className="text-2xl font-bold text-red-600">{stats.totalLogins - stats.recentLogins}</div>
             <p className="text-xs text-muted-foreground">
-              Security alerts
+              Previous logins
             </p>
           </CardContent>
         </Card>
