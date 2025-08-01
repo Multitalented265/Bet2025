@@ -6,9 +6,9 @@ let webhookLogs: Array<{
   timestamp: string
   method: string
   headers: Record<string, string>
-  body: any
+  body: unknown
   status: number
-  response: any
+  response: unknown
 }> = []
 
 export async function POST(request: NextRequest) {

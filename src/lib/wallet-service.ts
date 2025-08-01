@@ -8,7 +8,7 @@ export interface WalletTransaction {
   fee: number
   txRef: string
   status: 'pending' | 'completed' | 'failed'
-  paychanguResponse?: any
+  paychanguResponse?: unknown
 }
 
 export interface DepositResult {
@@ -50,7 +50,7 @@ export class WalletService {
     userId: string,
     paychanguAmount: number,
     txRef: string,
-    paychanguResponse?: any
+    paychanguResponse?: unknown
   ): Promise<DepositResult> {
     try {
       // Start database transaction
@@ -208,7 +208,7 @@ export class WalletService {
    */
   static async completeWithdrawal(
     txRef: string,
-    paychanguResponse?: any
+    paychanguResponse?: unknown
   ): Promise<WithdrawalResult> {
     try {
       console.log(`🔄 Completing withdrawal for tx_ref: ${txRef}`)
@@ -396,7 +396,7 @@ export class WalletService {
   /**
    * Get transaction by transaction reference
    */
-  static async getTransactionByTxRef(txRef: string): Promise<any | null> {
+  static async getTransactionByTxRef(txRef: string): Promise<unknown | null> {
     return await prisma.transaction.findFirst({
       where: { txRef }
     })
@@ -405,7 +405,7 @@ export class WalletService {
   /**
    * Get user's transaction history
    */
-  static async getUserTransactions(userId: string, limit = 50): Promise<any[]> {
+  static async getUserTransactions(userId: string, limit = 50): Promise<unknown[]> {
     return await prisma.transaction.findMany({
       where: { userId },
       orderBy: { date: 'desc' },
@@ -424,7 +424,7 @@ export class WalletService {
   /**
    * Get all transactions (for admin)
    */
-  static async getAllTransactions(limit = 50): Promise<any[]> {
+  static async getAllTransactions(limit = 50): Promise<unknown[]> {
     return await prisma.transaction.findMany({
       orderBy: { date: 'desc' },
       take: limit,

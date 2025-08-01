@@ -89,10 +89,10 @@ export async function POST(request: NextRequest) {
     console.log(`🔍 Available banks:`, banks.map(bank => ({ name: bank.name, uuid: bank.uuid })))
     
     // Check if the selected ID is a mobile money operator (compare with ref_id)
-    const isMobileMoney = operators.some((op: any) => op.ref_id === bank_uuid);
+    const isMobileMoney = operators.some((op: unknown) => (op as Record<string, unknown>).ref_id === bank_uuid);
     
     // Check if the selected ID is a bank (compare with uuid)
-    const isBank = banks.some((bank: any) => bank.uuid === bank_uuid);
+    const isBank = banks.some((bank: unknown) => (bank as Record<string, unknown>).uuid === bank_uuid);
     
     console.log(`🔍 Transfer type check: isMobileMoney=${isMobileMoney}, isBank=${isBank}`)
     

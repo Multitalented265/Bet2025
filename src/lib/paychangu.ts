@@ -228,7 +228,7 @@ export function verifyPayChanguSignature(
 /**
  * Validate PayChangu webhook data structure
  */
-export function validatePayChanguWebhookData(data: any): {
+export function validatePayChanguWebhookData(data: Record<string, unknown>): {
   isValid: boolean;
   errors: string[];
 } {
@@ -241,13 +241,16 @@ export function validatePayChanguWebhookData(data: any): {
   if (!data.currency) errors.push('Missing currency');
   
   // 🔧 Handle PayChangu response format with nested data
-  if (data.data && data.data.payment_link) {
-    const paymentLink = data.data.payment_link
-    if (paymentLink.reference_id) {
-      console.log('✅ Found reference_id in nested data structure')
-    }
-    if (paymentLink.amount || paymentLink.payableAmount) {
-      console.log('✅ Found amount in nested data structure')
+  if (data.data && typeof data.data === 'object' && data.data !== null) {
+    const nestedData = data.data as Record<string, unknown>;
+    if (nestedData.payment_link && typeof nestedData.payment_link === 'object' && nestedData.payment_link !== null) {
+      const paymentLink = nestedData.payment_link as Record<string, unknown>;
+      if (paymentLink.reference_id) {
+        console.log('✅ Found reference_id in nested data structure')
+      }
+      if (paymentLink.amount || paymentLink.payableAmount) {
+        console.log('✅ Found amount in nested data structure')
+      }
     }
   }
   
@@ -259,37 +262,49 @@ export function validatePayChanguWebhookData(data: any): {
   // Check meta data - but allow missing meta data if customer email is present
   if (!data.meta) {
     // Only require meta data if no customer email is provided
-    if (!data.customer?.email) {
+    if (data.customer && typeof data.customer === 'object' && data.customer !== null) {
+      const customer = data.customer as Record<string, unknown>;
+      if (!customer.email) {
+        errors.push('Missing meta data and no customer email provided');
+      }
+    } else {
       errors.push('Missing meta data and no customer email provided');
     }
   } else {
-    if (!data.meta.userId) errors.push('Missing userId in meta');
-    if (!data.meta.transactionType) errors.push('Missing transactionType in meta');
-    if (!data.meta.amount) errors.push('Missing amount in meta');
+    const meta = data.meta as Record<string, unknown>;
+    if (!meta.userId) errors.push('Missing userId in meta');
+    if (!meta.transactionType) errors.push('Missing transactionType in meta');
+    if (!meta.amount) errors.push('Missing amount in meta');
   }
   
   // ✅ Validate event type - allow multiple valid event types
   const validEventTypes = ['api.charge.payment', 'payment.success', 'charge.success', 'transaction.success']
-  if (data.event_type && !validEventTypes.includes(data.event_type)) {
+  if (data.event_type && typeof data.event_type === 'string' && !validEventTypes.includes(data.event_type)) {
     errors.push(`Invalid event_type: ${data.event_type}, expected one of: ${validEventTypes.join(', ')}`);
   }
   
   // Validate status values
   const validStatuses = ['success', 'failed', 'cancelled'];
-  if (data.status && !validStatuses.includes(data.status)) {
+  if (data.status && typeof data.status === 'string' && !validStatuses.includes(data.status)) {
     errors.push(`Invalid status: ${data.status}`);
   }
   
   // Validate transaction types
   const validTypes = ['Deposit', 'Withdrawal'];
-  if (data.meta?.transactionType && !validTypes.includes(data.meta.transactionType)) {
-    errors.push(`Invalid transaction type: ${data.meta.transactionType}`);
+  if (data.meta && typeof data.meta === 'object' && data.meta !== null) {
+    const meta = data.meta as Record<string, unknown>;
+    if (meta.transactionType && typeof meta.transactionType === 'string' && !validTypes.includes(meta.transactionType)) {
+      errors.push(`Invalid transaction type: ${meta.transactionType}`);
+    }
   }
   
   // Validate amount consistency - but be more flexible
-  if (data.amount && data.meta?.amount && data.amount !== data.meta.amount) {
-    console.log(`⚠️ Amount mismatch: webhook=${data.amount}, meta=${data.meta.amount}`);
-    // Don't treat this as an error, just log it
+  if (data.amount && data.meta && typeof data.meta === 'object' && data.meta !== null) {
+    const meta = data.meta as Record<string, unknown>;
+    if (meta.amount && data.amount !== meta.amount) {
+      console.log(`⚠️ Amount mismatch: webhook=${data.amount}, meta=${meta.amount}`);
+      // Don't treat this as an error, just log it
+    }
   }
   
   return {
@@ -628,7 +643,7 @@ export async function verifyPayChanguTransfer(transferId: string): Promise<PayCh
 /**
  * Get single charge details from PayChangu
  */
-export async function getPayChanguChargeDetails(chargeId: string): Promise<any> {
+export async function getPayChanguChargeDetails(chargeId: string): Promise<unknown> {
   try {
     const response = await fetch(`https://api.paychangu.com/mobile-money/payments/${chargeId}/details`, {
       method: 'GET',

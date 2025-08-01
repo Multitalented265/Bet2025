@@ -58,7 +58,7 @@ export async function handleProfileUpdate(formData: FormData) {
     revalidatePath('/settings');
 }
 
-export async function handlePasswordChange(values: any) {
+export async function handlePasswordChange(values: { currentPassword: string; newPassword: string; confirmPassword: string }) {
     const session = await getSession();
     if (!session?.user?.id) {
         redirect("/");
