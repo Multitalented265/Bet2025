@@ -406,7 +406,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
                             </SelectItem>
                           ))}
                           {operators.length === 0 && !loadingBanks && (
-                            <SelectItem value="" disabled>No mobile money operators available</SelectItem>
+                            <SelectItem value="no-operators" disabled>No mobile money operators available</SelectItem>
                           )}
                         </SelectGroup>
                         <SelectSeparator />
@@ -418,7 +418,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
                             </SelectItem>
                           ))}
                           {banks.length === 0 && !loadingBanks && (
-                            <SelectItem value="" disabled>Bank transfers not available</SelectItem>
+                            <SelectItem value="no-banks" disabled>Bank transfers not available</SelectItem>
                           )}
                         </SelectGroup>
                       </SelectContent>

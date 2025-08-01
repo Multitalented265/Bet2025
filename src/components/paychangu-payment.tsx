@@ -209,6 +209,7 @@ export function PayChanguPayment({
         customization: {
           title: `${transactionType} - Bet2025`,
           description: `${transactionType} funds to your Bet2025 wallet`,
+          logo: "https://bet2025.com/logo.png", // Add your logo URL
         },
         meta: {
           userId,
@@ -218,6 +219,16 @@ export function PayChanguPayment({
         country: "MW",
         payment_method: "mobile_money",
         timeout: isLiveMode ? 120000 : 60000,
+        // Full screen configuration for all devices
+        modal: {
+          position: "center",
+          width: "100vw",
+          height: "100vh",
+          fullscreen: true,
+          responsive: true,
+          closeOnEscape: false,
+          closeOnOverlayClick: false
+        }
       }
 
       const paychanguFunction = (window as any).PaychanguCheckout
@@ -308,6 +319,56 @@ export function PayChanguPayment({
 
   return (
     <div>
+      <style jsx>{`
+        #wrapper {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          z-index: 9999 !important;
+          background-color: rgba(0, 0, 0, 0.5) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+        
+        #wrapper iframe {
+          width: 100vw !important;
+          height: 100vh !important;
+          border: none !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          max-width: none !important;
+          max-height: none !important;
+        }
+        
+        /* Ensure full screen on all devices */
+        @media (min-width: 769px) {
+          #wrapper {
+            width: 100vw !important;
+            height: 100vh !important;
+          }
+          
+          #wrapper iframe {
+            width: 100vw !important;
+            height: 100vh !important;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          #wrapper {
+            width: 100vw !important;
+            height: 100vh !important;
+          }
+          
+          #wrapper iframe {
+            width: 100vw !important;
+            height: 100vh !important;
+          }
+        }
+      `}</style>
       <Button
         onClick={handlePayment}
         disabled={disabled || !paychanguConfig}
@@ -315,7 +376,19 @@ export function PayChanguPayment({
       >
         {children || `Proceed with ${transactionType}`}
       </Button>
-      <div id="wrapper" style={{ display: 'none' }}></div>
+      <div 
+        id="wrapper" 
+        style={{ 
+          display: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9999,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+        }}
+      ></div>
     </div>
   )
 } 
