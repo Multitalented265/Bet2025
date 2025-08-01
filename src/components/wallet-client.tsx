@@ -116,7 +116,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setBalance(data.balance);
+        setBalance(data.balance);
           setTransactions(data.transactions || []);
         }
       }
@@ -125,7 +125,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
     }
   };
 
-  useEffect(() => {
+   useEffect(() => {
     setIsClient(true);
     setBalance(user?.balance ?? null);
     setTransactions(initialTransactions);
@@ -219,10 +219,10 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
           }
 
           // PayChangu transfer was successful
-          toast({
-            title: "Withdrawal Initiated Successfully! 🎉",
-            description: `Withdrawal of MK ${result.amount.toLocaleString()}.00 has been initiated. Transfer ID: ${result.transfer_id}. Fee: MK ${result.fee.toLocaleString()}.00`,
-          });
+                     toast({
+             title: "Withdrawal Initiated Successfully! 🎉",
+             description: `Withdrawal of MK ${result.amount.toLocaleString()}.00 has been initiated. Transfer ID: ${result.transfer_id}. Fee: MK ${result.fee.toLocaleString()}.00`,
+           });
           setWithdrawOpen(false);
           setWithdrawalForm({
             amount: '',
@@ -234,7 +234,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
           refreshUserData(); // Refresh data after successful withdrawal request
         } catch (error) {
           console.error('Withdrawal error:', error);
-          const userFriendlyMessage = handleError(error instanceof Error ? error : String(error));
+          const userFriendlyMessage = handleError(error as Error);
           toast({
             title: "Withdrawal Error",
             description: userFriendlyMessage,
@@ -280,8 +280,8 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
               <Skeleton className="h-8 md:h-12 w-1/2 mt-2" />
             ) : (
               <p className="text-3xl md:text-5xl font-bold font-headline">
-                MK {balance.toLocaleString()}.00
-              </p>
+               MK {balance.toLocaleString()}.00
+             </p>
             )}
           </div>
           
@@ -338,7 +338,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
                         variant: "destructive"
                       });
                     }}
-                    disabled={isPending || !depositAmount || isNaN(parseFloat(depositAmount)) || parseFloat(depositAmount) <= 0}
+                                         disabled={isPending || !depositAmount || isNaN(parseFloat(depositAmount)) || parseFloat(depositAmount) <= 0}
                   >
                     {isPending ? 'Processing...' : 'Proceed to Pay Changu'}
                   </PayChanguPayment>
@@ -458,50 +458,50 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
         <CardContent>
           {transactions.length > 0 ? (
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
+            <Table>
+              <TableHeader>
+                <TableRow>
                     <TableHead className="hidden md:table-cell">Transaction ID</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Status</TableHead>
                     <TableHead className="hidden sm:table-cell">Date</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="text-right hidden lg:table-cell">Fee</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((tx) => (
-                    <TableRow key={tx.id}>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx) => (
+                  <TableRow key={tx.id}>
                       <TableCell className="font-mono hidden md:table-cell text-xs">{tx.id}</TableCell>
-                      <TableCell>
+                    <TableCell>
                         <Badge variant={tx.type === 'Deposit' ? 'secondary' : 'outline'} className="capitalize text-xs">
-                          {tx.type === 'Deposit' 
-                            ? <ArrowUp className="mr-1 h-3 w-3 text-green-500" /> 
-                            : <ArrowDown className="mr-1 h-3 w-3 text-red-500" />}
-                          {tx.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={
-                            tx.status === 'completed' ? 'default' : 
-                            tx.status === 'pending' ? 'secondary' : 
-                            'destructive'
-                          }
+                        {tx.type === 'Deposit' 
+                          ? <ArrowUp className="mr-1 h-3 w-3 text-green-500" /> 
+                          : <ArrowDown className="mr-1 h-3 w-3 text-red-500" />}
+                        {tx.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          tx.status === 'completed' ? 'default' : 
+                          tx.status === 'pending' ? 'secondary' : 
+                          'destructive'
+                        }
                           className="capitalize text-xs"
-                        >
-                          {tx.status || 'pending'}
-                        </Badge>
-                      </TableCell>
+                      >
+                        {tx.status || 'pending'}
+                      </Badge>
+                    </TableCell>
                       <TableCell className="hidden sm:table-cell text-xs">
-                        {formatTransactionDate(tx.date)}
-                      </TableCell>
+                      {formatTransactionDate(tx.date)}
+                    </TableCell>
                       <TableCell className="text-right font-medium text-sm">MK {tx.amount.toLocaleString()}.00</TableCell>
                       <TableCell className="text-right text-muted-foreground text-xs hidden lg:table-cell">MK {tx.fee.toLocaleString()}.00</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
             </div>
           ) : (
             <div className="text-center text-muted-foreground p-6 md:p-8 border-2 border-dashed rounded-lg">
