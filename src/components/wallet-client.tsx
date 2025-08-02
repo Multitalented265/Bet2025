@@ -309,7 +309,7 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
                   <ArrowUp className="mr-2 h-5 w-5 md:h-6 md:w-6" /> Deposit
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-md md:max-w-lg lg:max-w-xl">
+              <DialogContent className="w-[95vw] max-w-md md:max-w-lg lg:max-w-xl" style={{ zIndex: 10000 }}>
                 <DialogHeader>
                   <DialogTitle>Deposit Funds</DialogTitle>
                   <DialogDescription>
