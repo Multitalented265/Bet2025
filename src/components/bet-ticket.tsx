@@ -11,7 +11,7 @@ export type Bet = {
   userId: string;
   candidateName: string;
   amount: number;
-  placedDate: Date;
+  placedDate: Date | string;
   status: string;
 };
 
@@ -26,6 +26,10 @@ const statusConfig: Record<string, { color: string; label: string }> = {
     color: "bg-yellow-500 text-white",
     label: "Active",
   },
+  Pending: {
+    color: "bg-blue-500 text-white",
+    label: "Pending",
+  },
   Completed: {
     color: "bg-green-500 text-white",
     label: "Completed",
@@ -33,14 +37,22 @@ const statusConfig: Record<string, { color: string; label: string }> = {
 };
 
 export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProps) {
-  // Format date from Date object
-  const formatDate = (date: Date) => {
+  // Format date from Date object or string
+  const formatDate = (date: Date | string) => {
     try {
-      if (isNaN(date.getTime())) {
+      let dateObj: Date;
+      
+      if (typeof date === 'string') {
+        dateObj = new Date(date);
+      } else {
+        dateObj = date;
+      }
+      
+      if (isNaN(dateObj.getTime())) {
         return 'Invalid Date';
       }
       
-      return date.toLocaleDateString('en-US', {
+      return dateObj.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -59,13 +71,17 @@ export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProp
 
   const calculateWinnings = () => {
     if (totalBetsOnCandidate === 0) {
-      return 0;
+      return bet.amount; // Return bet amount as minimum win
     }
     const userShare = bet.amount / totalBetsOnCandidate;
-    return userShare * totalPot;
+    const winnings = userShare * totalPot;
+    return Math.max(winnings, bet.amount); // Ensure at least the bet amount is returned
   };
   
   const finalWinnings = calculateWinnings();
+
+  // Show potential win for Active, Pending, and any other active status
+  const shouldShowPotentialWin = bet.status === 'Active' || bet.status === 'Pending' || bet.status === 'active' || bet.status === 'pending';
 
   return (
     <Card className="flex flex-col shadow-md hover:shadow-lg transition-all duration-300">
@@ -81,7 +97,7 @@ export function BetTicket({ bet, totalBetsOnCandidate, totalPot }: BetTicketProp
             <span className="text-muted-foreground">Bet Amount</span>
             <span className="font-bold text-2xl text-primary">{bet.amount.toLocaleString()} MWK</span>
         </div>
-         {bet.status === 'Active' && (
+         {shouldShowPotentialWin && (
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Potential Win</span>
             <span className="font-bold text-2xl text-accent">{finalWinnings.toLocaleString(undefined, { maximumFractionDigits: 0 })} MWK</span>

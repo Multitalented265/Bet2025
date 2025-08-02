@@ -57,6 +57,15 @@ export function PayChanguPayment({
         onError?.(userFriendlyMessage)
       })
     
+    // Cleanup function to restore body styles when component unmounts
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.height = ''
+      document.documentElement.style.overflow = ''
+    }
+    
     if (!scriptLoaded.current && typeof window !== 'undefined') {
       const loadPayChanguScript = () => {
         const script = document.createElement('script')
@@ -229,10 +238,19 @@ export function PayChanguPayment({
           responsive: true,
           closeOnEscape: false,
           closeOnOverlayClick: false,
-          // Add these properties for better fullscreen support
+          // Enhanced fullscreen configuration
           maxWidth: "100vw",
           maxHeight: "100vh",
-          overflow: "visible"
+          overflow: "visible",
+          // Additional properties for better fullscreen support
+          top: "0",
+          left: "0",
+          right: "0",
+          bottom: "0",
+          margin: "0",
+          padding: "0",
+          border: "none",
+          borderRadius: "0"
         }
       }
 
@@ -244,7 +262,21 @@ export function PayChanguPayment({
           const wrapper = document.getElementById('wrapper')
           if (wrapper) {
             wrapper.style.display = 'block'
+            wrapper.style.position = 'fixed'
+            wrapper.style.top = '0'
+            wrapper.style.left = '0'
+            wrapper.style.width = '100vw'
+            wrapper.style.height = '100vh'
+            wrapper.style.zIndex = '9999'
+            wrapper.style.overflow = 'visible'
           }
+          
+          // Ensure body and html are configured for full screen
+          document.body.style.overflow = 'hidden'
+          document.body.style.position = 'fixed'
+          document.body.style.width = '100vw'
+          document.body.style.height = '100vh'
+          document.documentElement.style.overflow = 'hidden'
           
           const originalFetch = window.fetch
           let apiError: { status: number; details: string } | null = null
@@ -295,15 +327,29 @@ export function PayChanguPayment({
           
         } catch (error) {
           setShowWrapper(false) // Hide wrapper on error
+          // Restore body styles
+          document.body.style.overflow = ''
+          document.body.style.position = ''
+          document.body.style.width = ''
+          document.body.style.height = ''
+          document.documentElement.style.overflow = ''
+          
           const userFriendlyMessage = handleError(error as Error);
-            toast({
-              title: "Payment Error",
+          toast({
+            title: "Payment Error",
             description: userFriendlyMessage,
-              variant: "destructive"
-            })
+            variant: "destructive"
+          })
         }
       } else {
         setShowWrapper(false) // Hide wrapper if function not available
+        // Restore body styles
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.height = ''
+        document.documentElement.style.overflow = ''
+        
         const userFriendlyMessage = handleError('Payment function is not available');
         toast({
           title: "Payment Error",
@@ -313,6 +359,13 @@ export function PayChanguPayment({
       }
     } catch (error) {
       setShowWrapper(false) // Hide wrapper on error
+      // Restore body styles
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.height = ''
+      document.documentElement.style.overflow = ''
+      
       const userFriendlyMessage = handleError(error as Error);
       toast({
         title: "Payment Error",
@@ -329,6 +382,18 @@ export function PayChanguPayment({
   return (
     <div>
       <style jsx>{`
+        /* Global styles to ensure full screen */
+        body {
+          overflow: hidden !important;
+          position: fixed !important;
+          width: 100vw !important;
+          height: 100vh !important;
+        }
+        
+        html {
+          overflow: hidden !important;
+        }
+        
         #wrapper {
           position: fixed !important;
           top: 0 !important;
@@ -343,6 +408,9 @@ export function PayChanguPayment({
           align-items: center !important;
           justify-content: center !important;
           overflow: visible !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
         }
         
         #wrapper iframe {
@@ -358,40 +426,65 @@ export function PayChanguPayment({
           max-height: none !important;
           overflow: visible !important;
           z-index: 10000 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        
+        /* Paychangu modal overrides */
+        .paychangu-modal,
+        .paychangu-modal *,
+        [class*="paychangu"],
+        [id*="paychangu"] {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          z-index: 10001 !important;
+          overflow: visible !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+          border-radius: 0 !important;
+          max-width: none !important;
+          max-height: none !important;
         }
         
         /* Ensure full screen on all devices */
         @media (min-width: 769px) {
-          #wrapper {
+          #wrapper,
+          #wrapper iframe,
+          .paychangu-modal,
+          [class*="paychangu"],
+          [id*="paychangu"] {
             width: 100vw !important;
             height: 100vh !important;
-          }
-          
-          #wrapper iframe {
-            width: 100vw !important;
-            height: 100vh !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
           }
         }
         
         @media (max-width: 768px) {
-          #wrapper {
+          #wrapper,
+          #wrapper iframe,
+          .paychangu-modal,
+          [class*="paychangu"],
+          [id*="paychangu"] {
             width: 100vw !important;
             height: 100vh !important;
-          }
-          
-          #wrapper iframe {
-            width: 100vw !important;
-            height: 100vh !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
           }
         }
         
-        /* Additional fixes for modal display */
-        body {
-          overflow: hidden !important;
-        }
-        
-        /* Override any conflicting styles */
-        .paychangu-modal {
+        /* Additional overrides for any modal containers */
+        div[style*="position"],
+        div[style*="modal"],
+        div[style*="overlay"] {
           position: fixed !important;
           top: 0 !important;
           left: 0 !important;
@@ -412,7 +505,7 @@ export function PayChanguPayment({
         <div 
           id="wrapper" 
           style={{ 
-            display: 'none',
+            display: 'block',
             position: 'fixed',
             top: 0,
             left: 0,
@@ -422,7 +515,10 @@ export function PayChanguPayment({
             height: '100vh',
             zIndex: 9999,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            overflow: 'visible'
+            overflow: 'visible',
+            margin: 0,
+            padding: 0,
+            border: 'none'
           }}
         ></div>
       )}

@@ -40,7 +40,7 @@ export type Bet = {
   candidateId: number;
   candidateName: string;
   amount: number;
-  placedDate: Date;
+  placedDate: Date | string;
   status: string;
 };
 
@@ -130,7 +130,7 @@ const getCachedBets = unstable_cache(
         candidateId: bet.candidateId,
         candidateName: bet.candidateName,
         amount: bet.amount.toNumber(),
-        placedDate: bet.placedDate,
+        placedDate: bet.placedDate.toISOString(), // Convert to ISO string for proper serialization
         status: bet.status,
       }));
     } catch (error) {
