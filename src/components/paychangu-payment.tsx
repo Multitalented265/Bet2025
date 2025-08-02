@@ -37,6 +37,7 @@ export function PayChanguPayment({
   const scriptLoaded = useRef(false)
   const [isClient, setIsClient] = useState(false)
   const [paychanguConfig, setPaychanguConfig] = useState<any>(null)
+  const [showWrapper, setShowWrapper] = useState(false) // Add this state
 
   useEffect(() => {
     setIsClient(true)
@@ -235,6 +236,7 @@ export function PayChanguPayment({
       
       if (typeof paychanguFunction === 'function') {
         try {
+          setShowWrapper(true) // Show wrapper only when payment starts
           const wrapper = document.getElementById('wrapper')
           if (wrapper) {
             wrapper.style.display = 'block'
@@ -288,6 +290,7 @@ export function PayChanguPayment({
           }, 5000)
           
         } catch (error) {
+          setShowWrapper(false) // Hide wrapper on error
           const userFriendlyMessage = handleError(error as Error);
             toast({
               title: "Payment Error",
@@ -296,6 +299,7 @@ export function PayChanguPayment({
             })
         }
       } else {
+        setShowWrapper(false) // Hide wrapper if function not available
         const userFriendlyMessage = handleError('Payment function is not available');
         toast({
           title: "Payment Error",
@@ -304,6 +308,7 @@ export function PayChanguPayment({
         })
       }
     } catch (error) {
+      setShowWrapper(false) // Hide wrapper on error
       const userFriendlyMessage = handleError(error as Error);
       toast({
         title: "Payment Error",
@@ -376,19 +381,21 @@ export function PayChanguPayment({
       >
         {children || `Proceed with ${transactionType}`}
       </Button>
-      <div 
-        id="wrapper" 
-        style={{ 
-          display: 'none',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: 9999,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)'
-        }}
-      ></div>
+      {showWrapper && (
+        <div 
+          id="wrapper" 
+          style={{ 
+            display: 'none',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          }}
+        ></div>
+      )}
     </div>
   )
 } 
