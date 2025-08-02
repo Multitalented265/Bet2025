@@ -224,11 +224,15 @@ export function PayChanguPayment({
         modal: {
           position: "center",
           width: "100vw",
-          height: "100vh",
+          height: "100vh", 
           fullscreen: true,
           responsive: true,
           closeOnEscape: false,
-          closeOnOverlayClick: false
+          closeOnOverlayClick: false,
+          // Add these properties for better fullscreen support
+          maxWidth: "100vw",
+          maxHeight: "100vh",
+          overflow: "visible"
         }
       }
 
@@ -331,53 +335,70 @@ export function PayChanguPayment({
           left: 0 !important;
           right: 0 !important;
           bottom: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
+          width: 100vw !important;
+          height: 100vh !important;
           z-index: 9999 !important;
           background-color: rgba(0, 0, 0, 0.5) !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          overflow: hidden !important;
+          overflow: visible !important;
         }
         
         #wrapper iframe {
-          width: 100% !important;
-          height: 100% !important;
+          width: 100vw !important;
+          height: 100vh !important;
           border: none !important;
-          position: absolute !important;
+          position: fixed !important;
           top: 0 !important;
           left: 0 !important;
           right: 0 !important;
           bottom: 0 !important;
           max-width: none !important;
           max-height: none !important;
-          overflow: auto !important;
+          overflow: visible !important;
+          z-index: 10000 !important;
         }
         
         /* Ensure full screen on all devices */
         @media (min-width: 769px) {
           #wrapper {
-            width: 100% !important;
-            height: 100% !important;
+            width: 100vw !important;
+            height: 100vh !important;
           }
           
           #wrapper iframe {
-            width: 100% !important;
-            height: 100% !important;
+            width: 100vw !important;
+            height: 100vh !important;
           }
         }
         
         @media (max-width: 768px) {
           #wrapper {
-            width: 100% !important;
-            height: 100% !important;
+            width: 100vw !important;
+            height: 100vh !important;
           }
           
           #wrapper iframe {
-            width: 100% !important;
-            height: 100% !important;
+            width: 100vw !important;
+            height: 100vh !important;
           }
+        }
+        
+        /* Additional fixes for modal display */
+        body {
+          overflow: hidden !important;
+        }
+        
+        /* Override any conflicting styles */
+        .paychangu-modal {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          z-index: 10001 !important;
+          overflow: visible !important;
         }
       `}</style>
       <Button
@@ -397,11 +418,11 @@ export function PayChanguPayment({
             left: 0,
             right: 0,
             bottom: 0,
-            width: '100%',
-            height: '100%',
+            width: '100vw',
+            height: '100vh',
             zIndex: 9999,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            overflow: 'hidden'
+            overflow: 'visible'
           }}
         ></div>
       )}
