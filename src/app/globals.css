@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'PT Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* #ffffff */
+    --foreground: 0 0% 0%; /* #000000 */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 0 0% 0%; /* #000000 */
+    --popover: 0 0% 100%; /* #ffffff */
+    --popover-foreground: 0 0% 0%; /* #000000 */
+    --primary: 211 60% 16%; /* #14213d */
+    --primary-foreground: 0 0% 100%; /* #ffffff */
+    --secondary: 0 0% 90%; /* #e5e5e5 */
+    --secondary-foreground: 0 0% 0%; /* #000000 */
+    --muted: 0 0% 90%; /* #e5e5e5 */
+    --muted-foreground: 0 0% 30%;
+    --accent: 38 98% 52%; /* #fca311 */
+    --accent-foreground: 0 0% 0%; /* #000000 */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 80%;
+    --input: 0 0% 90%; /* #e5e5e5 */
+    --ring: 211 60% 16%; /* #14213d */
+    --chart-1: 211 60% 16%; /* #14213d */
+    --chart-2: 38 98% 52%; /* #fca311 */
+    --chart-3: 0 0% 50%;
+    --chart-4: 20 80% 50%;
+    --chart-5: 0 75% 60%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 90%; /* #e5e5e5 */
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 90%; /* #e5e5e5 */
+    --popover: 0 0% 0%; /* #000000 */
+    --popover-foreground: 0 0% 90%; /* #e5e5e5 */
+    --primary: 211 60% 16%; /* #14213d */
+    --primary-foreground: 0 0% 100%; /* #ffffff */
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 90%; /* #e5e5e5 */
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 38 98% 52%; /* #fca311 */
+    --accent-foreground: 0 0% 0%; /* #000000 */
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 211 60% 16%; /* #14213d */
+    --chart-1: 0 0% 90%; /* #e5e5e5 */
+    --chart-2: 38 98% 52%; /* #fca311 */
+    --chart-3: 0 0% 50%;
+    --chart-4: 20 80% 50%;
+    --chart-5: 0 75% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

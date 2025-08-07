@@ -1,0 +1,413 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield, Eye, EyeOff, Loader2, Mail } from 'lucide-react';
+
+export default function AdminLoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
+  const [show2FA, setShow2FA] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [backupCode, setBackupCode] = useState('');
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [adminData, setAdminData] = useState<any>(null);
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      // First, attempt admin login
+      const loginResponse = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (loginData.success) {
+        // Check if 2FA is required
+        if (loginData.requires2FA) {
+          setAdminData(loginData.admin);
+          setShow2FA(true);
+          setLoading(false);
+          return;
+        }
+
+        // Track the successful login
+        await fetch('/api/admin/login-track', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            adminId: loginData.admin.id,
+            adminEmail: loginData.admin.email,
+            adminName: loginData.admin.name,
+            loginStatus: 'success',
+            isSuccessful: true,
+            screenResolution: `${window.screen.width}x${window.screen.height}`,
+            timezoneOffset: new Date().getTimezoneOffset(),
+          }),
+        });
+
+        // Redirect to admin dashboard
+        router.push('/admin/dashboard');
+        router.refresh();
+      } else {
+        // Track the failed login attempt
+        await fetch('/api/admin/login-track', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            adminId: 'unknown',
+            adminEmail: email,
+            adminName: 'Unknown',
+            loginStatus: 'failed',
+            isSuccessful: false,
+            failureReason: loginData.message || 'Invalid credentials',
+            screenResolution: `${window.screen.width}x${window.screen.height}`,
+            timezoneOffset: new Date().getTimezoneOffset(),
+          }),
+        });
+
+        setError(loginData.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('An error occurred during login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordLoading(true);
+    setForgotPasswordMessage('');
+
+    try {
+      const response = await fetch('/api/admin/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setForgotPasswordMessage(data.message);
+        setForgotPasswordEmail('');
+      } else {
+        setForgotPasswordMessage(data.message || 'Failed to send reset email');
+      }
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      setForgotPasswordMessage('An error occurred. Please try again.');
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
+
+  const handle2FAVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/admin/verify-2fa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: adminData.email,
+          verificationCode: useBackupCode ? undefined : verificationCode,
+          backupCode: useBackupCode ? backupCode : undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Track the successful login with 2FA
+        await fetch('/api/admin/login-track', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            adminId: data.admin.id,
+            adminEmail: data.admin.email,
+            adminName: data.admin.name,
+            loginStatus: 'success',
+            isSuccessful: true,
+            screenResolution: `${window.screen.width}x${window.screen.height}`,
+            timezoneOffset: new Date().getTimezoneOffset(),
+          }),
+        });
+
+        // Redirect to admin dashboard
+        router.push('/admin/dashboard');
+        router.refresh();
+      } else {
+        setError(data.error || '2FA verification failed');
+      }
+    } catch (error) {
+      console.error('2FA verification error:', error);
+      setError('An error occurred during 2FA verification');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader className="space-y-1">
+            <div className="flex items-center justify-center mb-4">
+              <Shield className="h-12 w-12 text-primary" />
+            </div>
+            <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
+            <CardDescription className="text-center">
+              Access the admin dashboard with your credentials
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={process.env.NEXT_PUBLIC_ADMIN_EMAIL || "Enter admin email"}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  'Login'
+                )}
+              </Button>
+            </form>
+            
+            <div className="mt-6 text-center">
+              <Button
+                type="button"
+                variant="link"
+                className="text-sm text-muted-foreground hover:text-primary"
+                onClick={() => setShowForgotPassword(!showForgotPassword)}
+              >
+                Forgot your password?
+              </Button>
+            </div>
+
+            {showForgotPassword && (
+              <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email Address</Label>
+                    <Input
+                      id="forgot-email"
+                      type="email"
+                      placeholder="Enter your admin email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      required
+                      disabled={forgotPasswordLoading}
+                    />
+                  </div>
+                  
+                  {forgotPasswordMessage && (
+                    <Alert variant={forgotPasswordMessage.includes('error') ? "destructive" : "default"}>
+                      <AlertDescription>{forgotPasswordMessage}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={forgotPasswordLoading}
+                    size="sm"
+                  >
+                    {forgotPasswordLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Send Reset Email
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 2FA Verification Modal */}
+      {show2FA && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center mb-6">
+              <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h2 className="text-2xl font-bold">Two-Factor Authentication</h2>
+              <p className="text-muted-foreground">
+                Enter the 6-digit code from your authenticator app
+              </p>
+            </div>
+
+            <form onSubmit={handle2FAVerification} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {!useBackupCode ? (
+                <div className="space-y-2">
+                  <Label htmlFor="verification-code">Verification Code</Label>
+                  <Input
+                    id="verification-code"
+                    type="text"
+                    placeholder="000000"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    maxLength={6}
+                    className="text-center text-lg font-mono tracking-widest"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="backup-code">Backup Code</Label>
+                  <Input
+                    id="backup-code"
+                    type="text"
+                    placeholder="Enter backup code"
+                    value={backupCode}
+                    onChange={(e) => setBackupCode(e.target.value)}
+                    className="text-center text-lg font-mono"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              )}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  'Verify'
+                )}
+              </Button>
+
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                  onClick={() => setUseBackupCode(!useBackupCode)}
+                >
+                  {useBackupCode ? 'Use authenticator app' : 'Use backup code'}
+                </Button>
+              </div>
+
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                  onClick={() => {
+                    setShow2FA(false);
+                    setVerificationCode('');
+                    setBackupCode('');
+                    setUseBackupCode(false);
+                    setError('');
+                  }}
+                >
+                  Back to login
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+} 

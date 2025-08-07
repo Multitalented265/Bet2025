@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: mzunguko-web
+    env: node
+    plan: starter
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_I2tQPFAVu6Hp@ep-red-moon-abjh5379-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+      - key: NEXTAUTH_URL
+        value: https://bet2025-2.onrender.com
+      - key: PAYCHANGU_PUBLIC_KEY
+        sync: false
+      - key: PAYCHANGU_SECRET_KEY
+        sync: false
+      - key: PAYCHANGU_WEBHOOK_URL
+        value: https://bet2025-2.onrender.com/api/paychangu/webhook
+      - key: PAYCHANGU_CALLBACK_URL
+        value: https://bet2025-2.onrender.com/wallet
+      - key: PAYCHANGU_RETURN_URL
+        value: https://bet2025-2.onrender.com/wallet
+      - key: ADMIN_EMAIL
+        value: admin@mzunguko.com
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NEXT_PUBLIC_ADMIN_EMAIL
+        value: admin@mzunguko.com
+      - key: NEXT_PUBLIC_ADMIN_PASSWORD
+        sync: false 
