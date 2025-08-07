@@ -15,6 +15,7 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type { CandidateData } from "@/lib/data"
 import { useHasMounted } from "@/hooks/use-has-mounted"
 import { SafeImage } from "@/components/ui/safe-image"
@@ -80,6 +81,12 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
   
   const sortedData = [...candidates].filter(c => c.status === 'Active').sort((a, b) => b.totalBets - a.totalBets);
 
+  // Calculate dynamic height based on number of candidates
+  const minHeight = 400;
+  const maxHeight = 800;
+  const heightPerCandidate = 80;
+  const dynamicHeight = Math.min(Math.max(sortedData.length * heightPerCandidate, minHeight), maxHeight);
+
   if (!hasMounted) {
     return (
         <Card className="w-full shadow-lg">
@@ -105,93 +112,95 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="relative">
-          {/* Candidate Images Overlay for iOS Compatibility */}
-          <div className="absolute left-0 top-0 z-10 pointer-events-none">
-            {sortedData.map((candidate, index) => (
-              <div
-                key={candidate.id}
-                className="absolute flex items-center gap-3"
-                style={{
-                  top: `${20 + (index * 80)}px`,
-                  left: '10px',
-                  width: '140px'
-                }}
-              >
-                <div className="relative w-8 h-8 overflow-hidden rounded-full border-2 border-primary/20 shadow-sm flex-shrink-0">
-                  <SafeImage
-                    src={candidate.image}
-                    alt={`Photo of ${candidate.name}`}
-                    fill
-                    sizes="32px"
-                    className="object-cover object-center"
-                    fallbackText={candidate.name.charAt(0).toUpperCase()}
-                    fallbackClassName="absolute inset-0 rounded-full text-xs font-bold"
-                  />
-                </div>
-                <span className="text-xs font-medium text-foreground truncate">
-                  {candidate.name}
-                </span>
-              </div>
-            ))}
-          </div>
-          
-        <ChartContainer config={chartConfig} className="h-[500px] w-full">
-          <BarChart 
-            data={sortedData} 
-            layout="vertical"
-            margin={{ 
-                left: 160, 
-              right: isMobile ? 120 : 140, 
-              top: 20, 
-              bottom: 20 
-            }}
-            accessibilityLayer
-            barCategoryGap={isMobile ? "35%" : "20%"}
-            >
-            <XAxis type="number" hide />
-            <YAxis 
-              dataKey="name" 
-              type="category" 
-              tickLine={false} 
-              axisLine={false} 
-                hide
-              />
-            <Tooltip
-                cursor={<CustomCursor />}
-                content={<ChartTooltipContent
-                    formatter={(value, name, props) => {
-                      // Access the betCount directly from the chart data point
-                      const betCount = props.payload?.betCount || 0;
-                    return (
-                      <div className="flex items-center">
-                          <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: chartConfig[name as string]?.color }} />
-                          <div className="flex flex-col">
-                              <span className="font-medium">{name}</span>
-                              <span className="text-muted-foreground">{Number(value).toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                <span className="text-muted-foreground text-xs">{betCount} bets placed</span>
-                          </div>
-                      </div>
-                    );
+        <ScrollArea className="w-full" style={{ height: `${dynamicHeight}px` }}>
+          <div className="relative pr-4">
+            {/* Candidate Images Overlay for iOS Compatibility */}
+            <div className="absolute left-0 top-0 z-10 pointer-events-none">
+              {sortedData.map((candidate, index) => (
+                <div
+                  key={candidate.id}
+                  className="absolute flex items-center gap-3"
+                  style={{
+                    top: `${20 + (index * 80)}px`,
+                    left: '10px',
+                    width: '140px'
                   }}
-                  nameKey="name"
-                  hideLabel />}
-              />
-            <Bar dataKey="totalBets" layout="vertical" radius={8} animationDuration={800}>
-              <LabelList
-                dataKey="totalBets"
-                position="right"
-                offset={isMobile ? 20 : 25}
-                className="fill-foreground font-semibold text-xs sm:text-sm"
-                formatter={(value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              />
-              {sortedData.map((entry) => (
-                <Cell key={`cell-${entry.id}`} fill={entry.color} />
+                >
+                  <div className="relative w-8 h-8 overflow-hidden rounded-full border-2 border-primary/20 shadow-sm flex-shrink-0">
+                    <SafeImage
+                      src={candidate.image}
+                      alt={`Photo of ${candidate.name}`}
+                      fill
+                      sizes="32px"
+                      className="object-cover object-center"
+                      fallbackText={candidate.name.charAt(0).toUpperCase()}
+                      fallbackClassName="absolute inset-0 rounded-full text-xs font-bold"
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-foreground truncate">
+                    {candidate.name}
+                  </span>
+                </div>
               ))}
-            </Bar>
-          </BarChart>
-        </ChartContainer>
-        </div>
+            </div>
+            
+          <ChartContainer config={chartConfig} className="w-full" style={{ height: `${Math.max(sortedData.length * 80, 400)}px` }}>
+            <BarChart 
+              data={sortedData} 
+              layout="vertical"
+              margin={{ 
+                  left: 160, 
+                right: isMobile ? 120 : 140, 
+                top: 20, 
+                bottom: 20 
+              }}
+              accessibilityLayer
+              barCategoryGap={isMobile ? "35%" : "20%"}
+              >
+              <XAxis type="number" hide />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                tickLine={false} 
+                axisLine={false} 
+                  hide
+                />
+              <Tooltip
+                  cursor={<CustomCursor />}
+                  content={<ChartTooltipContent
+                      formatter={(value, name, props) => {
+                        // Access the betCount directly from the chart data point
+                        const betCount = props.payload?.betCount || 0;
+                      return (
+                        <div className="flex items-center">
+                            <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: chartConfig[name as string]?.color }} />
+                            <div className="flex flex-col">
+                                <span className="font-medium">{name}</span>
+                                <span className="text-muted-foreground">{Number(value).toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                  <span className="text-muted-foreground text-xs">{betCount} bets placed</span>
+                            </div>
+                        </div>
+                      );
+                    }}
+                    nameKey="name"
+                    hideLabel />}
+                />
+              <Bar dataKey="totalBets" layout="vertical" radius={8} animationDuration={800}>
+                <LabelList
+                  dataKey="totalBets"
+                  position="right"
+                  offset={isMobile ? 20 : 25}
+                  className="fill-foreground font-semibold text-xs sm:text-sm"
+                  formatter={(value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'MWK', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                />
+                {sortedData.map((entry) => (
+                  <Cell key={`cell-${entry.id}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   )

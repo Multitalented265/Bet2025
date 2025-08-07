@@ -1,14 +1,16 @@
-import { Vote } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Logo() {
   return (
-    <div className="flex items-center gap-2" aria-label="Mzunguko logo">
-      <div className="p-2 bg-primary rounded-lg">
-        <Vote className="h-6 w-6 text-primary-foreground" />
-      </div>
-      <span className="text-xl font-bold font-headline text-foreground">
-        Mzunguko
-      </span>
+    <div className="flex items-center" aria-label="Mzunguko logo">
+      <Image
+        src="/logo.png"
+        alt="Mzunguko Logo"
+        width={32}
+        height={32}
+        className="h-8 w-8"
+        priority
+      />
     </div>
   );
 }

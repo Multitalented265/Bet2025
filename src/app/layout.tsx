@@ -20,7 +20,7 @@ const fontPtSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Mzunguko',
+  title: 'Bet2025',
   description: 'Your trusted betting platform',
 };
 
