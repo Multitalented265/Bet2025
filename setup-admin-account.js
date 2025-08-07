@@ -5,88 +5,6 @@ const ADMIN_EMAIL = 'admin@mzunguko.com';
 const ADMIN_PASSWORD = 'AdminSecure2025!@#';
 const ADMIN_NAME = 'Administrator';
 
-async function clearRateLimits() {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: DEPLOYMENT_URL.replace('https://', ''),
-      port: 443,
-      path: '/api/admin/clear-rate-limits',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'DB-Reset-Script/1.0'
-      }
-    };
-
-    const req = https.request(options, (res) => {
-      console.log(`📡 Clear Rate Limits - Status: ${res.statusCode}`);
-      
-      let responseData = '';
-      res.on('data', (chunk) => {
-        responseData += chunk;
-      });
-      
-      res.on('end', () => {
-        try {
-          const result = JSON.parse(responseData);
-          resolve(result);
-        } catch (error) {
-          console.log(`❌ Clear Rate Limits - Raw response:`, responseData);
-          resolve({ success: false, message: 'Invalid JSON response' });
-        }
-      });
-    });
-
-    req.on('error', (error) => {
-      console.error(`❌ Clear Rate Limits - Error:`, error.message);
-      reject(error);
-    });
-
-    req.end();
-  });
-}
-
-async function deleteAllAdmins() {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: DEPLOYMENT_URL.replace('https://', ''),
-      port: 443,
-      path: '/api/admin/clear-all',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'DB-Reset-Script/1.0'
-      }
-    };
-
-    const req = https.request(options, (res) => {
-      console.log(`📡 Delete All Admins - Status: ${res.statusCode}`);
-      
-      let responseData = '';
-      res.on('data', (chunk) => {
-        responseData += chunk;
-      });
-      
-      res.on('end', () => {
-        try {
-          const result = JSON.parse(responseData);
-          resolve(result);
-        } catch (error) {
-          console.log(`❌ Delete All Admins - Raw response:`, responseData);
-          resolve({ success: false, message: 'Invalid JSON response' });
-        }
-      });
-    });
-
-    req.on('error', (error) => {
-      console.error(`❌ Delete All Admins - Error:`, error.message);
-      reject(error);
-    });
-
-    req.end();
-  });
-}
-
 async function setupAdminAccount() {
   return new Promise((resolve, reject) => {
     const options = {
@@ -96,7 +14,7 @@ async function setupAdminAccount() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'DB-Reset-Script/1.0'
+        'User-Agent': 'Admin-Setup-Script/1.0'
       }
     };
 
@@ -135,6 +53,47 @@ async function setupAdminAccount() {
   });
 }
 
+async function checkAdminAccounts() {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: DEPLOYMENT_URL.replace('https://', ''),
+      port: 443,
+      path: '/api/setup-admin',
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Admin-Setup-Script/1.0'
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      console.log(`📡 Admin Check - Status: ${res.statusCode}`);
+      
+      let responseData = '';
+      res.on('data', (chunk) => {
+        responseData += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(responseData);
+          resolve(result);
+        } catch (error) {
+          console.log(`❌ Admin Check - Raw response:`, responseData);
+          resolve({ success: false, message: 'Invalid JSON response' });
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      console.error(`❌ Admin Check - Error:`, error.message);
+      reject(error);
+    });
+
+    req.end();
+  });
+}
+
 async function testAdminLogin() {
   return new Promise((resolve, reject) => {
     const options = {
@@ -144,7 +103,7 @@ async function testAdminLogin() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'DB-Reset-Script/1.0'
+        'User-Agent': 'Admin-Setup-Script/1.0'
       }
     };
 
@@ -183,45 +142,29 @@ async function testAdminLogin() {
 }
 
 async function main() {
-  console.log('🔧 Direct Database Reset for Admin...');
+  console.log('🔧 Setting up Admin Account...');
   console.log(`Target URL: ${DEPLOYMENT_URL}`);
   console.log(`Admin Email: ${ADMIN_EMAIL}`);
-  console.log(`Admin Password: ${ADMIN_PASSWORD}`);
+  console.log(`Admin Name: ${ADMIN_NAME}`);
   console.log('');
 
   try {
-    // Step 1: Clear rate limits
-    console.log('🔧 Step 1: Clearing rate limits...');
-    const clearResult = await clearRateLimits();
-    console.log('Clear result:', clearResult);
+    // Step 1: Check existing admin accounts
+    console.log('🔧 Step 1: Checking existing admin accounts...');
+    const checkResult = await checkAdminAccounts();
+    console.log('Check result:', checkResult);
 
-    if (clearResult.success) {
-      console.log('✅ Rate limits cleared successfully!');
+    if (checkResult.success && checkResult.admins && checkResult.admins.length > 0) {
+      console.log('✅ Found existing admin accounts:');
+      checkResult.admins.forEach(admin => {
+        console.log(`  - ${admin.email} (${admin.name})`);
+      });
     } else {
-      console.log('❌ Rate limit clear failed:', clearResult.message);
+      console.log('❌ No admin accounts found');
     }
 
-    // Step 2: Wait a moment
-    console.log('\n⏳ Waiting 3 seconds...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Step 3: Delete all existing admins
-    console.log('\n🔧 Step 2: Deleting all existing admins...');
-    const deleteResult = await deleteAllAdmins();
-    console.log('Delete result:', deleteResult);
-
-    if (deleteResult.success) {
-      console.log('✅ All admins deleted successfully!');
-    } else {
-      console.log('❌ Delete admins failed:', deleteResult.message);
-    }
-
-    // Step 4: Wait a moment
-    console.log('\n⏳ Waiting 3 seconds...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Step 5: Setup new admin account
-    console.log('\n🔧 Step 3: Setting up new admin account...');
+    // Step 2: Setup admin account
+    console.log('\n🔧 Step 2: Setting up admin account...');
     const setupResult = await setupAdminAccount();
     console.log('Setup result:', setupResult);
 
@@ -231,12 +174,8 @@ async function main() {
       console.log('❌ Admin account setup failed:', setupResult.message);
     }
 
-    // Step 6: Wait a moment
-    console.log('\n⏳ Waiting 3 seconds...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Step 7: Test admin login
-    console.log('\n🔧 Step 4: Testing admin login...');
+    // Step 3: Test admin login
+    console.log('\n🔧 Step 3: Testing admin login...');
     const loginResult = await testAdminLogin();
     console.log('Login result:', loginResult);
 
@@ -257,4 +196,4 @@ async function main() {
   }
 }
 
-main(); 
+main();

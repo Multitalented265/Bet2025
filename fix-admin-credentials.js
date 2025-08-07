@@ -14,7 +14,7 @@ async function clearRateLimits() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'DB-Reset-Script/1.0'
+        'User-Agent': 'Admin-Fix-Script/1.0'
       }
     };
 
@@ -46,47 +46,6 @@ async function clearRateLimits() {
   });
 }
 
-async function deleteAllAdmins() {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: DEPLOYMENT_URL.replace('https://', ''),
-      port: 443,
-      path: '/api/admin/clear-all',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'DB-Reset-Script/1.0'
-      }
-    };
-
-    const req = https.request(options, (res) => {
-      console.log(`📡 Delete All Admins - Status: ${res.statusCode}`);
-      
-      let responseData = '';
-      res.on('data', (chunk) => {
-        responseData += chunk;
-      });
-      
-      res.on('end', () => {
-        try {
-          const result = JSON.parse(responseData);
-          resolve(result);
-        } catch (error) {
-          console.log(`❌ Delete All Admins - Raw response:`, responseData);
-          resolve({ success: false, message: 'Invalid JSON response' });
-        }
-      });
-    });
-
-    req.on('error', (error) => {
-      console.error(`❌ Delete All Admins - Error:`, error.message);
-      reject(error);
-    });
-
-    req.end();
-  });
-}
-
 async function setupAdminAccount() {
   return new Promise((resolve, reject) => {
     const options = {
@@ -96,7 +55,7 @@ async function setupAdminAccount() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'DB-Reset-Script/1.0'
+        'User-Agent': 'Admin-Fix-Script/1.0'
       }
     };
 
@@ -144,7 +103,7 @@ async function testAdminLogin() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'DB-Reset-Script/1.0'
+        'User-Agent': 'Admin-Fix-Script/1.0'
       }
     };
 
@@ -183,7 +142,7 @@ async function testAdminLogin() {
 }
 
 async function main() {
-  console.log('🔧 Direct Database Reset for Admin...');
+  console.log('🔧 Fixing Admin Credentials...');
   console.log(`Target URL: ${DEPLOYMENT_URL}`);
   console.log(`Admin Email: ${ADMIN_EMAIL}`);
   console.log(`Admin Password: ${ADMIN_PASSWORD}`);
@@ -205,23 +164,8 @@ async function main() {
     console.log('\n⏳ Waiting 3 seconds...');
     await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // Step 3: Delete all existing admins
-    console.log('\n🔧 Step 2: Deleting all existing admins...');
-    const deleteResult = await deleteAllAdmins();
-    console.log('Delete result:', deleteResult);
-
-    if (deleteResult.success) {
-      console.log('✅ All admins deleted successfully!');
-    } else {
-      console.log('❌ Delete admins failed:', deleteResult.message);
-    }
-
-    // Step 4: Wait a moment
-    console.log('\n⏳ Waiting 3 seconds...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Step 5: Setup new admin account
-    console.log('\n🔧 Step 3: Setting up new admin account...');
+    // Step 3: Setup admin account
+    console.log('\n🔧 Step 2: Setting up admin account...');
     const setupResult = await setupAdminAccount();
     console.log('Setup result:', setupResult);
 
@@ -231,12 +175,12 @@ async function main() {
       console.log('❌ Admin account setup failed:', setupResult.message);
     }
 
-    // Step 6: Wait a moment
+    // Step 4: Wait a moment
     console.log('\n⏳ Waiting 3 seconds...');
     await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // Step 7: Test admin login
-    console.log('\n🔧 Step 4: Testing admin login...');
+    // Step 5: Test admin login
+    console.log('\n🔧 Step 3: Testing admin login...');
     const loginResult = await testAdminLogin();
     console.log('Login result:', loginResult);
 
@@ -257,4 +201,4 @@ async function main() {
   }
 }
 
-main(); 
+main();

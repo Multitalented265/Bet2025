@@ -6,9 +6,20 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🔧 Setting up admin account...');
     
+    const body = await request.json();
+    const { email, password, name } = body;
+    
+    // Validate required fields
+    if (!email || !password) {
+      return NextResponse.json({
+        success: false,
+        message: 'Email and password are required'
+      }, { status: 400 });
+    }
+    
     // Check if admin already exists
     const existingAdmin = await prisma.admin.findFirst({
-      where: { email: process.env.ADMIN_EMAIL! }
+      where: { email: email.toLowerCase() }
     });
     
     if (existingAdmin) {
@@ -23,14 +34,14 @@ export async function POST(request: NextRequest) {
     }
     
     // Hash the admin password before storing
-    const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Create default admin account
+    // Create admin account
     const admin = await prisma.admin.create({
       data: {
-        email: process.env.ADMIN_EMAIL!,
+        email: email.toLowerCase(),
         password: hashedPassword,
-        name: 'Administrator',
+        name: name || 'Administrator',
         role: 'admin',
         isActive: true
       }
@@ -41,11 +52,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Admin account created successfully',
-              admin: {
-          email: admin.email,
-          name: admin.name,
-          password: process.env.ADMIN_PASSWORD! // Only show in development
-        }
+      admin: {
+        email: admin.email,
+        name: admin.name
+      }
     });
     
   } catch (error) {
@@ -63,30 +73,34 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const admin = await prisma.admin.findFirst({
-      where: { email: process.env.ADMIN_EMAIL! }
+    // Get all admin accounts
+    const admins = await prisma.admin.findMany({
+      where: { isActive: true },
+      select: {
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true
+      }
     });
     
-    if (admin) {
+    if (admins.length > 0) {
       return NextResponse.json({
         success: true,
-        message: 'Admin account exists',
-        admin: {
-          email: admin.email,
-          name: admin.name
-        }
+        message: 'Admin accounts found',
+        admins: admins
       });
     } else {
       return NextResponse.json({
         success: false,
-        message: 'Admin account not found'
+        message: 'No admin accounts found'
       });
     }
   } catch (error) {
     return NextResponse.json(
       { 
         success: false, 
-        message: 'Error checking admin account',
+        message: 'Error checking admin accounts',
         error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

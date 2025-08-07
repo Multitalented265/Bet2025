@@ -20,7 +20,15 @@ function getClientIP(request: NextRequest): string {
 
 function getRateLimitKey(request: NextRequest): string {
   const ip = getClientIP(request);
-  return `rate_limit:${ip}`;
+  const pathname = request.nextUrl.pathname;
+  const method = request.method;
+  
+  // Create separate rate limit keys for different endpoints
+  if (pathname === '/api/admin/login' && method === 'POST') {
+    return `admin_login:${ip}`;
+  }
+  
+  return `general:${ip}`;
 }
 
 function isRateLimited(key: string, maxRequests: number): boolean {
@@ -28,6 +36,7 @@ function isRateLimited(key: string, maxRequests: number): boolean {
   const record = rateLimitStore.get(key);
   
   if (!record || now > record.resetTime) {
+    // Reset the counter and start a new window
     rateLimitStore.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
     return false;
   }
@@ -43,6 +52,18 @@ function isRateLimited(key: string, maxRequests: number): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
+  // Skip rate limiting for certain paths
+  const skipRateLimitPaths = [
+    '/api/admin/clear-rate-limits',
+    '/api/setup-admin',
+    '/api/admin/setup',
+    '/api/admin/login' // Skip rate limiting for admin login
+  ];
+  
+  if (skipRateLimitPaths.includes(pathname)) {
+    return NextResponse.next();
+  }
+  
   // Rate limiting for all requests
   const rateLimitKey = getRateLimitKey(request);
   const isLoginAttempt = pathname === '/api/admin/login' && request.method === 'POST';
@@ -50,7 +71,7 @@ export async function middleware(request: NextRequest) {
   
   if (isRateLimited(rateLimitKey, maxRequests)) {
     const clientIP = getClientIP(request);
-    console.log(`🚨 Rate limit exceeded for IP: ${clientIP}`);
+    console.log(`🚨 Rate limit exceeded for IP: ${clientIP} on path: ${pathname}`);
     return NextResponse.json(
       { error: 'Too many requests. Please try again later.' },
       { status: 429 }

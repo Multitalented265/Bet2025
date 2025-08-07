@@ -13,22 +13,22 @@ services:
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: NEXTAUTH_URL
-        value: https://bet2025-2.onrender.com
+        value: https://bet2025-2-saau.onrender.com
       - key: PAYCHANGU_PUBLIC_KEY
         sync: false
       - key: PAYCHANGU_SECRET_KEY
         sync: false
       - key: PAYCHANGU_WEBHOOK_URL
-        value: https://bet2025-2.onrender.com/api/paychangu/webhook
+        value: https://bet2025-2-saau.onrender.com/api/paychangu/webhook
       - key: PAYCHANGU_CALLBACK_URL
-        value: https://bet2025-2.onrender.com/wallet
+        value: https://bet2025-2-saau.onrender.com/wallet
       - key: PAYCHANGU_RETURN_URL
-        value: https://bet2025-2.onrender.com/wallet
+        value: https://bet2025-2-saau.onrender.com/wallet
       - key: ADMIN_EMAIL
         value: admin@mzunguko.com
       - key: ADMIN_PASSWORD
-        sync: false
+        value: AdminSecure2025!@#
       - key: NEXT_PUBLIC_ADMIN_EMAIL
         value: admin@mzunguko.com
       - key: NEXT_PUBLIC_ADMIN_PASSWORD
-        sync: false 
+        value: AdminSecure2025!@# 

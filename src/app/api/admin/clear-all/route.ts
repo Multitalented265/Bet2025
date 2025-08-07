@@ -1,85 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import bcrypt from 'bcryptjs';
-
-export async function DELETE(request: NextRequest) {
-  try {
-    console.log('🗑️  Clearing all admin accounts...');
-    
-    // Delete all existing admin accounts
-    const deleteResult = await prisma.admin.deleteMany({});
-    
-    console.log(`✅ Deleted ${deleteResult.count} admin accounts`);
-    
-    return NextResponse.json({
-      success: true,
-      message: `Successfully deleted ${deleteResult.count} admin accounts`,
-      deletedCount: deleteResult.count
-    });
-    
-  } catch (error) {
-    console.error('❌ Error clearing admin accounts:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        message: 'Failed to clear admin accounts',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
-}
+import { clearAdminLoginAttempts } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, password, name } = body;
-
-    // Validate required fields
-    if (!email || !password || !name) {
-      return NextResponse.json({
-        success: false,
-        message: 'Email, password, and name are required'
-      }, { status: 400 });
-    }
-
-    // Clear all existing admin accounts first
-    await prisma.admin.deleteMany({});
-    console.log('🗑️  Cleared all existing admin accounts');
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('🧹 Clearing all admin data...');
     
-    // Create the main admin account
-    const admin = await prisma.admin.create({
-      data: {
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        name: name,
-        role: 'admin',
-        isActive: true
-      }
-    });
+    // Clear in-memory rate limiting
+    clearAdminLoginAttempts();
     
-    console.log('✅ Main admin account created successfully:', admin.email);
+    // Clear all admin accounts
+    const deleteAdmins = await prisma.admin.deleteMany({});
+    console.log(`✅ Deleted ${deleteAdmins.count} admin accounts`);
+    
+    // Clear all banned IPs
+    const deleteBannedIPs = await prisma.bannedIP.deleteMany({});
+    console.log(`✅ Deleted ${deleteBannedIPs.count} banned IP addresses`);
+    
+    // Clear all admin sessions
+    const deleteSessions = await prisma.adminSession.deleteMany({});
+    console.log(`✅ Deleted ${deleteSessions.count} admin sessions`);
+    
+    // Clear all admin login logs
+    const deleteLoginLogs = await prisma.adminLoginLog.deleteMany({});
+    console.log(`✅ Deleted ${deleteLoginLogs.count} admin login logs`);
     
     return NextResponse.json({
       success: true,
-      message: 'Main admin account created successfully',
-      admin: {
-        id: admin.id,
-        email: admin.email,
-        name: admin.name,
-        role: admin.role
+      message: 'All admin data cleared successfully',
+      cleared: {
+        inMemoryRateLimits: true,
+        admins: deleteAdmins.count,
+        bannedIPs: deleteBannedIPs.count,
+        sessions: deleteSessions.count,
+        loginLogs: deleteLoginLogs.count
       }
     });
     
   } catch (error) {
-    console.error('❌ Error creating main admin account:', error);
+    console.error('❌ Error clearing admin data:', error);
     return NextResponse.json(
       { 
         success: false, 
-        message: 'Failed to create main admin account',
+        message: 'Failed to clear admin data',
         error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

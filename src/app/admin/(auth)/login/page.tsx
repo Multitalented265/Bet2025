@@ -209,7 +209,7 @@ export default function AdminLoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder={process.env.NEXT_PUBLIC_ADMIN_EMAIL || "Enter admin email"}
+                  placeholder="Enter admin email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
