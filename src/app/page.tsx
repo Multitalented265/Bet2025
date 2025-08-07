@@ -1,7 +1,7 @@
 
 import { BettingGrid } from "@/components/betting-grid"
 import { DashboardChart } from "@/components/dashboard-chart"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Info, PartyPopper, LogIn, UserPlus } from "lucide-react";
