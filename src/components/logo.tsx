@@ -9,7 +9,7 @@ export default function Logo() {
         alt="Mzunguko Logo"
         width={100}
         height={100}
-        className="h-20 w-20 md:h-24 md:w-24"
+        className="h-16 w-16 md:h-20 md:w-20"
         priority
       />
     </div>
