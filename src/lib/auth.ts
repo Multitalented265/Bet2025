@@ -365,9 +365,17 @@ function generateSessionToken(): string {
 
 // Helper function to get session token from cookies
 async function getSessionToken(): Promise<string | null> {
-  // This would be implemented based on your cookie handling
-  // For now, return null as this is handled by the session management
-  return null;
+  try {
+    // Import cookies from next/headers
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('admin-session')?.value;
+    console.log('🔍 Session token from cookies:', sessionToken ? 'Found' : 'Not found');
+    return sessionToken || null;
+  } catch (error) {
+    console.error('Error getting session token from cookies:', error);
+    return null;
+  }
 }
 
 export async function getAdminSession() {
