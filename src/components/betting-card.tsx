@@ -80,53 +80,57 @@ export function BettingCard({ candidate, disabled = false, bettingEnabled = true
   }
 
   return (
-    <Card className={`w-full transform transition-all duration-300 ${!isCardDisabled ? 'hover:scale-105 hover:shadow-xl' : 'opacity-70'}`}>
+    <Card className={`w-full h-full flex flex-col transform transition-all duration-300 ${!isCardDisabled ? 'hover:scale-105 hover:shadow-xl' : 'opacity-70'}`}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <fieldset disabled={isCardDisabled || isPending}>
-            <CardHeader>
-              <CardTitle className="text-center font-headline text-2xl">{candidate.name}</CardTitle>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+          <fieldset disabled={isCardDisabled || isPending} className="flex flex-col h-full">
+            <CardHeader className="flex-shrink-0">
+              <CardTitle className="text-center font-headline text-xl md:text-2xl line-clamp-2 min-h-[3rem] flex items-center justify-center">
+                {candidate.name}
+              </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col items-center space-y-4">
-              <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-primary shadow-lg flex-shrink-0">
+            <CardContent className="flex flex-col items-center space-y-4 flex-grow">
+              <div className="relative h-32 w-32 md:h-36 md:w-36 overflow-hidden rounded-full border-4 border-primary shadow-lg flex-shrink-0">
                 <SafeImage
                   src={candidate.image}
                   alt={`Photo of ${candidate.name}`}
                   fill
-                  sizes="160px"
+                  sizes="144px"
                   className="object-cover object-center"
                   priority
                   fallbackText={candidate.name.charAt(0)}
-                  fallbackClassName="absolute inset-0 rounded-full text-4xl font-bold"
+                  fallbackClassName="absolute inset-0 rounded-full text-3xl font-bold"
                 />
                 {candidate.status === 'Withdrawn' && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg rotate-[-15deg] border-2 border-white p-2 rounded">WITHDRAWN</span>
+                    <span className="text-white font-bold text-sm md:text-lg rotate-[-15deg] border-2 border-white p-2 rounded">WITHDRAWN</span>
                   </div>
                 )}
               </div>
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel className="text-center block">Bet Amount (MWK)</FormLabel>
-                    <FormControl>
-                        <Input 
-                          {...field}
-                          type="number" 
-                          step="1000" 
-                          className="text-center text-lg font-bold w-full"
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                          value={field.value}
-                        />
-                      </FormControl>
-                    <FormMessage className="text-center" />
-                  </FormItem>
-                )}
-              />
+              <div className="w-full max-w-[200px]">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel className="text-center block text-sm font-medium">Bet Amount (MWK)</FormLabel>
+                      <FormControl>
+                          <Input 
+                            {...field}
+                            type="number" 
+                            step="1000" 
+                            className="text-center text-lg font-bold w-full"
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            value={field.value}
+                          />
+                        </FormControl>
+                      <FormMessage className="text-center text-xs" />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex-shrink-0">
               <Button type="submit" className="w-full font-bold">
                  {getButtonText()}
               </Button>

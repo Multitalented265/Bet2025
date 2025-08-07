@@ -6,9 +6,9 @@ export default function Logo() {
       <Image
         src="/logo.png"
         alt="Mzunguko Logo"
-        width={32}
-        height={32}
-        className="h-8 w-8"
+        width={160}
+        height={160}
+        className="h-20 w-20 md:h-24 md:w-24 lg:h-28 lg:w-28"
         priority
       />
     </div>

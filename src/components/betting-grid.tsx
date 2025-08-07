@@ -17,7 +17,7 @@ export function BettingGrid({ candidates, user, bettingEnabled }: BettingGridPro
         <h2 className="text-3xl font-bold font-headline">Place Your Bet</h2>
       </div>
       <ScrollArea className="w-full" style={{ height: '600px' }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pr-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4">
           {candidates.map((candidate) => (
             <BettingCard
               key={candidate.id}

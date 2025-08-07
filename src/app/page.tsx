@@ -148,14 +148,16 @@ export default async function HomePage() {
               </div>
             </div>
             <ScrollArea className="w-full" style={{ height: '600px' }}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pr-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4">
                 {candidates.map((candidate) => (
-                  <Card key={candidate.id} className="w-full transform transition-all duration-300 opacity-70">
-                    <CardHeader>
-                      <CardTitle className="text-center font-headline text-2xl">{candidate.name}</CardTitle>
+                  <Card key={candidate.id} className="w-full h-full flex flex-col transform transition-all duration-300 opacity-70">
+                    <CardHeader className="flex-shrink-0">
+                      <CardTitle className="text-center font-headline text-xl md:text-2xl line-clamp-2 min-h-[3rem] flex items-center justify-center">
+                        {candidate.name}
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-col items-center space-y-4">
-                      <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-primary shadow-lg flex-shrink-0">
+                    <CardContent className="flex flex-col items-center space-y-4 flex-grow">
+                      <div className="relative h-32 w-32 md:h-36 md:w-36 overflow-hidden rounded-full border-4 border-primary shadow-lg flex-shrink-0">
                         <img
                           src={candidate.image}
                           alt={`Photo of ${candidate.name}`}
@@ -163,7 +165,7 @@ export default async function HomePage() {
                         />
                         {candidate.status === 'Withdrawn' && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg rotate-[-15deg] border-2 border-white p-2 rounded">WITHDRAWN</span>
+                            <span className="text-white font-bold text-sm md:text-lg rotate-[-15deg] border-2 border-white p-2 rounded">WITHDRAWN</span>
                           </div>
                         )}
                       </div>
@@ -171,11 +173,11 @@ export default async function HomePage() {
                         <p className="text-muted-foreground">Login or sign up to place your bet</p>
                       </div>
                     </CardContent>
-                    <CardContent>
+                    <CardFooter className="flex-shrink-0">
                       <Button disabled className="w-full font-bold">
                         Login to Place Bet
                       </Button>
-                    </CardContent>
+                    </CardFooter>
                   </Card>
                 ))}
               </div>
