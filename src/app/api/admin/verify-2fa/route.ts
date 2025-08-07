@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import speakeasy from "speakeasy"
+import { generateSecureToken } from "@/lib/security"
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +54,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid verification code" }, { status: 400 })
     }
 
-    return NextResponse.json({ 
+    // Create admin session after successful 2FA verification
+    const sessionToken = generateSecureToken(64);
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
+    await prisma.adminSession.create({
+      data: {
+        sessionToken,
+        adminId: admin.id,
+        expires
+      }
+    });
+
+    // Create response with admin data
+    const response = NextResponse.json({ 
       success: true,
       admin: {
         id: admin.id,
@@ -61,7 +75,18 @@ export async function POST(request: NextRequest) {
         name: admin.name,
         role: admin.role
       }
-    })
+    });
+
+    // Set HTTP-only cookie with session token
+    response.cookies.set('admin-session', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60, // 24 hours
+      path: '/'
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Error in 2FA verification:', error)

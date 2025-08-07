@@ -1,30 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server';
+import { getAdminSession } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getSession()
+    // Get all cookies
+    const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll();
     
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      )
-    }
-
+    // Check for admin session cookie specifically
+    const adminSessionCookie = cookieStore.get('admin-session');
+    
+    // Try to get admin session
+    const session = await getAdminSession();
+    
     return NextResponse.json({
       success: true,
-      user: {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name
+      debug: {
+        allCookies: allCookies.map(c => ({ name: c.name, value: c.value ? 'present' : 'empty' })),
+        adminSessionCookie: adminSessionCookie ? 'present' : 'not found',
+        sessionResult: session ? 'found' : 'null',
+        sessionDetails: session ? {
+          userId: session.user.id,
+          email: session.user.email,
+          name: session.user.name
+        } : null
       }
-    })
+    });
   } catch (error) {
-    console.error('Session test error:', error)
-    return NextResponse.json(
-      { error: 'Session test failed' },
-      { status: 500 }
-    )
+    console.error('Session test error:', error);
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 } 
