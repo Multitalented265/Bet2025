@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Eye, EyeOff, Loader2, Mail } from 'lucide-react';
-import { handleError } from '@/lib/utils';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -20,6 +19,11 @@ export default function AdminLoginPage() {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
+  const [show2FA, setShow2FA] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [backupCode, setBackupCode] = useState('');
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [adminData, setAdminData] = useState<any>(null);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -40,6 +44,14 @@ export default function AdminLoginPage() {
       const loginData = await loginResponse.json();
 
       if (loginData.success) {
+        // Check if 2FA is required
+        if (loginData.requires2FA) {
+          setAdminData(loginData.admin);
+          setShow2FA(true);
+          setLoading(false);
+          return;
+        }
+
         // Track the successful login
         await fetch('/api/admin/login-track', {
           method: 'POST',
@@ -79,13 +91,11 @@ export default function AdminLoginPage() {
           }),
         });
 
-        const userFriendlyMessage = handleError(loginData.message || 'Login failed');
-        setError(userFriendlyMessage);
+        setError(loginData.message || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
-      const userFriendlyMessage = handleError(error as Error);
-      setError(userFriendlyMessage);
+      setError('An error occurred during login');
     } finally {
       setLoading(false);
     }
@@ -111,15 +121,65 @@ export default function AdminLoginPage() {
         setForgotPasswordMessage(data.message);
         setForgotPasswordEmail('');
       } else {
-        const userFriendlyMessage = handleError(data.message || 'Failed to send reset email');
-        setForgotPasswordMessage(userFriendlyMessage);
+        setForgotPasswordMessage(data.message || 'Failed to send reset email');
       }
     } catch (error) {
       console.error('Forgot password error:', error);
-      const userFriendlyMessage = handleError(error as Error);
-      setForgotPasswordMessage(userFriendlyMessage);
+      setForgotPasswordMessage('An error occurred. Please try again.');
     } finally {
       setForgotPasswordLoading(false);
+    }
+  };
+
+  const handle2FAVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/admin/verify-2fa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: adminData.email,
+          verificationCode: useBackupCode ? undefined : verificationCode,
+          backupCode: useBackupCode ? backupCode : undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Track the successful login with 2FA
+        await fetch('/api/admin/login-track', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            adminId: data.admin.id,
+            adminEmail: data.admin.email,
+            adminName: data.admin.name,
+            loginStatus: 'success',
+            isSuccessful: true,
+            screenResolution: `${window.screen.width}x${window.screen.height}`,
+            timezoneOffset: new Date().getTimezoneOffset(),
+          }),
+        });
+
+        // Redirect to admin dashboard
+        router.push('/admin/dashboard');
+        router.refresh();
+      } else {
+        setError(data.error || '2FA verification failed');
+      }
+    } catch (error) {
+      console.error('2FA verification error:', error);
+      setError('An error occurred during 2FA verification');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -255,6 +315,99 @@ export default function AdminLoginPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 2FA Verification Modal */}
+      {show2FA && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center mb-6">
+              <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h2 className="text-2xl font-bold">Two-Factor Authentication</h2>
+              <p className="text-muted-foreground">
+                Enter the 6-digit code from your authenticator app
+              </p>
+            </div>
+
+            <form onSubmit={handle2FAVerification} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {!useBackupCode ? (
+                <div className="space-y-2">
+                  <Label htmlFor="verification-code">Verification Code</Label>
+                  <Input
+                    id="verification-code"
+                    type="text"
+                    placeholder="000000"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    maxLength={6}
+                    className="text-center text-lg font-mono tracking-widest"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="backup-code">Backup Code</Label>
+                  <Input
+                    id="backup-code"
+                    type="text"
+                    placeholder="Enter backup code"
+                    value={backupCode}
+                    onChange={(e) => setBackupCode(e.target.value)}
+                    className="text-center text-lg font-mono"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              )}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  'Verify'
+                )}
+              </Button>
+
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                  onClick={() => setUseBackupCode(!useBackupCode)}
+                >
+                  {useBackupCode ? 'Use authenticator app' : 'Use backup code'}
+                </Button>
+              </div>
+
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                  onClick={() => {
+                    setShow2FA(false);
+                    setVerificationCode('');
+                    setBackupCode('');
+                    setUseBackupCode(false);
+                    setError('');
+                  }}
+                >
+                  Back to login
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

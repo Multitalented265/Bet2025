@@ -19,7 +19,7 @@ export default async function AdminLayout({
   
   if (!session) {
     console.log("❌ No admin session found, redirecting to login");
-    redirect("/admin/(auth)/login");
+    redirect("/admin-auth/login");
   }
 
   console.log("✅ Admin session found, rendering admin layout");
