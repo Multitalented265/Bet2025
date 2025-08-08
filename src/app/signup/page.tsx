@@ -21,8 +21,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import Logo from "@/components/logo"
 import { GoogleIcon } from "@/components/icons/google-icon"
+import Image from "next/image"
+import logoImage from "@/../public/logo.png"
 import { handleSignup } from "@/actions/auth"
 import { useToast } from "@/hooks/use-toast"
 import { handleError } from "@/lib/utils"
@@ -96,13 +97,19 @@ export default function SignupPage() {
     <div className="flex sm:items-center sm:justify-center min-h-screen bg-primary sm:p-4">
       <Card className="w-full h-screen sm:h-auto sm:w-full sm:max-w-sm border-0 sm:border sm:rounded-lg">
         <CardContent className="pt-6 sm:pt-4">
-          <div className="flex flex-col items-center text-center space-y-1 mb-4">
-            <Logo size="xl" className="h-28 sm:h-32 md:h-36" />
-            <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
-            <CardDescription>
-              Enter your information to get started
-            </CardDescription>
-          </div>
+          <Image
+            src={logoImage}
+            alt="Mzunguko Logo"
+            width={320}
+            height={128}
+            priority
+            quality={100}
+            className="h-28 sm:h-32 md:h-36 w-auto mx-auto mb-4"
+          />
+          <CardTitle className="text-2xl font-headline text-center mb-2">Create an Account</CardTitle>
+          <CardDescription className="text-center mb-6">
+            Enter your information to get started
+          </CardDescription>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="fullName">Full Name *</Label>
