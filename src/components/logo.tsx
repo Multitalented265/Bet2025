@@ -3,15 +3,17 @@ import logoImage from '@/../public/logo.png';
 
 export default function Logo() {
   return (
-    <Image
-      src={logoImage}
-      alt="Mzunguko Logo"
-      width={300}
-      height={120}
-      priority
-      quality={100}
-      sizes="(max-width: 640px) 150px, (max-width: 768px) 180px, (max-width: 1024px) 220px, 300px"
-      className="h-auto w-auto"
-    />
+    <header className="h-16 flex items-center px-4">
+      <Image
+        src={logoImage}
+        alt="Mzunguko Logo"
+        width={220}
+        height={88}
+        priority
+        quality={100}
+        sizes="(max-width: 640px) 120px, (max-width: 768px) 160px, (max-width: 1024px) 200px, 220px"
+        className="max-h-12 w-auto h-auto"
+      />
+    </header>
   );
 }
