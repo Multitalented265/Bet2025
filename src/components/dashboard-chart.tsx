@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { Bar, BarChart, XAxis, YAxis, Tooltip, Cell, LabelList, Rectangle } from "recharts"
 
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/chart"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { CandidateData } from "@/lib/data"
-import { useHasMounted } from "@/hooks/use-has-mounted"
+// no client-only guard; render immediately for faster first paint
 import { SafeImage } from "@/components/ui/safe-image"
 
 type CandidateWithBetCount = CandidateData & { betCount: number };
@@ -34,23 +34,9 @@ const CustomCursor = (props: any) => {
 };
 
 export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
-  const hasMounted = useHasMounted();
-  const [isMobile, setIsMobile] = useState(false);
-
   useEffect(() => {
-    if (!hasMounted) return;
-
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-
-    return () => {
-      window.removeEventListener('resize', checkIsMobile);
-    };
-  }, [hasMounted]);
+    // noop: kept to preserve client component behavior, but no gating
+  }, []);
   
   const chartConfig = candidates.reduce((acc, candidate) => {
     acc[candidate.name] = {
@@ -68,21 +54,7 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
   const heightPerCandidate = 80; // Height per candidate row
   const dynamicHeight = Math.min(Math.max(sortedData.length * heightPerCandidate + 100, minHeight), maxHeight);
 
-  if (!hasMounted) {
-    return (
-        <Card className="w-full shadow-lg">
-            <CardHeader>
-                <CardTitle className="font-headline text-3xl">Live Betting Pool</CardTitle>
-                <CardDescription>Total Pot: ...</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="h-[450px] w-full flex items-center justify-center text-muted-foreground">
-                    Loading Chart...
-                </div>
-            </CardContent>
-        </Card>
-    )
-  }
+  // Render immediately without waiting for hasMounted
 
   return (
     <Card className="w-full shadow-lg">

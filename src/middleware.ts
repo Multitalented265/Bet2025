@@ -65,7 +65,10 @@ export async function middleware(request: NextRequest) {
     maintenanceEnabled = cached.value;
   } else {
     try {
-      const res = await fetch(new URL('/api/admin/maintenance', request.url), { method: 'GET', cache: 'no-store' });
+      const res = await fetch(new URL('/api/admin/maintenance', request.url), {
+        method: 'GET',
+        headers: { 'cache-control': 'no-cache' }
+      });
       if (res.ok) {
         const data = await res.json();
         maintenanceEnabled = Boolean(data.maintenanceMode);

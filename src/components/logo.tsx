@@ -3,7 +3,7 @@ import logoImage from '@/../public/logo.png';
 
 export default function Logo() {
   return (
-    <div className="flex items-center gap-2 h-10 md:h-12 shrink-0" aria-label="Mzunguko logo">
+    <div className="flex items-center gap-2 h-14 md:h-16 shrink-0" aria-label="Mzunguko logo">
       <Image
         src={logoImage}
         alt="Mzunguko Logo"
