@@ -3,7 +3,7 @@ import logoImage from '@/../public/logo.png';
 import { cn } from '@/lib/utils';
 
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
   className?: string;
   showWrapper?: boolean;
 }
@@ -14,29 +14,41 @@ export default function Logo({
   showWrapper = false 
 }: LogoProps) {
   const sizeConfig = {
+    xs: {
+      width: 120,
+      height: 48,
+      className: "h-6 w-auto",
+      sizes: "(max-width: 640px) 60px, (max-width: 768px) 80px, (max-width: 1024px) 100px, 120px"
+    },
     sm: {
-      width: 140,
-      height: 56,
-      className: "h-8 w-auto",
-      sizes: "(max-width: 640px) 80px, (max-width: 768px) 100px, (max-width: 1024px) 120px, 140px"
+      width: 160,
+      height: 64,
+      className: "h-10 w-auto",
+      sizes: "(max-width: 640px) 100px, (max-width: 768px) 120px, (max-width: 1024px) 140px, 160px"
     },
     md: {
-      width: 180,
-      height: 72,
-      className: "h-12 w-auto",
-      sizes: "(max-width: 640px) 120px, (max-width: 768px) 140px, (max-width: 1024px) 160px, 180px"
+      width: 200,
+      height: 80,
+      className: "h-14 w-auto",
+      sizes: "(max-width: 640px) 140px, (max-width: 768px) 160px, (max-width: 1024px) 180px, 200px"
     },
     lg: {
-      width: 220,
-      height: 88,
-      className: "h-16 w-auto",
-      sizes: "(max-width: 640px) 140px, (max-width: 768px) 180px, (max-width: 1024px) 200px, 220px"
+      width: 260,
+      height: 104,
+      className: "h-20 w-auto",
+      sizes: "(max-width: 640px) 180px, (max-width: 768px) 220px, (max-width: 1024px) 240px, 260px"
     },
     xl: {
-      width: 280,
-      height: 112,
-      className: "h-20 w-auto",
-      sizes: "(max-width: 640px) 160px, (max-width: 768px) 200px, (max-width: 1024px) 240px, 280px"
+      width: 320,
+      height: 128,
+      className: "h-24 w-auto",
+      sizes: "(max-width: 640px) 220px, (max-width: 768px) 260px, (max-width: 1024px) 300px, 320px"
+    },
+    xxl: {
+      width: 400,
+      height: 160,
+      className: "h-32 w-auto",
+      sizes: "(max-width: 640px) 280px, (max-width: 768px) 320px, (max-width: 1024px) 360px, 400px"
     }
   };
 
@@ -55,13 +67,8 @@ export default function Logo({
     />
   );
 
-  if (showWrapper) {
-    return (
-      <header className="h-16 flex items-center px-4">
-        {logoElement}
-      </header>
-    );
-  }
+  
+  
 
   return logoElement;
 }

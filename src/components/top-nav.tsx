@@ -49,7 +49,7 @@ export function TopNav({ isMobile = false, onLinkClick }: TopNavProps) {
           prefetch
           onClick={handleLinkClick}
         >
-            <Logo size="md" />
+            <Logo size="lg" className="h-16" />
         </Link>
         {navItems.map((item) => (
             <Link

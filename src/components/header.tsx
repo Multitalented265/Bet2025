@@ -27,12 +27,12 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 flex h-16 items-center border-b bg-card px-4 md:px-6 z-30">
+    <header className="sticky top-0 flex h-16 md:h-20 items-center border-b bg-card px-4 md:px-6 z-30">
       {/* Desktop Header */}
       <div className="hidden w-full md:flex md:items-center md:justify-between">
         <div className="flex items-center gap-6">
           <Link href="/dashboard">
-              <Logo size="md" />
+              <Logo size="lg" className="sm:h-14 md:h-16 lg:h-20" />
           </Link>
           <TopNav />
         </div>
@@ -82,9 +82,11 @@ export function Header() {
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left">
+            <SheetContent side="left" className="w-[85vw] sm:w-[400px] overflow-y-auto">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <TopNav isMobile={true} onLinkClick={handleMobileMenuClose} />
+              <div className="pt-4">
+                <TopNav isMobile={true} onLinkClick={handleMobileMenuClose} />
+              </div>
             </SheetContent>
           </Sheet>
         </div>
@@ -92,7 +94,7 @@ export function Header() {
         {/* Mobile Logo */}
         <div className="justify-self-center">
           <Link href="/dashboard">
-            <Logo size="sm" />
+            <Logo size="md" className="h-12" />
           </Link>
         </div>
         
