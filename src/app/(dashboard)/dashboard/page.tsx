@@ -9,26 +9,27 @@ import { redirect } from "next/navigation";
 import type { User, CandidateData } from "@/lib/data";
 
 export default async function Dashboard() {
-  const session = await getSession();
-  
-  if (!session?.user?.id) {
-    return redirect("/login");
-  }
+  try {
+    const session = await getSession();
+    
+    if (!session?.user?.id) {
+      return redirect("/login");
+    }
 
-  // Fetch all data in parallel for better performance
-  const [user, candidates, adminSettings] = await Promise.all([
-    getUserById(session.user.id),
-    getCandidatesWithBetCounts(),
-    getAdminSettings()
-  ]);
+    // Fetch all data in parallel for better performance
+    const [user, candidates, adminSettings] = await Promise.all([
+      getUserById(session.user.id),
+      getCandidatesWithBetCounts(),
+      getAdminSettings()
+    ]);
 
-  console.log('📊 Dashboard candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
+    console.log('📊 Dashboard candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
 
-  if (!user) {
-    return redirect("/login");
-  }
-  
-  const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
+    if (!user) {
+      return redirect("/login");
+    }
+    
+    const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,4 +119,15 @@ export default async function Dashboard() {
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="text-center py-8">
+          <h1 className="text-2xl font-bold mb-4">Loading Dashboard...</h1>
+          <p className="text-muted-foreground">Please refresh the page if this persists.</p>
+        </div>
+      </div>
+    );
+  }
 }

@@ -92,7 +92,7 @@ const getCachedCandidates = unstable_cache(
     }
   },
   ['candidates'],
-  { revalidate: 30 } // Cache for 30 seconds
+  { revalidate: 10 } // Cache for 10 seconds (reduced from 30)
 );
 
 const getCachedUsers = unstable_cache(
@@ -141,7 +141,7 @@ const getCachedBets = unstable_cache(
     }
   },
   ['bets'],
-  { revalidate: 30 } // Cache for 30 seconds
+  { revalidate: 10 } // Cache for 10 seconds (reduced for better responsiveness)
 );
 
 const getCachedTransactions = unstable_cache(
@@ -164,7 +164,7 @@ const getCachedTransactions = unstable_cache(
     }
   },
   ['transactions'],
-  { revalidate: 30 } // Cache for 30 seconds
+  { revalidate: 10 } // Cache for 10 seconds (reduced for better responsiveness)
 );
 
 const getCachedUserById = unstable_cache(
@@ -236,7 +236,7 @@ const getCachedAdminSettings = unstable_cache(
     }
   },
   ['admin-settings'],
-  { revalidate: 60 } // Cache for 1 minute
+  { revalidate: 5 } // Cache for 5 seconds (reduced for faster maintenance mode updates)
 );
 
 const getCachedCandidatesWithBetCounts = unstable_cache(

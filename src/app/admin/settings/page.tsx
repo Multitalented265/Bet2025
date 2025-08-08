@@ -414,7 +414,38 @@ export default function AdminSettingsPage() {
                           id="maintenance-mode" 
                           name="maintenanceMode" 
                           checked={settings?.maintenanceMode}
-                          onCheckedChange={(checked) => setSettings(s => s ? {...s, maintenanceMode: checked} : null)}
+                          onCheckedChange={async (checked) => {
+                            setSettings(s => s ? {...s, maintenanceMode: checked} : null);
+                            
+                            // Immediately save to database
+                            try {
+                              const response = await fetch('/api/admin/maintenance', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ enabled: checked })
+                              });
+                              
+                              if (response.ok) {
+                                toast({
+                                  title: checked ? "Maintenance Mode Enabled" : "Maintenance Mode Disabled",
+                                  description: checked 
+                                    ? "Users will now see the maintenance page." 
+                                    : "Users can now access the site normally.",
+                                });
+                              } else {
+                                throw new Error('Failed to update maintenance mode');
+                              }
+                            } catch (error) {
+                              // Revert the UI state on error
+                              setSettings(s => s ? {...s, maintenanceMode: !checked} : null);
+                              const userFriendlyMessage = handleError(error as Error);
+                              toast({
+                                variant: "destructive",
+                                title: "Error",
+                                description: userFriendlyMessage,
+                              });
+                            }
+                          }}
                         />
                     </div>
                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">

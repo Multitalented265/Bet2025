@@ -7,7 +7,7 @@ export default function MaintenancePage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-6">
       <div className="flex flex-col items-center gap-6 max-w-xl text-center">
-        <Logo />
+        <Logo size="lg" />
         <h1 className="text-3xl md:text-4xl font-semibold">We&rsquo;ll be back soon</h1>
         <p className="text-muted-foreground">
           Our site is currently undergoing scheduled maintenance. We&rsquo;re working

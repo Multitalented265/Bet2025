@@ -11,22 +11,23 @@ import Link from "next/link";
 import Logo from "@/components/logo"
 
 export default async function HomePage() {
-  // Fetch data for the home page (no user authentication required)
-  const [candidates, adminSettings] = await Promise.all([
-    getCandidatesWithBetCounts(),
-    getAdminSettings()
-  ]);
+  try {
+    // Fetch data for the home page (no user authentication required)
+    const [candidates, adminSettings] = await Promise.all([
+      getCandidatesWithBetCounts(),
+      getAdminSettings()
+    ]);
 
-  console.log('📊 Home page candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
-  
-  const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
+    console.log('📊 Home page candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
+    
+    const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header with Login/Signup buttons */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <Logo />
+            <Logo size="lg" />
           <div className="flex gap-3">
             <Button asChild variant="outline" size="sm">
               <Link href="/login">
@@ -187,4 +188,15 @@ export default async function HomePage() {
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('Error loading home page:', error);
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+          <p className="text-muted-foreground">Please refresh the page if this persists.</p>
+        </div>
+      </div>
+    );
+  }
 }

@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
       if (res.ok) {
         const data = await res.json();
         maintenanceEnabled = Boolean(data.maintenanceMode);
-        maintenanceCache.set(maintenanceCacheKey, { value: maintenanceEnabled, expires: now + 5_000 }); // 5s TTL
+        maintenanceCache.set(maintenanceCacheKey, { value: maintenanceEnabled, expires: now + 2_000 }); // 2s TTL for faster updates
       }
     } catch (_) {
       maintenanceEnabled = process.env.MAINTENANCE_MODE === 'true';
