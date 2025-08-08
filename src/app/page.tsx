@@ -25,8 +25,8 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header with Login/Signup buttons */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+      <header className="bg-card">
+        <div className="container mx-auto px-4 py-2 flex justify-between items-center">
             <Logo size="xl" className="sm:h-16 md:h-20 lg:h-24" />
           <div className="flex gap-3">
             <Button asChild variant="outline" size="sm">
@@ -46,7 +46,7 @@ export default async function HomePage() {
       </header>
 
       {/* Main content */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-6">
           <div>
             <h1 className="text-3xl font-bold font-headline">Live Betting Pool</h1>
