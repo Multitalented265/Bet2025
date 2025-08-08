@@ -3,15 +3,26 @@
 
 import { revalidatePath } from "next/cache";
 import { getAdminSettings, finalizeElection, updateAdminSettings } from "@/lib/data";
+import type { AdminSettings as AdminSettingsType } from "@/lib/data";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
-export async function fetchAdminSettings() {
+export async function fetchAdminSettings(): Promise<AdminSettingsType> {
   try {
-    const settings = await getAdminSettings();
-    return settings;
+    const raw = await getAdminSettings() as any;
+    const normalized: AdminSettingsType = {
+      id: raw.id,
+      enable2fa: Boolean(raw.enable2fa),
+      notifyOnNewUser: Boolean(raw.notifyOnNewUser),
+      notifyOnNewUserLogin: Boolean(raw.notifyOnNewUserLogin),
+      notifyOnLargeBet: Boolean(raw.notifyOnLargeBet),
+      notifyOnLargeDeposit: Boolean(raw.notifyOnLargeDeposit),
+      bettingEnabled: Boolean(raw.bettingEnabled),
+      maintenanceMode: Boolean(raw.maintenanceMode ?? false),
+    };
+    return normalized;
   } catch (error) {
     console.error('Error fetching admin settings:', error);
     throw new Error('Failed to fetch admin settings');
@@ -67,16 +78,33 @@ export async function handleAdminNotificationSettings(formData: FormData) {
   const notifyOnNewUserLogin = formData.get("newUserLogin") === "on";
   const notifyOnLargeBet = formData.get("largeBet") === "on";
   const notifyOnLargeDeposit = formData.get("largeDeposit") === "on";
+  const maintenanceMode = formData.get("maintenanceMode") === "on";
 
   await updateAdminSettings({
     enable2fa,
     notifyOnNewUser,
     notifyOnNewUserLogin,
     notifyOnLargeBet,
-    notifyOnLargeDeposit
-  });
+    notifyOnLargeDeposit,
+    maintenanceMode
+  } as any);
 
   revalidatePath("/admin/settings");
+  return { success: true };
+}
+
+export async function toggleMaintenanceMode(enabled: boolean) {
+  const session = await getAdminSession();
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  await prisma.adminSettings.update({
+    where: { id: 1 },
+    data: { maintenanceMode: enabled } as any,
+  });
+
+  // No need to revalidate routes; middleware will pick up via API
   return { success: true };
 }
 

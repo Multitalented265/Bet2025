@@ -112,6 +112,7 @@ model AdminSettings {
   notifyOnLargeBet     Boolean @default(false)
   notifyOnLargeDeposit Boolean @default(true)
   bettingEnabled       Boolean @default(true)
+  maintenanceMode      Boolean @default(false)
 }
 
 model Admin {

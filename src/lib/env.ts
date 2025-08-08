@@ -36,4 +36,5 @@ export const env = {
   PAYCHANGU_RETURN_URL: process.env.PAYCHANGU_RETURN_URL!,
   ADMIN_EMAIL: process.env.ADMIN_EMAIL!,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD!,
+  MAINTENANCE_MODE: process.env.MAINTENANCE_MODE,
 }; 

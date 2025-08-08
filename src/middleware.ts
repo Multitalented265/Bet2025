@@ -51,6 +51,59 @@ function isRateLimited(key: string, maxRequests: number): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Maintenance mode: prefer DB flag via lightweight API to allow admin toggling
+  // Cache the flag with an in-memory Map during the process lifetime
+  const maintenanceCacheKey = 'maintenance-flag';
+  const maintenanceCache = (globalThis as any).__maintenanceCache || new Map();
+  (globalThis as any).__maintenanceCache = maintenanceCache;
+
+  let maintenanceEnabled = false;
+  const cached = maintenanceCache.get(maintenanceCacheKey);
+  const now = Date.now();
+  if (cached && cached.expires > now) {
+    maintenanceEnabled = cached.value;
+  } else {
+    try {
+      const res = await fetch(new URL('/api/admin/maintenance', request.url), { method: 'GET', cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        maintenanceEnabled = Boolean(data.maintenanceMode);
+        maintenanceCache.set(maintenanceCacheKey, { value: maintenanceEnabled, expires: now + 5_000 }); // 5s TTL
+      }
+    } catch (_) {
+      maintenanceEnabled = process.env.MAINTENANCE_MODE === 'true';
+    }
+  }
+
+  if (maintenanceEnabled) {
+    const allowList = [
+      '/maintenance',
+      '/admin', // allow admin to still access for toggling
+      '/api/paychangu/webhook', // payment webhooks must work
+      '/api/paychangu/webhook-monitor',
+      '/api/health',
+      '/favicon.ico',
+      '/_next', // next internals
+      '/assets',
+      '/public',
+      '/logo.png'
+    ];
+
+    const isAllowed =
+      allowList.some((p) => pathname === p || pathname.startsWith(p)) ||
+      (pathname.startsWith('/api/') && (
+        pathname.startsWith('/api/paychangu/webhook') ||
+        pathname.startsWith('/api/paychangu/webhook-monitor') ||
+        pathname.startsWith('/api/admin/maintenance') // allow checking/toggling
+      ));
+
+    if (!isAllowed) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/maintenance';
+      return NextResponse.rewrite(url);
+    }
+  }
   
   // Skip rate limiting for certain paths
   const skipRateLimitPaths = [
@@ -64,18 +117,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
-  // Rate limiting for all requests
-  const rateLimitKey = getRateLimitKey(request);
-  const isLoginAttempt = pathname === '/api/admin/login' && request.method === 'POST';
-  const maxRequests = isLoginAttempt ? LOGIN_RATE_LIMIT_MAX : RATE_LIMIT_MAX_REQUESTS;
-  
-  if (isRateLimited(rateLimitKey, maxRequests)) {
-    const clientIP = getClientIP(request);
-    console.log(`🚨 Rate limit exceeded for IP: ${clientIP} on path: ${pathname}`);
-    return NextResponse.json(
-      { error: 'Too many requests. Please try again later.' },
-      { status: 429 }
-    );
+  // Rate limiting only for API endpoints (and admin login attempts)
+  if (pathname.startsWith('/api') || (pathname === '/api/admin/login' && request.method === 'POST')) {
+    const rateLimitKey = getRateLimitKey(request);
+    const isLoginAttempt = pathname === '/api/admin/login' && request.method === 'POST';
+    const maxRequests = isLoginAttempt ? LOGIN_RATE_LIMIT_MAX : RATE_LIMIT_MAX_REQUESTS;
+
+    if (isRateLimited(rateLimitKey, maxRequests)) {
+      const clientIP = getClientIP(request);
+      console.log(`🚨 Rate limit exceeded for IP: ${clientIP} on path: ${pathname}`);
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
   }
   
   // Get the token from the session
@@ -148,14 +203,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/admin/:path*',
-    '/dashboard/:path*',
-    '/bets/:path*',
-    '/wallet/:path*',
-    '/profile/:path*',
-    '/settings/:path*',
-    '/support/:path*',
-    '/api/:path*',
-  ],
-}; 
+  matcher: ['/(.*)'],
+};

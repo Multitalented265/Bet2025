@@ -141,6 +141,7 @@ export default function AdminSettingsPage() {
         formData.append("newUserLogin", settings?.notifyOnNewUserLogin ? "on" : "off");
         formData.append("largeBet", settings?.notifyOnLargeBet ? "on" : "off");
         formData.append("largeDeposit", settings?.notifyOnLargeDeposit ? "on" : "off");
+        formData.append("maintenanceMode", settings?.maintenanceMode ? "on" : "off");
         startTransition(async () => {
             try {
                 await handleAdminNotificationSettings(formData);
@@ -398,10 +399,24 @@ export default function AdminSettingsPage() {
 
             <Card className="mt-6">
                 <CardHeader>
-                    <CardTitle>Admin Notifications</CardTitle>
-                    <CardDescription>Manage how you receive important system notifications.</CardDescription>
+                    <CardTitle>Admin Notifications & System</CardTitle>
+                    <CardDescription>Manage notifications and platform status.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="maintenance-mode" className="text-base">Maintenance Mode</Label>
+                            <p className="text-sm text-muted-foreground">
+                                When enabled, users see a maintenance page. Admin and webhooks remain accessible.
+                            </p>
+                        </div>
+                        <Switch 
+                          id="maintenance-mode" 
+                          name="maintenanceMode" 
+                          checked={settings?.maintenanceMode}
+                          onCheckedChange={(checked) => setSettings(s => s ? {...s, maintenanceMode: checked} : null)}
+                        />
+                    </div>
                     <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
                         <div className="space-y-0.5">
                             <Label htmlFor="new-user-notification" className="text-base">New User Registration</Label>

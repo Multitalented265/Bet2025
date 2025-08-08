@@ -72,6 +72,7 @@ export type AdminSettings = {
   notifyOnLargeBet: boolean;
   notifyOnLargeDeposit: boolean;
   bettingEnabled: boolean;
+  maintenanceMode: boolean;
 };
 
 // Cached data fetching functions
@@ -199,14 +200,24 @@ const getCachedAdminSettings = unstable_cache(
             notifyOnNewUserLogin: false,
             notifyOnLargeBet: false,
             notifyOnLargeDeposit: true,
-            bettingEnabled: true
-          }
+            bettingEnabled: true,
+            maintenanceMode: false
+          } as any
         });
-      } else if (settings.bettingEnabled === undefined) {
-        settings = await prisma.adminSettings.update({
-          where: { id: 1 },
-          data: { bettingEnabled: true }
-        });
+      } else {
+        const updateData: any = {};
+        if ((settings as any).bettingEnabled === undefined) {
+          updateData.bettingEnabled = true;
+        }
+        if ((settings as any).maintenanceMode === undefined) {
+          updateData.maintenanceMode = false;
+        }
+        if (Object.keys(updateData).length > 0) {
+          settings = await prisma.adminSettings.update({
+            where: { id: 1 },
+            data: updateData as any,
+          });
+        }
       }
       return settings;
     } catch (error) {
@@ -219,7 +230,8 @@ const getCachedAdminSettings = unstable_cache(
         notifyOnNewUserLogin: false,
         notifyOnLargeBet: false,
         notifyOnLargeDeposit: true,
-        bettingEnabled: true
+        bettingEnabled: true,
+        maintenanceMode: false
       };
     }
   },
@@ -584,7 +596,7 @@ export async function getAdminSettings() {
 export async function updateAdminSettings(data: Partial<Omit<AdminSettings, 'id'>>) {
     const updated = await prisma.adminSettings.update({
         where: { id: 1 },
-        data,
+        data: data as any,
     });
     revalidatePath('/admin/settings');
     return updated;
