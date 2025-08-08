@@ -3,12 +3,21 @@ import { prisma } from '@/lib/db';
 import { getAdminSession } from '@/lib/auth';
 import { refreshAdminSettingsCache } from '@/lib/cache-utils';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const settings = await prisma.adminSettings.findUnique({ where: { id: 1 } });
-    return NextResponse.json({ maintenanceMode: settings?.maintenanceMode ?? false, success: true });
+    return NextResponse.json(
+      { maintenanceMode: settings?.maintenanceMode ?? false, success: true },
+      { headers: { 'cache-control': 'no-store, no-cache, must-revalidate, max-age=0' } }
+    );
   } catch (error) {
-    return NextResponse.json({ maintenanceMode: false, success: true }, { status: 200 });
+    return NextResponse.json(
+      { maintenanceMode: false, success: true },
+      { status: 200, headers: { 'cache-control': 'no-store, no-cache, must-revalidate, max-age=0' } }
+    );
   }
 }
 

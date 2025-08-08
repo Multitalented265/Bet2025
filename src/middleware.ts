@@ -67,7 +67,11 @@ export async function middleware(request: NextRequest) {
     try {
       const res = await fetch(new URL('/api/admin/maintenance', request.url), {
         method: 'GET',
-        headers: { 'cache-control': 'no-cache' }
+        cache: 'no-store',
+        headers: {
+          'cache-control': 'no-cache',
+          'x-internal': 'maintenance-check'
+        }
       });
       if (res.ok) {
         const data = await res.json();
@@ -113,7 +117,8 @@ export async function middleware(request: NextRequest) {
     '/api/admin/clear-rate-limits',
     '/api/setup-admin',
     '/api/admin/setup',
-    '/api/admin/login' // Skip rate limiting for admin login
+    '/api/admin/login', // Skip rate limiting for admin login
+    '/api/admin/maintenance' // Allow internal maintenance checks
   ];
   
   if (skipRateLimitPaths.includes(pathname)) {
