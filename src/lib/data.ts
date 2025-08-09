@@ -243,42 +243,19 @@ const getCachedCandidatesWithBetCounts = unstable_cache(
   async () => {
     try {
       console.log('🔍 Fetching candidates with bet counts...');
+      // Get all candidates without filtering
       const candidates = await prisma.candidate.findMany({
         include: {
           bets: true
         },
-        where: {
-          status: 'Active' // Only get active candidates
-        },
-        orderBy: {
-          totalBets: 'desc'
-        }
+        orderBy: [
+          { status: 'asc' }, // Active candidates first
+          { totalBets: 'desc' } // Then by total bets
+        ]
       });
       
-      if (!candidates || candidates.length === 0) {
-        console.log('No active candidates found, fetching all candidates...');
-        // If no active candidates, get all candidates
-        const allCandidates = await prisma.candidate.findMany({
-          include: {
-            bets: true
-          },
-          orderBy: {
-            totalBets: 'desc'
-          }
-        });
-        
-        const result = allCandidates.map((c: any) => ({
-          ...c, 
-          totalBets: c.totalBets.toNumber(),
-          betCount: c.bets.length // Number of people who bet on this candidate
-        }));
-        
-        console.log('📊 Bet counts:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
-        return result;
-      }
-      
       const result = candidates.map((c: any) => ({
-        ...c, 
+        ...c,
         totalBets: c.totalBets.toNumber(),
         betCount: c.bets.length // Number of people who bet on this candidate
       }));
@@ -291,7 +268,7 @@ const getCachedCandidatesWithBetCounts = unstable_cache(
       return [];
     }
   },
-  ['candidates-with-bet-counts-v3'],
+  ['candidates-with-bet-counts-v4'],
   { revalidate: 5 } // Cache for 5 seconds to ensure fresh data
 );
 
