@@ -52,81 +52,7 @@ function isRateLimited(key: string, maxRequests: number): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for maintenance API endpoint to prevent circular calls
-  if (pathname === '/api/admin/maintenance') {
-    return NextResponse.next();
-  }
 
-  // Maintenance mode: prefer DB flag via lightweight API to allow admin toggling
-  // Cache the flag with an in-memory Map during the process lifetime
-  const maintenanceCacheKey = 'maintenance-flag';
-  const maintenanceCache = (globalThis as any).__maintenanceCache || new Map();
-  (globalThis as any).__maintenanceCache = maintenanceCache;
-
-  let maintenanceEnabled = false;
-  const cached = maintenanceCache.get(maintenanceCacheKey);
-  const now = Date.now();
-  if (cached && cached.expires > now) {
-    maintenanceEnabled = cached.value;
-    console.log(`🔧 [Middleware] Using cached maintenance mode: ${maintenanceEnabled} for path: ${pathname}`);
-  } else {
-    try {
-      const res = await fetch(new URL('/api/admin/maintenance', request.url), {
-        method: 'GET',
-        cache: 'no-store',
-        headers: {
-          'cache-control': 'no-cache',
-          'x-internal': 'maintenance-check'
-        }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        maintenanceEnabled = Boolean(data.maintenanceMode);
-        maintenanceCache.set(maintenanceCacheKey, { value: maintenanceEnabled, expires: now + 2_000 }); // 2s TTL for faster updates
-        console.log(`🔧 [Middleware] Fetched maintenance mode from API: ${maintenanceEnabled} for path: ${pathname}`);
-      } else {
-        console.log(`🔧 [Middleware] API request failed with status: ${res.status} for path: ${pathname}`);
-      }
-    } catch (error) {
-      maintenanceEnabled = process.env.MAINTENANCE_MODE === 'true';
-      console.log(`🔧 [Middleware] Fetch error, using env fallback: ${maintenanceEnabled} for path: ${pathname}`, error);
-    }
-  }
-
-  if (maintenanceEnabled) {
-    console.log(`🔧 [Middleware] Maintenance mode is enabled, checking path: ${pathname}`);
-    
-    const allowList = [
-      '/maintenance',
-      '/admin', // allow admin to still access for toggling
-      '/api/paychangu/webhook', // payment webhooks must work
-      '/api/paychangu/webhook-monitor',
-      '/api/admin', // allow all admin API endpoints
-      '/api/health',
-      '/favicon.ico',
-      '/_next', // next internals
-      '/assets',
-      '/public',
-      '/logo.png'
-    ];
-
-    const isAllowed =
-      allowList.some((p) => pathname === p || pathname.startsWith(p)) ||
-      (pathname.startsWith('/api/') && (
-        pathname.startsWith('/api/paychangu/webhook') ||
-        pathname.startsWith('/api/paychangu/webhook-monitor') ||
-        pathname.startsWith('/api/admin') // allow all admin API endpoints
-      ));
-
-    console.log(`🔧 [Middleware] Path ${pathname} is ${isAllowed ? 'ALLOWED' : 'BLOCKED'} during maintenance`);
-
-    if (!isAllowed) {
-      console.log(`🔧 [Middleware] Redirecting ${pathname} to /maintenance`);
-      const url = request.nextUrl.clone();
-      url.pathname = '/maintenance';
-      return NextResponse.rewrite(url);
-    }
-  }
   
   // Skip rate limiting for certain paths
   const skipRateLimitPaths = [
@@ -157,11 +83,21 @@ export async function middleware(request: NextRequest) {
     }
   }
   
-  // Get the token from the session
-  const token = await getToken({ 
-    req: request, 
-    secret: process.env.NEXTAUTH_SECRET 
-  });
+  // Get the token from the session with error handling
+  let token = null;
+  try {
+    token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET 
+    });
+    // Only log token status for debugging if needed
+    if (token) {
+      console.log(`🔍 Session token from cookies: Found`);
+    }
+  } catch (error) {
+    console.error(`🚨 Session token retrieval error:`, error);
+    // Continue without token - will handle authentication later
+  }
 
   // Protected routes that require authentication
   const protectedRoutes = [
@@ -189,9 +125,10 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/admin')) {
     // Security: Block access to admin routes from non-admin IPs in production
     if (process.env.NODE_ENV === 'production') {
-      const adminIPs = process.env.ADMIN_ALLOWED_IPS?.split(',') || [];
+      const adminIPs = process.env.ADMIN_ALLOWED_IPS?.split(',').filter(ip => ip.trim()) || [];
       const clientIP = getClientIP(request);
       
+      // Only apply IP restrictions if ADMIN_ALLOWED_IPS is explicitly set and not empty
       if (adminIPs.length > 0 && !adminIPs.includes(clientIP)) {
         console.log(`🚨 Unauthorized admin access attempt from IP: ${clientIP}`);
         return NextResponse.json(

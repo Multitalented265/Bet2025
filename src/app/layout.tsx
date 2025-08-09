@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/auth-provider';
 import { NavigationProvider } from '@/components/navigation-provider';
 import { Poppins, PT_Sans } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import MaintenanceWrapper from '@/components/maintenance-wrapper';
 
 const fontPoppins = Poppins({
   subsets: ['latin'],
@@ -34,7 +35,9 @@ export default function RootLayout({
       <body className={cn("font-body antialiased", fontPoppins.variable, fontPtSans.variable)} suppressHydrationWarning>
         <AuthProvider>
           <NavigationProvider>
-            {children}
+            <MaintenanceWrapper>
+              {children}
+            </MaintenanceWrapper>
             <Toaster />
           </NavigationProvider>
         </AuthProvider>

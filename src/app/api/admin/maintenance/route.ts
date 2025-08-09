@@ -14,8 +14,10 @@ export async function GET() {
       { headers: { 'cache-control': 'no-store, no-cache, must-revalidate, max-age=0' } }
     );
   } catch (error) {
+    console.error('Error fetching maintenance mode from database:', error);
+    // Default to maintenance mode disabled if database fails
     return NextResponse.json(
-      { maintenanceMode: false, success: true },
+      { maintenanceMode: false, success: true, fallback: true },
       { status: 200, headers: { 'cache-control': 'no-store, no-cache, must-revalidate, max-age=0' } }
     );
   }
@@ -34,11 +36,6 @@ export async function POST(request: NextRequest) {
     
     // Invalidate cache to ensure immediate update
     await refreshAdminSettingsCache();
-    
-    // Clear the maintenance cache in middleware
-    if ((globalThis as any).__maintenanceCache) {
-      (globalThis as any).__maintenanceCache.delete('maintenance-flag');
-    }
     
     // Small TTL bust: include timestamp so caches don't coalesce
     return NextResponse.json({ success: true, maintenanceMode: enabled, ts: Date.now() });
