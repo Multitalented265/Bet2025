@@ -18,7 +18,7 @@ export function BettingGrid({ candidates, user, bettingEnabled }: BettingGridPro
       </div>
       <ScrollArea className="w-full" style={{ height: '600px' }}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4">
-          {candidates.map((candidate) => (
+          {candidates.filter(c => c.status !== 'Withdrawn').map((candidate) => (
             <BettingCard
               key={candidate.id}
               candidate={candidate}

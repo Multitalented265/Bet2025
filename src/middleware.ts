@@ -52,6 +52,11 @@ function isRateLimited(key: string, maxRequests: number): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip middleware for maintenance API endpoint to prevent circular calls
+  if (pathname === '/api/admin/maintenance') {
+    return NextResponse.next();
+  }
+
   // Maintenance mode: prefer DB flag via lightweight API to allow admin toggling
   // Cache the flag with an in-memory Map during the process lifetime
   const maintenanceCacheKey = 'maintenance-flag';
@@ -63,6 +68,7 @@ export async function middleware(request: NextRequest) {
   const now = Date.now();
   if (cached && cached.expires > now) {
     maintenanceEnabled = cached.value;
+    console.log(`🔧 [Middleware] Using cached maintenance mode: ${maintenanceEnabled} for path: ${pathname}`);
   } else {
     try {
       const res = await fetch(new URL('/api/admin/maintenance', request.url), {
@@ -77,18 +83,25 @@ export async function middleware(request: NextRequest) {
         const data = await res.json();
         maintenanceEnabled = Boolean(data.maintenanceMode);
         maintenanceCache.set(maintenanceCacheKey, { value: maintenanceEnabled, expires: now + 2_000 }); // 2s TTL for faster updates
+        console.log(`🔧 [Middleware] Fetched maintenance mode from API: ${maintenanceEnabled} for path: ${pathname}`);
+      } else {
+        console.log(`🔧 [Middleware] API request failed with status: ${res.status} for path: ${pathname}`);
       }
-    } catch (_) {
+    } catch (error) {
       maintenanceEnabled = process.env.MAINTENANCE_MODE === 'true';
+      console.log(`🔧 [Middleware] Fetch error, using env fallback: ${maintenanceEnabled} for path: ${pathname}`, error);
     }
   }
 
   if (maintenanceEnabled) {
+    console.log(`🔧 [Middleware] Maintenance mode is enabled, checking path: ${pathname}`);
+    
     const allowList = [
       '/maintenance',
       '/admin', // allow admin to still access for toggling
       '/api/paychangu/webhook', // payment webhooks must work
       '/api/paychangu/webhook-monitor',
+      '/api/admin', // allow all admin API endpoints
       '/api/health',
       '/favicon.ico',
       '/_next', // next internals
@@ -102,10 +115,13 @@ export async function middleware(request: NextRequest) {
       (pathname.startsWith('/api/') && (
         pathname.startsWith('/api/paychangu/webhook') ||
         pathname.startsWith('/api/paychangu/webhook-monitor') ||
-        pathname.startsWith('/api/admin/maintenance') // allow checking/toggling
+        pathname.startsWith('/api/admin') // allow all admin API endpoints
       ));
 
+    console.log(`🔧 [Middleware] Path ${pathname} is ${isAllowed ? 'ALLOWED' : 'BLOCKED'} during maintenance`);
+
     if (!isAllowed) {
+      console.log(`🔧 [Middleware] Redirecting ${pathname} to /maintenance`);
       const url = request.nextUrl.clone();
       url.pathname = '/maintenance';
       return NextResponse.rewrite(url);
@@ -211,5 +227,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/(.*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 };

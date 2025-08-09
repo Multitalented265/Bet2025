@@ -46,7 +46,7 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
     return acc
   }, {} as any)
   
-  const sortedData = [...candidates].filter(c => c.status === 'Active').sort((a, b) => b.totalBets - a.totalBets);
+  const sortedData = [...candidates].filter(c => c.status !== 'Withdrawn').sort((a, b) => b.totalBets - a.totalBets);
 
   // Calculate dynamic height based on number of candidates
   const minHeight = 300; // Minimum height for empty state
