@@ -32,7 +32,7 @@ export function Header() {
       <div className="hidden w-full md:flex md:items-center md:justify-between">
         <div className="flex items-center gap-6">
           <Link href="/dashboard">
-              <Logo size="xs" />
+              <Logo size="sm" />
           </Link>
           <TopNav />
         </div>
@@ -94,7 +94,7 @@ export function Header() {
         {/* Mobile Logo */}
         <div className="justify-self-center">
           <Link href="/dashboard">
-            <Logo size="xs" />
+            <Logo size="sm" />
           </Link>
         </div>
         
