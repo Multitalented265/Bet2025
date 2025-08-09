@@ -3,7 +3,8 @@ import { BettingGrid } from "@/components/betting-grid"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Info, PartyPopper } from "lucide-react";
-import { getCandidates, getUserById, getAdminSettings } from "@/lib/data";
+import { getCandidates, getUserById } from "@/lib/data";
+import { getBettingStatus } from "@/lib/betting";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { User, CandidateData } from "@/lib/data";
@@ -17,10 +18,10 @@ export default async function Dashboard() {
     }
 
     // Fetch all data in parallel for better performance
-    const [user, candidates, adminSettings] = await Promise.all([
+    const [user, candidates, bettingEnabled] = await Promise.all([
       getUserById(session.user.id),
       getCandidates(),
-      getAdminSettings()
+      getBettingStatus()
     ]);
 
     console.log('📊 Dashboard candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
@@ -115,7 +116,7 @@ export default async function Dashboard() {
       </Card>
 
       <div>
-        <BettingGrid candidates={candidates} user={user} bettingEnabled={adminSettings.bettingEnabled} />
+        <BettingGrid candidates={candidates} user={user} bettingEnabled={bettingEnabled} />
       </div>
     </div>
   );

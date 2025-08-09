@@ -99,7 +99,7 @@ export function BettingCard({ candidate, disabled = false, bettingEnabled = true
                   className="object-cover object-center"
                   priority
                   fallbackText={candidate.name.charAt(0)}
-                  fallbackClassName="absolute inset-0 rounded-full text-3xl font-bold bg-muted flex items-center justify-center"
+                  fallbackClassName="absolute inset-0 rounded-full text-3xl font-bold"
                 />
                 {candidate.status === 'Withdrawn' && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center">

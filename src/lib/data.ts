@@ -79,35 +79,49 @@ export type AdminSettings = {
 const getCachedCandidates = unstable_cache(
   async () => {
     try {
+      console.log('🔍 Fetching candidates...');
       const candidates = await prisma.candidate.findMany({
         include: {
-          bets: {
-            select: {
-              id: true,
-              amount: true
-            }
-          }
+          bets: true
         },
-        orderBy: [
-          { status: 'asc' }, // Active candidates first
-          { totalBets: 'desc' } // Then by total bets
-        ]
+        where: {
+          status: 'Active' // Only get active candidates
+        },
+        orderBy: {
+          totalBets: 'desc'
+        }
       });
       
-      return candidates.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        image: c.image,
-        hint: c.hint,
-        color: c.color,
-        status: c.status,
+      if (!candidates || candidates.length === 0) {
+        console.log('No active candidates found, fetching all candidates...');
+        // If no active candidates, get all candidates
+        const allCandidates = await prisma.candidate.findMany({
+          include: {
+            bets: true
+          },
+          orderBy: {
+            totalBets: 'desc'
+          }
+        });
+        
+        const result = allCandidates.map((c: any) => ({
+          ...c, 
+          totalBets: c.totalBets.toNumber(),
+          betCount: c.bets.length // Number of people who bet on this candidate
+        }));
+        
+        console.log('📊 Candidates:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
+        return result;
+      }
+      
+      const result = candidates.map((c: any) => ({
+        ...c, 
         totalBets: c.totalBets.toNumber(),
-        betCount: c.bets.length, // Number of people who bet on this candidate
-        bets: c.bets.map((b: any) => ({
-          ...b,
-          amount: b.amount.toNumber()
-        }))
+        betCount: c.bets.length // Number of people who bet on this candidate
       }));
+      
+      console.log('📊 Candidates:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
+      return result;
     } catch (error) {
       console.error('Error fetching candidates:', error);
       // Return empty array during build if database is not available
@@ -266,35 +280,44 @@ const getCachedCandidatesWithBetCounts = unstable_cache(
   async () => {
     try {
       console.log('🔍 Fetching candidates with bet counts...');
-      // Get all candidates without filtering
       const candidates = await prisma.candidate.findMany({
         include: {
-          bets: {
-            select: {
-              id: true,
-              amount: true
-            }
-          }
+          bets: true
         },
-        orderBy: [
-          { status: 'asc' }, // Active candidates first
-          { totalBets: 'desc' } // Then by total bets
-        ]
+        where: {
+          status: 'Active' // Only get active candidates
+        },
+        orderBy: {
+          totalBets: 'desc'
+        }
       });
       
+      if (!candidates || candidates.length === 0) {
+        console.log('No active candidates found, fetching all candidates...');
+        // If no active candidates, get all candidates
+        const allCandidates = await prisma.candidate.findMany({
+          include: {
+            bets: true
+          },
+          orderBy: {
+            totalBets: 'desc'
+          }
+        });
+        
+        const result = allCandidates.map((c: any) => ({
+          ...c, 
+          totalBets: c.totalBets.toNumber(),
+          betCount: c.bets.length // Number of people who bet on this candidate
+        }));
+        
+        console.log('📊 Bet counts:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
+        return result;
+      }
+      
       const result = candidates.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        image: c.image,
-        hint: c.hint,
-        color: c.color,
-        status: c.status,
+        ...c, 
         totalBets: c.totalBets.toNumber(),
-        betCount: c.bets.length, // Number of people who bet on this candidate
-        bets: c.bets.map((b: any) => ({
-          ...b,
-          amount: b.amount.toNumber()
-        }))
+        betCount: c.bets.length // Number of people who bet on this candidate
       }));
       
       console.log('📊 Bet counts:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
@@ -305,7 +328,7 @@ const getCachedCandidatesWithBetCounts = unstable_cache(
       return [];
     }
   },
-  ['candidates-with-bet-counts-v4'],
+  ['candidates-with-bet-counts-v3'],
   { revalidate: 5 } // Cache for 5 seconds to ensure fresh data
 );
 
