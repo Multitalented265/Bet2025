@@ -16,6 +16,22 @@ type PublicHomeProps = {
 }
 
 export function PublicHome({ candidates }: PublicHomeProps) {
+  console.log('🏠 PublicHome received candidates:', candidates?.length || 0);
+  console.log('🏠 PublicHome candidates data:', candidates);
+  
+  // Safety check for candidates
+  if (!candidates || !Array.isArray(candidates)) {
+    console.error('❌ PublicHome: candidates is not a valid array:', candidates);
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading Candidates...</h1>
+          <p className="text-muted-foreground">Please refresh if this persists.</p>
+        </div>
+      </div>
+    );
+  }
+  
   const totalPot = candidates.reduce((acc: number, curr: CandidateWithBetCount) => acc + curr.totalBets, 0);
 
   return (
@@ -146,7 +162,13 @@ export function PublicHome({ candidates }: PublicHomeProps) {
             </div>
             <ScrollArea className="w-full" style={{ height: '600px' }}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4">
-                {candidates.map((candidate) => (
+                {candidates.length === 0 ? (
+                  <div className="col-span-full text-center py-12">
+                    <h3 className="text-xl font-semibold mb-2">No Candidates Available</h3>
+                    <p className="text-muted-foreground">Candidates will appear here when they are added.</p>
+                  </div>
+                ) : (
+                  candidates.map((candidate) => (
                   <Card key={candidate.id} className="w-full h-full flex flex-col transform transition-all duration-300 opacity-70">
                     <CardHeader className="flex-shrink-0">
                       <CardTitle className="text-center font-headline text-xl md:text-2xl line-clamp-2 min-h-[3rem] flex items-center justify-center">
@@ -176,7 +198,8 @@ export function PublicHome({ candidates }: PublicHomeProps) {
                       </Button>
                     </CardFooter>
                   </Card>
-                ))}
+                  ))
+                )}
               </div>
             </ScrollArea>
           </div>

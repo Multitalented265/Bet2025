@@ -10,7 +10,7 @@ export default async function HomePage() {
 
     return <PublicHome candidates={candidates} />;
   } catch (error) {
-    console.error('Error loading home page:', error);
+    console.error('❌ Error loading home page:', error);
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
