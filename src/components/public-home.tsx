@@ -9,12 +9,14 @@ import type { CandidateData } from "@/lib/data";
 import Link from "next/link";
 import Logo from "@/components/logo"
 
+type CandidateWithBetCount = CandidateData & { betCount: number };
+
 type PublicHomeProps = {
-  candidates: CandidateData[];
+  candidates: CandidateWithBetCount[];
 }
 
 export function PublicHome({ candidates }: PublicHomeProps) {
-  const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
+  const totalPot = candidates.reduce((acc: number, curr: CandidateWithBetCount) => acc + curr.totalBets, 0);
 
   return (
     <div className="min-h-screen bg-background">
