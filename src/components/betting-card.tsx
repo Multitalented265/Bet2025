@@ -74,7 +74,7 @@ export function BettingCard({ candidate, disabled = false, bettingEnabled = true
   const getButtonText = () => {
     if (isPending) return 'Placing Bet...';
     if (candidate.status === 'Withdrawn') return 'Betting Closed';
-    if (disabled) return 'Election Over';
+    if (disabled) return 'Login to Place Bet';
     if (!bettingEnabled) return 'Betting Stopped';
     return 'Place Bet';
   }
