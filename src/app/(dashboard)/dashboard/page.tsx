@@ -9,8 +9,6 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { User, CandidateData } from "@/lib/data";
 
-type CandidateWithBetCount = CandidateData & { betCount: number };
-
 export default async function Dashboard() {
   try {
     const session = await getSession();
@@ -32,7 +30,7 @@ export default async function Dashboard() {
       return redirect("/login");
     }
     
-    const totalPot = candidates.reduce((acc: number, curr: CandidateWithBetCount) => acc + curr.totalBets, 0);
+    const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
 
   return (
     <div className="flex flex-col gap-6">
