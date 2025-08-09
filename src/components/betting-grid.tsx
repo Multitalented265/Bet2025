@@ -6,7 +6,7 @@ import type { CandidateData, User } from "@/lib/data"
 
 type BettingGridProps = {
   candidates: CandidateData[];
-  user: User | null;
+  user: User;
   bettingEnabled: boolean;
 }
 
@@ -22,7 +22,7 @@ export function BettingGrid({ candidates, user, bettingEnabled }: BettingGridPro
             <BettingCard
               key={candidate.id}
               candidate={candidate}
-              disabled={user === null}
+              disabled={false}
               bettingEnabled={bettingEnabled}
             />
           ))}
