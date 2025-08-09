@@ -102,7 +102,7 @@ export default function LoginPage() {
       <Card className="w-full h-screen sm:h-auto sm:w-full sm:max-w-sm border-0 sm:border sm:rounded-lg">
         <CardContent className="pt-4 sm:pt-2">
           <div className="flex justify-center mb-4">
-            <Logo size="lg" />
+            <Logo size="md" />
           </div>
           <CardTitle className="text-2xl font-headline text-center mb-2">Welcome Back</CardTitle>
           <CardDescription className="text-center mb-6">
