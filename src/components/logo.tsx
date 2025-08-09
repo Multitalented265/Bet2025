@@ -15,40 +15,40 @@ export default function Logo({
 }: LogoProps) {
   const sizeConfig = {
     xs: {
-      width: 120,
-      height: 48,
-      className: "h-6 w-auto",
-      sizes: "(max-width: 640px) 60px, (max-width: 768px) 80px, (max-width: 1024px) 100px, 120px"
+      width: 60,
+      height: 24,
+      className: "h-3 w-auto",
+      sizes: "(max-width: 640px) 30px, (max-width: 768px) 40px, (max-width: 1024px) 50px, 60px"
     },
     sm: {
-      width: 160,
-      height: 64,
-      className: "h-10 w-auto",
-      sizes: "(max-width: 640px) 100px, (max-width: 768px) 120px, (max-width: 1024px) 140px, 160px"
+      width: 80,
+      height: 32,
+      className: "h-5 w-auto",
+      sizes: "(max-width: 640px) 50px, (max-width: 768px) 60px, (max-width: 1024px) 70px, 80px"
     },
     md: {
-      width: 200,
-      height: 80,
-      className: "h-14 w-auto",
-      sizes: "(max-width: 640px) 140px, (max-width: 768px) 160px, (max-width: 1024px) 180px, 200px"
+      width: 100,
+      height: 40,
+      className: "h-7 w-auto",
+      sizes: "(max-width: 640px) 70px, (max-width: 768px) 80px, (max-width: 1024px) 90px, 100px"
     },
     lg: {
-      width: 260,
-      height: 104,
-      className: "h-20 w-auto",
-      sizes: "(max-width: 640px) 180px, (max-width: 768px) 220px, (max-width: 1024px) 240px, 260px"
+      width: 130,
+      height: 52,
+      className: "h-10 w-auto",
+      sizes: "(max-width: 640px) 90px, (max-width: 768px) 110px, (max-width: 1024px) 120px, 130px"
     },
     xl: {
-      width: 320,
-      height: 128,
-      className: "h-24 w-auto",
-      sizes: "(max-width: 640px) 220px, (max-width: 768px) 260px, (max-width: 1024px) 300px, 320px"
+      width: 160,
+      height: 64,
+      className: "h-12 w-auto",
+      sizes: "(max-width: 640px) 110px, (max-width: 768px) 130px, (max-width: 1024px) 150px, 160px"
     },
     xxl: {
-      width: 400,
-      height: 160,
-      className: "h-32 w-auto",
-      sizes: "(max-width: 640px) 280px, (max-width: 768px) 320px, (max-width: 1024px) 360px, 400px"
+      width: 200,
+      height: 80,
+      className: "h-16 w-auto",
+      sizes: "(max-width: 640px) 140px, (max-width: 768px) 160px, (max-width: 1024px) 180px, 200px"
     }
   };
 
