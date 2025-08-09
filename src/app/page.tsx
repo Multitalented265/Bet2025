@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Info, PartyPopper, LogIn, UserPlus } from "lucide-react";
-import { getCandidatesWithBetCounts, getAdminSettings } from "@/lib/data";
+import { getCandidates, getAdminSettings } from "@/lib/data";
 import type { CandidateData } from "@/lib/data";
 import Link from "next/link";
 import Logo from "@/components/logo"
@@ -14,7 +14,7 @@ export default async function HomePage() {
   try {
     // Fetch data for the home page (no user authentication required)
     const [candidates, adminSettings] = await Promise.all([
-      getCandidatesWithBetCounts(),
+      getCandidates(),
       getAdminSettings()
     ]);
 

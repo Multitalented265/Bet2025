@@ -3,7 +3,7 @@ import { BettingGrid } from "@/components/betting-grid"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Info, PartyPopper } from "lucide-react";
-import { getCandidatesWithBetCounts, getUserById, getAdminSettings } from "@/lib/data";
+import { getCandidates, getUserById, getAdminSettings } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { User, CandidateData } from "@/lib/data";
@@ -19,7 +19,7 @@ export default async function Dashboard() {
     // Fetch all data in parallel for better performance
     const [user, candidates, adminSettings] = await Promise.all([
       getUserById(session.user.id),
-      getCandidatesWithBetCounts(),
+      getCandidates(),
       getAdminSettings()
     ]);
 

@@ -47,11 +47,16 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
   }, {} as any)
   
   // Debug logging
-  console.log('🔍 [DashboardChart] All candidates:', candidates.map(c => `${c.name} (status: ${c.status})`));
+  console.log('🔍 [DashboardChart] All candidates:', candidates.map(c => `${c.name} (status: ${c.status}, totalBets: ${c.totalBets})`));
   
-  const sortedData = [...candidates].sort((a, b) => b.totalBets - a.totalBets);
+  // Filter out any candidates with undefined required fields
+  const validCandidates = candidates.filter(c => 
+    c && c.name && typeof c.totalBets === 'number' && c.status && c.color
+  );
   
-  console.log('🔍 [DashboardChart] Filtered candidates:', sortedData.map(c => `${c.name} (status: ${c.status})`));
+  const sortedData = [...validCandidates].sort((a, b) => b.totalBets - a.totalBets);
+  
+  console.log('🔍 [DashboardChart] Sorted candidates:', sortedData.map(c => `${c.name} (status: ${c.status}, totalBets: ${c.totalBets})`));
 
   // Calculate dynamic height based on number of candidates
   const minHeight = 300; // Minimum height for empty state
