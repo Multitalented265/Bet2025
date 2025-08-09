@@ -1,12 +1,11 @@
 
-import { PublicBettingCard } from "../components/public-betting-card"
+import { BettingGrid } from "@/components/betting-grid"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Info, PartyPopper, LogIn, UserPlus } from "lucide-react";
-import { getCandidates } from "@/lib/data";
-import { getBettingStatus } from "@/lib/betting";
+import { getCandidatesWithBetCounts, getAdminSettings } from "@/lib/data";
 import type { CandidateData } from "@/lib/data";
 import Link from "next/link";
 import Logo from "@/components/logo"
@@ -14,9 +13,9 @@ import Logo from "@/components/logo"
 export default async function HomePage() {
   try {
     // Fetch data for the home page (no user authentication required)
-    const [candidates, bettingEnabled] = await Promise.all([
-      getCandidates(),
-      getBettingStatus()
+    const [candidates, adminSettings] = await Promise.all([
+      getCandidatesWithBetCounts(),
+      getAdminSettings()
     ]);
 
     console.log('📊 Home page candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
@@ -152,11 +151,35 @@ export default async function HomePage() {
             <ScrollArea className="w-full" style={{ height: '600px' }}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4">
                 {candidates.map((candidate) => (
-                  <PublicBettingCard
-                    key={candidate.id}
-                    candidate={candidate}
-                    bettingEnabled={bettingEnabled}
-                  />
+                  <Card key={candidate.id} className="w-full h-full flex flex-col transform transition-all duration-300 opacity-70">
+                    <CardHeader className="flex-shrink-0">
+                      <CardTitle className="text-center font-headline text-xl md:text-2xl line-clamp-2 min-h-[3rem] flex items-center justify-center">
+                        {candidate.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center space-y-4 flex-grow">
+                      <div className="relative h-32 w-32 md:h-36 md:w-36 overflow-hidden rounded-full border-4 border-primary shadow-lg flex-shrink-0">
+                        <img
+                          src={candidate.image}
+                          alt={`Photo of ${candidate.name}`}
+                          className="object-cover object-center w-full h-full"
+                        />
+                        {candidate.status === 'Withdrawn' && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <span className="text-white font-bold text-sm md:text-lg rotate-[-15deg] border-2 border-white p-2 rounded">WITHDRAWN</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-center">
+                        <p className="text-muted-foreground">Login or sign up to place your bet</p>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex-shrink-0">
+                      <Button disabled className="w-full font-bold">
+                        Login to Place Bet
+                      </Button>
+                    </CardFooter>
+                  </Card>
                 ))}
               </div>
             </ScrollArea>
