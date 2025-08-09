@@ -100,7 +100,7 @@ export default function LoginPage() {
   return (
     <div className="flex sm:items-center sm:justify-center min-h-screen bg-primary sm:p-4">
       <Card className="w-full h-screen sm:h-auto sm:w-full sm:max-w-sm border-0 sm:border sm:rounded-lg">
-        <CardContent className="pt-4 sm:pt-2">
+        <CardContent className="pt-4 sm:pt-8 flex flex-col justify-center min-h-full sm:min-h-0">
           <div className="flex justify-center mb-4">
             <Logo size="md" />
           </div>

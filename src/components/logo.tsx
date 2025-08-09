@@ -27,8 +27,8 @@ export default function Logo({
       sizes: "(max-width: 640px) 50px, (max-width: 768px) 60px, (max-width: 1024px) 70px, 80px"
     },
     md: {
-      width: 100,
-      height: 40,
+      width: 200,
+      height: 80,
       className: "h-7 w-auto",
       sizes: "(max-width: 640px) 70px, (max-width: 768px) 80px, (max-width: 1024px) 90px, 100px"
     },
@@ -64,6 +64,10 @@ export default function Logo({
       quality={100}
       sizes={config.sizes}
       className={cn(config.className, className)}
+      style={{
+        objectFit: 'contain',
+        imageRendering: 'crisp-edges'
+      }}
     />
   );
 
