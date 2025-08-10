@@ -3,7 +3,7 @@ import { PublicBettingCard } from "../components/public-betting-card"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Info, PartyPopper, LogIn, UserPlus } from "lucide-react";
 import { getCandidates } from "@/lib/data";
 import { getBettingStatus } from "@/lib/betting";
@@ -141,7 +141,7 @@ export default async function HomePage() {
             <div className="flex justify-between items-center">
               <h2 className="text-3xl font-bold font-headline">Place Your Bet</h2>
             </div>
-            <ScrollArea className="w-full" style={{ height: '600px' }} orientation="horizontal">
+            <ScrollArea className="w-full relative" style={{ height: '600px' }}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4 min-w-[300px]">
                 {candidates.map((candidate) => (
                   <PublicBettingCard
@@ -151,6 +151,7 @@ export default async function HomePage() {
                   />
                 ))}
               </div>
+              <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </div>
         </div>
