@@ -18,19 +18,25 @@ export default async function Dashboard() {
     }
 
     // Fetch all data in parallel for better performance
-    const [user, candidates, bettingEnabled] = await Promise.all([
+    const [user, rawCandidates, bettingEnabled] = await Promise.all([
       getUserById(session.user.id),
       getCandidates(),
       getBettingStatus()
     ]);
 
-    console.log('📊 Dashboard candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
+    // Add betCount to candidates for the chart
+    const candidates = rawCandidates.map(c => ({
+      ...c,
+      betCount: 0 // Since we don't have this info yet, default to 0
+    }));
+
+    console.log('📊 Dashboard candidates:', candidates.map(c => `${c.name} (${c.status})`));
 
     if (!user) {
       return redirect("/login");
     }
     
-    const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
+    const totalPot = candidates.reduce((acc: number, curr: CandidateData) => acc + curr.totalBets, 0);
 
   return (
     <div className="flex flex-col gap-6">

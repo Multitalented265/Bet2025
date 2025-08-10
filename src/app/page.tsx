@@ -14,14 +14,20 @@ import Logo from "@/components/logo"
 export default async function HomePage() {
   try {
     // Fetch data for the home page (no user authentication required)
-    const [candidates, bettingEnabled] = await Promise.all([
+        const [rawCandidates, bettingEnabled] = await Promise.all([
       getCandidates(),
       getBettingStatus()
     ]);
 
-    console.log('📊 Home page candidates with bet counts:', candidates.map(c => `${c.name}: ${c.betCount} bets`));
-    
-    const totalPot = candidates.reduce((acc: number, curr: CandidateData & { betCount: number }) => acc + curr.totalBets, 0);
+    // Add betCount to candidates for the chart
+    const candidates = rawCandidates.map(c => ({
+      ...c,
+      betCount: 0 // Since we don't have this info yet, default to 0
+    }));
+
+    console.log('📊 Home page candidates:', candidates.map(c => `${c.name} (${c.status})`));
+
+    const totalPot = candidates.reduce((acc: number, curr: CandidateData) => acc + curr.totalBets, 0);
 
   return (
     <div className="min-h-screen bg-background">
