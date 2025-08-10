@@ -9,7 +9,7 @@ import { getBets, getCandidates, getUsers, getAdminSettings, getBetStatistics } 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
-  const [candidates, users, bets, adminSettings, betStats] = await Promise.all([
+  const [rawCandidates, users, bets, adminSettings, betStats] = await Promise.all([
     getCandidates(),
     getUsers(),
     getBets(),
@@ -17,7 +17,9 @@ export default async function AdminDashboardPage() {
     getBetStatistics()
   ]);
 
-  const totalPot = candidates.reduce((acc, curr) => acc + curr.totalBets, 0);
+  const candidatesForChart = rawCandidates.map(c => ({ ...c, betCount: 0 }));
+
+  const totalPot = rawCandidates.reduce((acc, curr) => acc + curr.totalBets, 0);
   const userCount = users.length;
   const totalBetsCount = bets.length;
 
@@ -80,10 +82,10 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div>
-        <DashboardChart candidates={candidates} totalPot={totalPot} />
+        <DashboardChart candidates={candidatesForChart} totalPot={totalPot} />
       </div>
 
-      <AdminFinalizeElection candidates={candidates} bettingEnabled={adminSettings.bettingEnabled} />
+      <AdminFinalizeElection candidates={rawCandidates} bettingEnabled={adminSettings.bettingEnabled} />
     </div>
   );
 }
