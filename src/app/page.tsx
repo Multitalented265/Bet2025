@@ -141,8 +141,8 @@ export default async function HomePage() {
             <div className="flex justify-between items-center">
               <h2 className="text-3xl font-bold font-headline">Place Your Bet</h2>
             </div>
-            <ScrollArea className="w-full" style={{ height: '600px' }}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4">
+            <ScrollArea className="w-full" style={{ height: '600px' }} orientation="horizontal">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4 min-w-[300px]">
                 {candidates.map((candidate) => (
                   <PublicBettingCard
                     key={candidate.id}

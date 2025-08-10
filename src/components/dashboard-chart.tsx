@@ -65,11 +65,8 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Mobile-only horizontal scroll wrapper so content doesn't get cut off */}
-        <div className="overflow-x-auto sm:overflow-x-visible">
-          <div className="min-w-[680px]">
-            <ScrollArea className="w-full" style={{ height: `${dynamicHeight}px` }}>
-              <div className="space-y-3 pr-4">
+        <ScrollArea className="w-full" style={{ height: `${dynamicHeight}px` }}>
+          <div className="space-y-3 pr-4">
             {sortedData.map((candidate) => (
               <div key={candidate.id} className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
                 {/* Profile Picture */}
@@ -114,18 +111,16 @@ export function DashboardChart({ candidates, totalPot }: DashboardChartProps) {
                     />
                   </div>
                 </div>
-                </div>
-              ))}
-              
-              {sortedData.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  No active candidates found.
-                </div>
-              )}
               </div>
-            </ScrollArea>
+            ))}
+            
+            {sortedData.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No active candidates found.
+              </div>
+            )}
           </div>
-        </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   )
