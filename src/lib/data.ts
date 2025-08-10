@@ -104,33 +104,37 @@ const getCachedCandidates = unstable_cache(
           }
         });
         
-        const result = allCandidates.map((c: any) => ({
+        const result = allCandidates.map((c: any) => {
+          const candidate: CandidateData = {
+            id: c.id,
+            name: c.name,
+            image: c.image,
+            hint: c.hint,
+            color: c.color,
+            totalBets: c.totalBets.toNumber(),
+            status: c.status
+          };
+          return candidate;
+        });
+        
+        console.log('📊 Candidates:', result.map((c: any) => `${c.name} (${c.status})`));
+        return result;
+      }
+      
+      const result = candidates.map((c: any) => {
+        const candidate: CandidateData = {
           id: c.id,
           name: c.name,
           image: c.image,
           hint: c.hint,
           color: c.color,
           totalBets: c.totalBets.toNumber(),
-          status: c.status,
-          betCount: c.bets.length // Number of people who bet on this candidate
-        }));
-        
-        console.log('📊 Candidates:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
-        return result;
-      }
+          status: c.status
+        };
+        return candidate;
+      });
       
-      const result = candidates.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        image: c.image,
-        hint: c.hint,
-        color: c.color,
-        totalBets: c.totalBets.toNumber(),
-        status: c.status,
-        betCount: c.bets.length // Number of people who bet on this candidate
-      }));
-      
-      console.log('📊 Candidates:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
+      console.log('📊 Candidates:', result.map((c: any) => `${c.name} (${c.status})`));
       return result;
     } catch (error) {
       console.error('Error fetching candidates:', error);
