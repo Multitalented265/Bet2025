@@ -43,21 +43,7 @@ export async function POST(request: NextRequest) {
   // Use the first available signature
   const actualSignature = Object.values(alternativeSignatures).find(sig => sig) || signature
 
-  /* cleaned debug logging */
-    tx_ref: body.tx_ref,
-    reference: body.reference,
-    status: body.status,
-    amount: body.amount,
-    currency: body.currency,
-    event_type: body.event_type,
-    signature: actualSignature ? 'present' : 'missing',
-    has_meta: !!body.meta,
-    meta_userId: body.meta?.userId,
-    meta_transactionType: body.meta?.transactionType,
-    customer_email: body.customer?.email,
-    customer_name: body.customer ? `${body.customer.first_name} ${body.customer.last_name}` : 'N/A',
-    fullBody: JSON.stringify(body, null, 2)
-  })
+  
   
   // 🔍 ADDITIONAL DEBUG: Log all possible PayChangu fields
   
@@ -143,13 +129,6 @@ export async function POST(request: NextRequest) {
         last_name: body.last_name
       }
     }
-    
-    
-      tx_ref: webhookData.tx_ref,
-      amount: webhookData.amount,
-      status: webhookData.status,
-      meta: webhookData.meta
-    })
   }
   
   // 🔧 HANDLE PAYCHANGU RESPONSE FORMAT: If data is nested in a 'data' object
@@ -176,13 +155,6 @@ export async function POST(request: NextRequest) {
         amount: paymentLink.amount || paymentLink.payableAmount
       }
     }
-    
-    
-      tx_ref: webhookData.tx_ref,
-      amount: webhookData.amount,
-      currency: webhookData.currency,
-      customer_email: webhookData.customer?.email
-    })
   }
 
   // ✅ Validate webhook data structure
