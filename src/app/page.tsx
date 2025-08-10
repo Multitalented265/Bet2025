@@ -34,7 +34,7 @@ export default async function HomePage() {
       {/* Header with Login/Signup buttons */}
       <header className="bg-card">
         <div className="container mx-auto px-4 py-2 flex justify-between items-center">
-            <Logo size="xl" />
+            <Logo size="xs" />
           <div className="flex gap-3">
             <Button asChild variant="outline" size="sm">
               <Link href="/login">
@@ -140,20 +140,6 @@ export default async function HomePage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-3xl font-bold font-headline">Place Your Bet</h2>
-              <div className="flex gap-3">
-                <Button asChild variant="outline">
-                  <Link href="/login">
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Login to Bet
-                  </Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/signup">
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Sign Up to Bet
-                  </Link>
-                </Button>
-              </div>
             </div>
             <ScrollArea className="w-full" style={{ height: '600px' }}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pr-4">
