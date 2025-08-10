@@ -34,7 +34,7 @@ export default async function HomePage() {
       {/* Header with Login/Signup buttons */}
       <header className="bg-card">
         <div className="container mx-auto px-4 py-2 flex justify-between items-center">
-            <Logo size="xs" />
+            <Logo size="xl" className="h-6 sm:h-12" />
           <div className="flex gap-3">
             <Button asChild variant="outline" size="sm">
               <Link href="/login">
