@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { tx_ref, status } = body
 
-    console.log(`🔍 Manual transaction status update: tx_ref=${tx_ref}, status=${status}`)
+    
 
     if (!tx_ref || !status) {
       return NextResponse.json({ 
@@ -31,14 +31,14 @@ export async function POST(request: NextRequest) {
 
     // Get current transaction status
     const currentStatus = await WalletService.getTransactionStatus(tx_ref)
-    console.log(`🔍 Current status: ${currentStatus}`)
+    
 
     if (status === 'completed' && currentStatus === 'pending') {
       // Complete the withdrawal
       const result = await WalletService.completeWithdrawal(tx_ref, {})
       
       if (result.success) {
-        console.log(`✅ Transaction ${tx_ref} marked as completed`)
+        
         return NextResponse.json({
           success: true,
           message: 'Transaction status updated to completed',
@@ -46,14 +46,14 @@ export async function POST(request: NextRequest) {
           status: 'completed'
         })
       } else {
-        console.log(`❌ Failed to complete transaction ${tx_ref}: ${result.message}`)
+        
         return NextResponse.json({
           success: false,
           error: result.message
         }, { status: 200 })
       }
     } else {
-      console.log(`⚠️ Cannot update status from ${currentStatus} to ${status}`)
+      
       return NextResponse.json({
         success: false,
         error: `Cannot update status from ${currentStatus} to ${status}`

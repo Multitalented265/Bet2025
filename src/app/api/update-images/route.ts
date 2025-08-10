@@ -3,11 +3,11 @@ import { prisma } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 Updating candidate images via API...');
+    
     
     // Get all candidates
     const candidates = await prisma.candidate.findMany();
-    console.log(`Found ${candidates.length} candidates`);
+    
     
     const updates = [];
     
@@ -22,8 +22,7 @@ export async function POST(request: NextRequest) {
      };
      
      for (const candidate of candidates) {
-       console.log(`Processing: ${candidate.name} (ID: ${candidate.id})`);
-       console.log(`Current image: ${candidate.image}`);
+       
        
        // Get the real image URL for this candidate
        const imageUrl = candidateImages[candidate.name] || `https://picsum.photos/400/400?random=${candidate.id}`;
@@ -40,10 +39,10 @@ export async function POST(request: NextRequest) {
         newImage: imageUrl
       });
       
-      console.log(`✅ Updated ${candidate.name} with new image: ${imageUrl}`);
+      
     }
     
-    console.log('🎉 All candidate images updated successfully!');
+    
     
     return NextResponse.json({
       success: true,

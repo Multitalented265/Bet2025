@@ -3,10 +3,7 @@ import { getPayChanguBanks, getPayChanguOperators } from '@/lib/paychangu'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🏦 ===== BANKS ENDPOINT HIT =====')
-    console.log('📅 Timestamp:', new Date().toISOString())
-    console.log('🌐 Request URL:', request.url)
-    console.log('🔗 Request Method:', request.method)
+    
 
     // Fetch banks and operators from PayChangu
     const [banks, operators] = await Promise.all([
@@ -14,8 +11,7 @@ export async function GET(request: NextRequest) {
       getPayChanguOperators()
     ]);
 
-    console.log('💰 Banks fetched:', banks.length)
-    console.log('💰 Operators fetched:', operators.length)
+    
 
     return NextResponse.json({
       success: true,
@@ -38,13 +34,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🏦 ===== BANKS POST ENDPOINT HIT =====')
-    console.log('📅 Timestamp:', new Date().toISOString())
-    console.log('🌐 Request URL:', request.url)
-    console.log('🔗 Request Method:', request.method)
+    
     
     const body = await request.text()
-    console.log('📦 Request body:', body)
 
     // Fetch banks and operators from PayChangu
     const [banks, operators] = await Promise.all([
@@ -52,8 +44,7 @@ export async function POST(request: NextRequest) {
       getPayChanguOperators()
     ]);
 
-    console.log('💰 Banks fetched:', banks.length)
-    console.log('💰 Operators fetched:', operators.length)
+    
 
     return NextResponse.json({
       success: true,

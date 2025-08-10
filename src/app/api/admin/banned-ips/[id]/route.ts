@@ -36,7 +36,7 @@ export async function DELETE(
       data: { isActive: false }
     });
 
-    console.log(`IP ${bannedIP.ipAddress} unbanned by ${session.user.email}`);
+    
 
     return NextResponse.json({
       success: true,

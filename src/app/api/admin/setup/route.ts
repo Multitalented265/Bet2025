@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    console.log('✅ Admin account created successfully:', admin.email);
+    
     
     return NextResponse.json({
       success: true,

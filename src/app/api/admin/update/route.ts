@@ -63,7 +63,7 @@ export async function PUT(request: NextRequest) {
       data: updateData
     });
 
-    console.log('✅ Admin account updated successfully:', updatedAdmin.email);
+    
 
     return NextResponse.json({
       success: true,
@@ -119,7 +119,7 @@ export async function DELETE(request: NextRequest) {
       data: { isActive: false }
     });
 
-    console.log('✅ Admin account deactivated successfully:', existingAdmin.email);
+    
 
     return NextResponse.json({
       success: true,

@@ -14,11 +14,11 @@ export async function GET(request: NextRequest) {
     const txRef = searchParams.get('tx_ref')
     const action = searchParams.get('action') // 'check' or 'fix_stuck'
 
-    console.log(`🔍 Transaction status check: tx_ref=${txRef}, action=${action}`)
+    
 
     if (action === 'fix_stuck') {
       // Check and fix stuck pending transactions
-      console.log('🔄 Checking for stuck pending transactions...')
+      
       await WalletService.checkStuckPendingTransactions()
       
       return NextResponse.json({
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Get transaction status
     const status = await WalletService.getTransactionStatus(txRef)
     
-    console.log(`🔍 Transaction ${txRef} status: ${status}`)
+    
 
     return NextResponse.json({
       success: true,

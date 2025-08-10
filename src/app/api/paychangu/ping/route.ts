@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  console.log('🏓 ===== PING ENDPOINT HIT =====')
-  console.log('📅 Timestamp:', new Date().toISOString())
-  console.log('🌐 Request URL:', request.url)
-  console.log('🔗 Request Method:', request.method)
-  console.log('🔗 All Headers:', Object.fromEntries(request.headers.entries()))
+  
   
   return NextResponse.json({ 
     message: 'Pong! Webhook endpoint is reachable',
@@ -17,15 +13,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🏓 ===== PING POST ENDPOINT HIT =====')
-  console.log('📅 Timestamp:', new Date().toISOString())
-  console.log('🌐 Request URL:', request.url)
-  console.log('🔗 Request Method:', request.method)
-  console.log('🔗 All Headers:', Object.fromEntries(request.headers.entries()))
+  
   
   try {
     const body = await request.text()
-    console.log('📦 Request body:', body)
     
     return NextResponse.json({ 
       message: 'Pong! Webhook POST endpoint is reachable',

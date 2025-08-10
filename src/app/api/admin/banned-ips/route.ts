@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    console.log(`IP ${ipAddress} banned by ${session.user.email} for reason: ${reason}`);
+    
 
     return NextResponse.json({
       success: true,

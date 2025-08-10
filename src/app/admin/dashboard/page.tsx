@@ -18,9 +18,6 @@ export default async function AdminDashboardPage() {
 
   const candidatesForChart = rawCandidates.map(c => ({ ...c, betCount: 0 }));
 
-  console.log('[AdminDashboard] candidates length:', candidatesForChart.length);
-  console.log('[AdminDashboard] candidates:', candidatesForChart.map(c => `${c.name} (${c.status})`));
-
   const totalPot = rawCandidates.reduce((acc, curr) => acc + curr.totalBets, 0);
   const userCount = users.length;
   const totalBetsCount = bets.length;

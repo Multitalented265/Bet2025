@@ -4,22 +4,22 @@ import { clearAdminLoginAttempts } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🧹 Clearing rate limits and banned IPs...');
+    
     
     // Clear in-memory rate limiting
     clearAdminLoginAttempts();
     
     // Clear all banned IPs
     const deleteBannedIPs = await prisma.bannedIP.deleteMany({});
-    console.log(`✅ Deleted ${deleteBannedIPs.count} banned IP addresses`);
+    
     
     // Clear all admin sessions (this will log out all admins)
     const deleteSessions = await prisma.adminSession.deleteMany({});
-    console.log(`✅ Deleted ${deleteSessions.count} admin sessions`);
+    
     
     // Clear all admin login logs (optional - for privacy)
     const deleteLoginLogs = await prisma.adminLoginLog.deleteMany({});
-    console.log(`✅ Deleted ${deleteLoginLogs.count} admin login logs`);
+    
     
     return NextResponse.json({
       success: true,

@@ -37,12 +37,7 @@ export async function POST(request: NextRequest) {
     // Create data URL
     const dataUrl = `data:${file.type};base64,${base64String}`;
 
-    console.log('Image uploaded successfully:', {
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      dataUrlLength: dataUrl.length
-    });
+    
 
     return NextResponse.json({
       success: true,

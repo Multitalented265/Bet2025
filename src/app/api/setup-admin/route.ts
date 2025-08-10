@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔧 Setting up admin account...');
+    
     
     const body = await request.json();
     const { email, password, name } = body;
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    console.log('✅ Admin account created successfully!');
+    
     
     return NextResponse.json({
       success: true,

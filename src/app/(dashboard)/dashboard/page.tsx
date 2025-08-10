@@ -32,9 +32,6 @@ export default async function Dashboard() {
       betCount: 0 // default for now
     }));
 
-    console.log('📊 Dashboard candidates:', candidates.map(c => `${c.name} (${c.status})`));
-    console.log(`[Dashboard] candidates length: ${candidates.length}`);
-
     if (!user) {
       return redirect("/login");
     }
@@ -130,7 +127,6 @@ export default async function Dashboard() {
     </div>
   );
   } catch (error) {
-    console.error('Error loading dashboard:', error);
     return (
       <div className="flex flex-col gap-6">
         <div className="text-center py-8">

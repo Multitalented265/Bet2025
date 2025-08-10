@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     // In a real application, you would send an email here
     // For now, we'll just return success
-    console.log(`Password reset requested for ${email}. Reset token: ${resetToken}`)
+    
 
     return NextResponse.json({ 
       success: true, 

@@ -27,9 +27,6 @@ export default async function HomePage() {
       betCount: 0 // Since we don't have this info yet, default to 0
     }));
 
-    console.log('📊 Home page candidates:', candidates.map(c => `${c.name} (${c.status})`));
-    console.log(`[Home] candidates length: ${candidates.length}`);
-
     const totalPot = candidates.reduce((acc: number, curr: CandidateData) => acc + curr.totalBets, 0);
 
   return (
@@ -175,7 +172,6 @@ export default async function HomePage() {
     </div>
   );
   } catch (error) {
-    console.error('Error loading home page:', error);
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

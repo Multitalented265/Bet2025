@@ -33,7 +33,6 @@ export function AdminCandidatesClient({ initialCandidates }: { initialCandidates
 
   // Note: The component now receives candidates via props, no need to fetch here.
   const candidates = initialCandidates;
-  console.log('AdminCandidatesClient received candidates:', candidates);
 
   const onAddNewCandidate = async (formData: FormData) => {
     startTransition(async () => {

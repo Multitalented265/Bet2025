@@ -46,7 +46,6 @@ export function SafeImage({
   }
 
   const handleLoad = () => {
-    console.log('Image loaded successfully:', src);
     setImageLoaded(true)
   }
 

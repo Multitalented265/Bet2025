@@ -12,12 +12,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
   }
 
-  console.log('💰 ===== PAYMENT PROCESSING ENDPOINT =====')
-  console.log('📅 Timestamp:', new Date().toISOString())
+  
   
   try {
     const body = await request.json()
-    console.log('📦 Payment processing request:', JSON.stringify(body, null, 2))
+    
     
     // Handle different PayChangu response formats
     let paymentData = null
@@ -82,12 +81,12 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    console.log('💰 Extracted payment data:', paymentData)
+    
     
     // Check if transaction already exists
     const existingTransaction = await WalletService.getTransactionByTxRef(paymentData.tx_ref)
     if (existingTransaction) {
-      console.log(`⚠️ Transaction ${paymentData.tx_ref} already processed`)
+      
       return NextResponse.json({ 
         message: 'Transaction already processed',
         tx_ref: paymentData.tx_ref
@@ -107,8 +106,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: result.message }, { status: 400 })
     }
     
-    console.log('✅ Payment processed successfully:', result)
-    console.log('💰 ===== PAYMENT PROCESSING END =====')
+    
     
     return NextResponse.json({ 
       message: 'Payment processed successfully',
@@ -126,7 +124,6 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  console.log('💰 ===== PAYMENT PROCESSING STATUS =====')
   
   try {
     // Check database status

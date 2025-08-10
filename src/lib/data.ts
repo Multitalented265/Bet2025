@@ -79,13 +79,12 @@ export type AdminSettings = {
 const getCachedCandidates = unstable_cache(
   async () => {
     try {
-      console.log('🔍 Fetching candidates...');
       const candidates = await prisma.candidate.findMany({
         include: {
           bets: true
         },
         where: {
-          status: 'Active' // Only get active candidates
+          status: 'Active'
         },
         orderBy: {
           totalBets: 'desc'
@@ -93,7 +92,6 @@ const getCachedCandidates = unstable_cache(
       });
       
       if (!candidates || candidates.length === 0) {
-        console.log('No active candidates found, fetching all candidates...');
         // If no active candidates, get all candidates
         const allCandidates = await prisma.candidate.findMany({
           include: {
@@ -117,8 +115,6 @@ const getCachedCandidates = unstable_cache(
           return candidate;
         });
         
-        console.log('📊 Candidates:', result.map((c: any) => `${c.name} (${c.status})`));
-        console.log(`[getCandidates] returning ${result.length} candidates (fallback all)`);
         return result;
       }
       
@@ -135,17 +131,14 @@ const getCachedCandidates = unstable_cache(
         return candidate;
       });
       
-      console.log('📊 Candidates:', result.map((c: any) => `${c.name} (${c.status})`));
-      console.log(`[getCandidates] returning ${result.length} candidates (active)`);
       return result;
     } catch (error) {
       console.error('Error fetching candidates:', error);
-      // Return empty array during build if database is not available
       return [];
     }
   },
   ['candidates-v2'],
-  { revalidate: 5 } // Cache for 5 seconds to ensure fresh data
+  { revalidate: 5 }
 );
 
 const getCachedUsers = unstable_cache(
@@ -162,12 +155,11 @@ const getCachedUsers = unstable_cache(
       }));
     } catch (error) {
       console.error('Error fetching users:', error);
-      // Return empty array during build if database is not available
       return [];
     }
   },
   ['users'],
-  { revalidate: 60 } // Cache for 1 minute
+  { revalidate: 60 }
 );
 
 const getCachedBets = unstable_cache(
@@ -184,17 +176,16 @@ const getCachedBets = unstable_cache(
         candidateId: bet.candidateId,
         candidateName: bet.candidateName,
         amount: bet.amount.toNumber(),
-        placedDate: bet.placedDate.toISOString(), // Convert to ISO string for proper serialization
+        placedDate: bet.placedDate.toISOString(),
         status: bet.status,
       }));
     } catch (error) {
       console.error('Error fetching bets:', error);
-      // Return empty array during build if database is not available
       return [];
     }
   },
   ['bets'],
-  { revalidate: 10 } // Cache for 10 seconds (reduced for better responsiveness)
+  { revalidate: 10 }
 );
 
 const getCachedTransactions = unstable_cache(
@@ -212,12 +203,11 @@ const getCachedTransactions = unstable_cache(
       }));
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      // Return empty array during build if database is not available
       return [];
     }
   },
   ['transactions'],
-  { revalidate: 10 } // Cache for 10 seconds (reduced for better responsiveness)
+  { revalidate: 10 }
 );
 
 const getCachedUserById = unstable_cache(
@@ -234,7 +224,7 @@ const getCachedUserById = unstable_cache(
     }
   },
   ['user-by-id'],
-  { revalidate: 60 } // Cache for 1 minute
+  { revalidate: 60 }
 );
 
 const getCachedAdminSettings = unstable_cache(
@@ -275,7 +265,6 @@ const getCachedAdminSettings = unstable_cache(
       return settings;
     } catch (error) {
       console.error('Error in getAdminSettings:', error);
-      // Return default settings during build if database is not available
       return {
         id: 1,
         enable2fa: false,
@@ -289,19 +278,18 @@ const getCachedAdminSettings = unstable_cache(
     }
   },
   ['admin-settings'],
-  { revalidate: 5 } // Cache for 5 seconds (reduced for faster maintenance mode updates)
+  { revalidate: 5 }
 );
 
 const getCachedCandidatesWithBetCounts = unstable_cache(
   async () => {
     try {
-      console.log('🔍 Fetching candidates with bet counts...');
       const candidates = await prisma.candidate.findMany({
         include: {
           bets: true
         },
         where: {
-          status: 'Active' // Only get active candidates
+          status: 'Active'
         },
         orderBy: {
           totalBets: 'desc'
@@ -309,8 +297,6 @@ const getCachedCandidatesWithBetCounts = unstable_cache(
       });
       
       if (!candidates || candidates.length === 0) {
-        console.log('No active candidates found, fetching all candidates...');
-        // If no active candidates, get all candidates
         const allCandidates = await prisma.candidate.findMany({
           include: {
             bets: true
@@ -323,29 +309,24 @@ const getCachedCandidatesWithBetCounts = unstable_cache(
         const result = allCandidates.map((c: any) => ({
           ...c, 
           totalBets: c.totalBets.toNumber(),
-          betCount: c.bets.length // Number of people who bet on this candidate
+          betCount: c.bets.length
         }));
-        
-        console.log('📊 Bet counts:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
         return result;
       }
       
       const result = candidates.map((c: any) => ({
         ...c, 
         totalBets: c.totalBets.toNumber(),
-        betCount: c.bets.length // Number of people who bet on this candidate
+        betCount: c.bets.length
       }));
-      
-      console.log('📊 Bet counts:', result.map((c: any) => `${c.name}: ${c.betCount} bets`));
       return result;
     } catch (error) {
       console.error('Error fetching candidates with bet counts:', error);
-      // Return empty array during build if database is not available
       return [];
     }
   },
   ['candidates-with-bet-counts-v3'],
-  { revalidate: 5 } // Cache for 5 seconds to ensure fresh data
+  { revalidate: 5 }
 );
 
 // --- Candidates ---

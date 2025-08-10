@@ -33,7 +33,6 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
-  console.log("--- [Login Page] ---");
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -53,14 +52,11 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     startTransition(async () => {
       try {
-        console.log(`[Login Page] Attempting to sign in for email: ${data.email}`);
         const result = await signIn("credentials", {
           redirect: false,
           email: data.email,
           password: data.password,
         });
-
-        console.log("[Login Page] signIn result:", result);
 
         if (result?.error) {
           console.error("[Login Page] SignIn failed. Error:", result.error);
@@ -71,7 +67,6 @@ export default function LoginPage() {
             description: userFriendlyMessage,
           });
         } else if (result?.ok) {
-          console.log("[Login Page] SignIn successful. Redirecting to", callbackUrl);
           toast({
             title: "Login Successful",
             description: "Welcome back! Redirecting to your dashboard.",

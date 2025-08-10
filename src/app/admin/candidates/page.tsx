@@ -9,7 +9,6 @@ export const dynamic = 'force-dynamic';
 // It is `async` and fetches the initial data.
 export default async function AdminCandidatesPage() {
   const candidates = await getCandidates();
-  console.log('[AdminCandidatesPage] fetched candidates length:', candidates.length);
   
   // It then renders the Client Component, passing the data as props.
   return <AdminCandidatesClient initialCandidates={candidates} />;

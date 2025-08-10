@@ -101,8 +101,6 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
         if (result.success) {
           setBanks(result.data.banks || []);
           setOperators(result.data.operators || []);
-          console.log('🏦 Banks loaded:', result.data.banks?.length || 0);
-          console.log('📱 Operators loaded:', result.data.operators?.length || 0);
         }
       }
     } catch (error) {
@@ -134,16 +132,6 @@ export function WalletClient({ user, initialTransactions }: WalletClientProps) {
     
     // Fetch banks and operators when component mounts
     fetchBanksAndOperators();
-    
-    // Debug: Log transaction dates to help identify issues
-    if (initialTransactions.length > 0) {
-      console.log('🔍 Transaction dates debug:', initialTransactions.map(tx => ({
-        id: tx.id,
-        date: tx.date,
-        dateType: typeof tx.date,
-        formatted: formatTransactionDate(tx.date)
-      })));
-    }
   }, [user, initialTransactions]);
 
   const onTransaction = async (type: 'Deposit' | 'Withdrawal') => {

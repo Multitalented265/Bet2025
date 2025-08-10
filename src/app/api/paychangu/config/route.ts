@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { env } from '@/lib/env'
 
 export async function GET(request: NextRequest) {
-  console.log('🔍 ===== PAYCHANGU CONFIG VERIFICATION =====')
-  console.log('📅 Timestamp:', new Date().toISOString())
+  
   
   // Verify all required environment variables
   const config = {
@@ -34,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
   })
 
-  console.log('📋 Configuration validation:', validation)
+  
 
   return NextResponse.json({
     message: validation.allValid ? 'PayChangu configuration is valid' : 'PayChangu configuration has issues',

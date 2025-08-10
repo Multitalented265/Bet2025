@@ -15,23 +15,20 @@ export async function POST(request: NextRequest) {
   const logId = `webhook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   const timestamp = new Date().toISOString()
   
-  console.log(`🔔 ===== WEBHOOK MONITOR RECEIVED [${logId}] =====`)
-  console.log(`📅 Timestamp: ${timestamp}`)
-  console.log(`🌐 Request URL: ${request.url}`)
-  console.log(`📋 Request Method: ${request.method}`)
+  
   
   // Capture all headers
   const headers = Object.fromEntries(request.headers.entries())
-  console.log(`🔍 All Headers:`, JSON.stringify(headers, null, 2))
+  
   
   // Capture raw body
   const rawBody = await request.text()
-  console.log(`📦 Raw Body: ${rawBody}`)
+  
   
   let body
   try {
     body = JSON.parse(rawBody)
-    console.log(`✅ JSON parsed successfully`)
+    
   } catch (error) {
     console.error(`❌ JSON parse error: ${error}`)
     body = { rawText: rawBody }
@@ -55,8 +52,7 @@ export async function POST(request: NextRequest) {
     webhookLogs = webhookLogs.slice(-100)
   }
   
-  console.log(`✅ Webhook logged with ID: ${logId}`)
-  console.log(`📊 Total webhooks logged: ${webhookLogs.length}`)
+  
   
   return NextResponse.json({
     message: 'Webhook received by monitor',
@@ -67,7 +63,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  console.log('🔍 Webhook monitor dashboard accessed')
+  
   
   return NextResponse.json({
     message: 'Webhook Monitor Dashboard',
