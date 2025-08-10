@@ -105,8 +105,13 @@ const getCachedCandidates = unstable_cache(
         });
         
         const result = allCandidates.map((c: any) => ({
-          ...c, 
+          id: c.id,
+          name: c.name,
+          image: c.image,
+          hint: c.hint,
+          color: c.color,
           totalBets: c.totalBets.toNumber(),
+          status: c.status,
           betCount: c.bets.length // Number of people who bet on this candidate
         }));
         
@@ -115,8 +120,13 @@ const getCachedCandidates = unstable_cache(
       }
       
       const result = candidates.map((c: any) => ({
-        ...c, 
+        id: c.id,
+        name: c.name,
+        image: c.image,
+        hint: c.hint,
+        color: c.color,
         totalBets: c.totalBets.toNumber(),
+        status: c.status,
         betCount: c.bets.length // Number of people who bet on this candidate
       }));
       
