@@ -9,6 +9,8 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { User, CandidateData } from "@/lib/data";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Dashboard() {
   try {
     const session = await getSession();
@@ -27,10 +29,11 @@ export default async function Dashboard() {
     // Add betCount to candidates for the chart
     const candidates = rawCandidates.map(c => ({
       ...c,
-      betCount: 0 // Since we don't have this info yet, default to 0
+      betCount: 0 // default for now
     }));
 
     console.log('📊 Dashboard candidates:', candidates.map(c => `${c.name} (${c.status})`));
+    console.log(`[Dashboard] candidates length: ${candidates.length}`);
 
     if (!user) {
       return redirect("/login");

@@ -118,6 +118,7 @@ const getCachedCandidates = unstable_cache(
         });
         
         console.log('📊 Candidates:', result.map((c: any) => `${c.name} (${c.status})`));
+        console.log(`[getCandidates] returning ${result.length} candidates (fallback all)`);
         return result;
       }
       
@@ -135,6 +136,7 @@ const getCachedCandidates = unstable_cache(
       });
       
       console.log('📊 Candidates:', result.map((c: any) => `${c.name} (${c.status})`));
+      console.log(`[getCandidates] returning ${result.length} candidates (active)`);
       return result;
     } catch (error) {
       console.error('Error fetching candidates:', error);

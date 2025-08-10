@@ -11,10 +11,12 @@ import type { CandidateData } from "@/lib/data";
 import Link from "next/link";
 import Logo from "@/components/logo"
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   try {
     // Fetch data for the home page (no user authentication required)
-        const [rawCandidates, bettingEnabled] = await Promise.all([
+    const [rawCandidates, bettingEnabled] = await Promise.all([
       getCandidates(),
       getBettingStatus()
     ]);
@@ -26,6 +28,7 @@ export default async function HomePage() {
     }));
 
     console.log('📊 Home page candidates:', candidates.map(c => `${c.name} (${c.status})`));
+    console.log(`[Home] candidates length: ${candidates.length}`);
 
     const totalPot = candidates.reduce((acc: number, curr: CandidateData) => acc + curr.totalBets, 0);
 

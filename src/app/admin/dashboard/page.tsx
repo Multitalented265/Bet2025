@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Vote, CircleDollarSign } from "lucide-react";
 import { getBets, getCandidates, getUsers, getAdminSettings, getBetStatistics } from "@/lib/data";
 
-// Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
@@ -18,6 +17,9 @@ export default async function AdminDashboardPage() {
   ]);
 
   const candidatesForChart = rawCandidates.map(c => ({ ...c, betCount: 0 }));
+
+  console.log('[AdminDashboard] candidates length:', candidatesForChart.length);
+  console.log('[AdminDashboard] candidates:', candidatesForChart.map(c => `${c.name} (${c.status})`));
 
   const totalPot = rawCandidates.reduce((acc, curr) => acc + curr.totalBets, 0);
   const userCount = users.length;
